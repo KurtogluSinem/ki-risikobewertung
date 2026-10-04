@@ -33,9 +33,7 @@ Exportierte Bewertungen können sensible oder personenbezogene Angaben enthalten
 
 Die Startdatei `index.html` und alle Laufzeitdateien liegen im Projektstamm. Relative Pfade ermöglichen den Betrieb unter dem Repository-Unterpfad `/ki-risikobewertung/`. Ein Build-Schritt ist nicht erforderlich.
 
-Nach aktivierter Veröffentlichung ist die Anwendung voraussichtlich unter folgender Adresse erreichbar:
-
-`https://kurtoglusinem.github.io/ki-risikobewertung/`
+Nach aktivierter Veröffentlichung wird die konkrete Adresse im Repository unter „Settings → Pages“ angezeigt.
 
 ## Bekannte Einschränkungen
 
@@ -43,4 +41,3 @@ Nach aktivierter Veröffentlichung ist die Anwendung voraussichtlich unter folge
 - Rechtsstand, Quellen und Regelbasis müssen regelmäßig fachlich geprüft und aktualisiert werden.
 - Die Daten liegen nur im jeweils verwendeten Browserprofil vor; es gibt keine zentrale Synchronisierung oder Benutzerverwaltung.
 - GitHub Pages stellt statische Inhalte öffentlich bereit. Deshalb dürfen keine echten Bewertungsdaten, Zugangsdaten, vertraulichen Dokumente oder personenbezogenen Informationen in das Repository aufgenommen werden.
-

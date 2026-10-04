@@ -30,6 +30,11 @@ const qaDir=path.join(root,'tmp','ui-qa');
     if(await page.locator('#stepNavigation .status-neutral').count()!==8)throw new Error('Nicht alle Prüfschritte starten neutral.');
   });
 
+  await test('Sichtbare Versionsangaben entsprechen dem aktiven Daten- und Regelmodell',async()=>{
+    const text=await page.locator('.method-basis').textContent();
+    if(!text.includes('Prototyp 1.9 · Datenmodell 14')||!text.includes('Regelwerk 2.8'))throw new Error('Die sichtbaren Versionsangaben sind veraltet.');
+  });
+
   await test('Bloßes Öffnen verändert keinen Status',async()=>{
     await page.locator('#stepNavigation [data-step="0"]').click();
     if(await page.locator('#stepNavigation .status-neutral').count()!==8)throw new Error('Das Öffnen hat einen Status verändert.');
@@ -96,7 +101,7 @@ const qaDir=path.join(root,'tmp','ui-qa');
   });
 
   await test('Normaler Benutzerablauf synchronisiert Prüfbedarf ohne Klick auf den Synchronisierungsbutton',async()=>{
-    await page.evaluate(()=>{const api=window.__riskAppTest,s=api.exampleState();s.step=2;api.setStateForTest(s);});
+    await page.evaluate(()=>{const api=window.__riskAppTest,s=api.exampleState();s.step=2;s.form.tGeneralRequirements='yes';s.form.overallReasoning='Pilotbetrieb ist mit den dokumentierten Kontrollen zulässig; die CRA-Abgrenzung wurde für diesen Vergleichsfall geklärt.';s.registers.legal.forEach(item=>{item.status='resolved';item.result='Rechtsfrage für den Vergleichsfall geklärt.';item.blocking='no';item.ruleBlocking='no';});api.setStateForTest(s);});
     await page.locator('#stepNavigation [data-step="2"]').click();
     await page.locator('[data-field="purposeAlignment"]').selectOption('partial');
     const derived=await page.evaluate(()=>{const api=window.__riskAppTest,decision=api.overallDecision(false,true),state=api.getState(),pb=state.registers.legal.find(item=>item.id==='PB-DUTY-45'&&item.sourceActive!==false);return{decision:decision.code,pb,report:api.buildReport(api.buildReportData())};});
@@ -110,7 +115,7 @@ const qaDir=path.join(root,'tmp','ui-qa');
   });
 
   await test('Inaktive Registereinträge werden historisch getrennt und statusneutral angezeigt',async()=>{
-    const result=await page.evaluate(()=>{const api=window.__riskAppTest,s=api.exampleState(),before=api.overallDecision(false,true).code;s.registers.legal.push({id:'PB-HISTORISCH',derived:true,sourceStep:'7',sourceId:'alt',sourceActive:false,status:'open',blocking:'yes'});s.step=6;api.setStateForTest(s);return{before,after:api.overallDecision(false,true).code,review11:api.reviewOperationalResults().find(item=>item.id==='REVIEW-11').value};});
+    const result=await page.evaluate(()=>{const api=window.__riskAppTest,s=api.exampleState();s.form.tGeneralRequirements='yes';s.form.overallReasoning='Pilotbetrieb ist mit den dokumentierten Kontrollen zulässig; die CRA-Abgrenzung wurde für diesen Vergleichsfall geklärt.';s.registers.legal.forEach(item=>{item.status='resolved';item.result='Rechtsfrage für den Vergleichsfall geklärt.';item.blocking='no';item.ruleBlocking='no';});api.setStateForTest(s);const before=api.overallDecision(false,true).code;s.registers.legal.push({id:'PB-HISTORISCH',derived:true,sourceStep:'7',sourceId:'alt',sourceActive:false,status:'open',blocking:'yes'});s.step=6;api.setStateForTest(s);return{before,after:api.overallDecision(false,true).code,review11:api.reviewOperationalResults().find(item=>item.id==='REVIEW-11').value};});
     if(result.before!==result.after||result.review11!=='no')throw new Error('Inaktiver Registereintrag beeinflusst weiterhin den aktuellen Status.');
     const text=await page.locator('#stepContent').textContent();
     if(!text.includes('Historische beziehungsweise nicht mehr aktive Einträge')||!text.includes('PB-HISTORISCH'))throw new Error('Historischer Registereintrag wird nicht getrennt angezeigt.');
@@ -157,7 +162,7 @@ const qaDir=path.join(root,'tmp','ui-qa');
     await page.locator('#showEvidenceReportButton').click();
     if(await page.locator('.report-page').count()<14||!await page.locator('.evidence-report').count())throw new Error('Der vollständige Nachweisbericht enthält nicht alle erforderlichen Berichtsabschnitte.');
     const text=await page.locator('.report-area').textContent();
-    if(!text.includes('Bewertung abgeschlossen mit offenen Maßnahmen'))throw new Error('Der neutrale Bewertungsstatus fehlt.');
+    if(!text.includes('Bewertung nicht abschließbar'))throw new Error('Der für den bewusst widersprüchlichen Prüfstand abgeleitete Bewertungsstatus fehlt.');
     const forbidden=[['RELEASE','ABLE'].join(''),['Freigabe','fähig'].join(''),['Freigabe','empfehlung'].join(''),['Bericht mit',' Auflagen'].join('')];
     if(forbidden.some(term=>text.includes(term)))throw new Error('Eine alte automatische Freigabebezeichnung ist sichtbar.');
     if(!text.includes('Prototypversion')||!text.includes('Datenmodellversion')||!text.includes('Vollständige Quellenprüfung')||!text.includes('Letzte Aktualitätsprüfung'))throw new Error('Versions- oder Quellenmetadaten fehlen.');
