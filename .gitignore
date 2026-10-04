@@ -1,0 +1,39 @@
+# Betriebssystem und Editoren
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Lokale Laufzeit-, Prüf- und Exportartefakte
+tmp/
+output/
+coverage/
+*.log
+*.json
+!package.json
+!package-lock.json
+
+# Zugangsdaten und lokale Konfiguration
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+credentials/
+secrets/
+private/
+
+# Nicht für die Veröffentlichung bestimmte Dokumente und Fremdmaterialien
+*.doc
+*.docx
+*.pdf
+*.epub
+*.mobi
+*.odt
+*.xlsx
+*.xls
+*.csv
+

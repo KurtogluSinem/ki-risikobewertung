@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Geführte KI-Risikobewertung nach dem EU AI Act und dem Cyber Resilience Act.">
+  <title>KI-Risikobewertung nach EU AI Act und Cyber Resilience Act</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Kopfbereich mit Produktbezeichnung sowie lokalen Import- und Exportaktionen. -->
+  <header class="topbar">
+    <div class="brand" aria-label="KI-Risikobewertung nach dem EU AI Act und dem Cyber Resilience Act">
+      <span class="brand-mark" aria-hidden="true"><small>EU</small><strong>AI ACT</strong></span>
+      <span class="brand-copy"><strong>KI-Risikobewertung nach dem EU AI Act und dem Cyber Resilience Act</strong><small>Geführter Leitfaden für eine nachvollziehbare Erstbewertung</small></span>
+    </div>
+    <span class="prototype-label">Leitfaden-Prototyp</span>
+    <div class="top-actions">
+      <button class="header-button" id="exampleButton" type="button">Musterfall laden</button>
+      <button class="header-button quiet" id="exportButton" type="button">Bewertung exportieren</button>
+      <button class="header-button quiet" id="importButton" type="button">Bewertung importieren</button>
+      <input class="visually-hidden" id="importFile" type="file" accept="application/json,.json">
+      <button class="header-button quiet" id="resetButton" type="button">Neu beginnen</button>
+    </div>
+  </header>
+
+  <!-- Zweispaltige Arbeitsfläche für Navigation und geführte Eingabe. -->
+  <div class="app-layout">
+    <!-- Navigation durch die acht Prüfschritte mit reinem Bearbeitungsstatus. -->
+    <aside class="sidebar" aria-label="Prüfschritte">
+      <div class="progress-heading"><span>Bewertungsprozess</span><strong id="progressValue">0 %</strong></div>
+      <div class="progress-track" aria-hidden="true"><span id="progressBar"></span></div>
+      <p class="evaluated-count" id="evaluatedCount">0 von 8 Prüfschritten bewertet</p>
+      <nav id="stepNavigation"></nav>
+      <div class="status-legend" aria-label="Legende zum Ausfüllstatus">
+        <span><i class="neutral"></i>Noch nicht bewertet</span>
+        <span><i class="red"></i>Pflichtfeld fehlt</span>
+        <span><i class="yellow"></i>Mehrere optionale Felder fehlen</span>
+        <span><i class="green"></i>Ausreichend ausgefüllt</span>
+        <small>Die Farben zeigen nur den Bearbeitungsstand – nicht das rechtliche Ergebnis, das Risiko oder eine Genehmigung.</small>
+      </div>
+      <div class="method-basis">
+        <strong>Wissens- und Regelbasis</strong>
+        <span>Prototyp 1.8 · Datenmodell 13</span>
+        <span>Regelwerk 2.7 · Methodik: Kapitel 3</span>
+        <span>Rechtsstand: 30.09.2026</span>
+        <span>Vollständige Quellenprüfung: 06.09.2026</span>
+        <span>Letzte Aktualitätsprüfung: 30.09.2026</span>
+        <span>Bewertungsdatum: im Fall festgelegt</span>
+        <span>EU AI Act · CRA</span>
+        <span>NIST AI RMF 1.0</span>
+        <span>ISO/IEC 23894:2023</span>
+        <span>ISO/IEC 42001:2023</span>
+      </div>
+    </aside>
+
+    <!-- Haupt- und Eingabebereich für den jeweils aktiven Prüfschritt. -->
+    <main class="main-content">
+      <section class="assessment" aria-live="polite">
+        <header class="step-header">
+          <div>
+            <p class="step-number" id="stepNumber"></p>
+            <h1 id="stepTitle"></h1>
+            <p class="step-goal" id="stepGoal"></p>
+          </div>
+          <span class="case-name" id="caseName" hidden></span>
+        </header>
+        <div class="step-result-summary" id="stepResultSummary"></div>
+        <!-- Dynamischer Berichtsbereich: Nach Schritt 8 werden hier Kurz- oder Nachweisbericht eingesetzt. -->
+        <div id="stepContent"></div>
+        <footer class="step-footer">
+          <button class="secondary-button" id="previousButton" type="button">← Zurück</button>
+          <span id="saveState">Eingaben werden in diesem Browser gespeichert.</span>
+          <button class="primary-button" id="nextButton" type="button">Weiter →</button>
+        </footer>
+      </section>
+    </main>
+  </div>
+
+  <!-- Dialoge und Vorlagen: wiederverwendbare Antwortgruppe für fachliche Auswahlfragen. -->
+  <template id="choiceTemplate">
+    <div class="choice-group" role="radiogroup">
+      <button type="button" data-value="yes">Ja</button>
+      <button type="button" data-value="no">Nein</button>
+      <button type="button" data-value="na">Nicht einschlägig</button>
+      <button type="button" data-value="review">Prüfbedarf</button>
+    </div>
+  </template>
+
+  <!-- Skripteinbindung: Referenzdaten werden vor Auswertungs- und Darstellungslogik geladen. -->
+  <script src="guide-reference.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
