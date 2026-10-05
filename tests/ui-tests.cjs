@@ -32,7 +32,7 @@ const qaDir=path.join(root,'tmp','ui-qa');
 
   await test('Sichtbare Versionsangaben entsprechen dem aktiven Daten- und Regelmodell',async()=>{
     const text=await page.locator('.method-basis').textContent();
-    if(!text.includes('Prototyp 1.9 · Datenmodell 14')||!text.includes('Regelwerk 2.8'))throw new Error('Die sichtbaren Versionsangaben sind veraltet.');
+    if(!text.includes('Prototyp 1.11 · Datenmodell 16')||!text.includes('Regelwerk 2.10'))throw new Error('Die sichtbaren Versionsangaben sind veraltet.');
   });
 
   await test('Bloßes Öffnen verändert keinen Status',async()=>{
@@ -90,7 +90,7 @@ const qaDir=path.join(root,'tmp','ui-qa');
   });
 
   await test('DUTY-45 und DUTY-47 erscheinen mit den strukturierten Ergebnissen',async()=>{
-    const result=await page.evaluate(()=>{const api=window.__riskAppTest,s=api.exampleState();s.step=6;s.form.purposeAlignment='partial';s.form.legalRegimeFulfilment='unresolved';s.form.legalRegimeFulfilmentEvidence='EU AI Act, CRA und Datenschutzrecht widersprechen sich in der dokumentierten Umsetzung.';api.setStateForTest(s);const duties=api.dutyOperationalResults();return{d45:duties.find(item=>item.id==='DUTY-45'),d47:duties.find(item=>item.id==='DUTY-47')};});
+    const result=await page.evaluate(()=>{const api=window.__riskAppTest,s=api.exampleState();s.step=6;s.form.purposeAlignment='partial';s.guideAnswers['CTX-02']={value:'partial',sourceField:'purposeAlignment'};s.form.legalRegimeFulfilment='unresolved';s.form.legalRegimeFulfilmentEvidence='EU AI Act, CRA und Datenschutzrecht widersprechen sich in der dokumentierten Umsetzung.';api.setStateForTest(s);const duties=api.dutyOperationalResults();return{d45:duties.find(item=>item.id==='DUTY-45'),d47:duties.find(item=>item.id==='DUTY-47')};});
     if(result.d45.value!=='yes'||!result.d45.reason.includes('teilweise Abweichung'))throw new Error('DUTY-45 zeigt die teilweise Zweckabweichung nicht korrekt.');
     if(result.d47.value!=='yes'||!result.d47.reason.includes('juristischer Prüfbedarf'))throw new Error('DUTY-47 zeigt die ungeklärte Pflichterfüllung nicht korrekt.');
     const text=await page.locator('#stepContent').textContent();
@@ -101,7 +101,7 @@ const qaDir=path.join(root,'tmp','ui-qa');
   });
 
   await test('Normaler Benutzerablauf synchronisiert Prüfbedarf ohne Klick auf den Synchronisierungsbutton',async()=>{
-    await page.evaluate(()=>{const api=window.__riskAppTest,s=api.exampleState();s.step=2;s.form.tGeneralRequirements='yes';s.form.overallReasoning='Pilotbetrieb ist mit den dokumentierten Kontrollen zulässig; die CRA-Abgrenzung wurde für diesen Vergleichsfall geklärt.';s.registers.legal.forEach(item=>{item.status='resolved';item.result='Rechtsfrage für den Vergleichsfall geklärt.';item.blocking='no';item.ruleBlocking='no';});api.setStateForTest(s);});
+    await page.evaluate(()=>{const api=window.__riskAppTest,s=api.exampleState();s.step=2;s.form.tGeneralRequirements='yes';s.guideAnswers['TR-06']={value:'yes',sourceField:'tGeneralRequirements'};s.form.overallReasoning='Pilotbetrieb ist mit den dokumentierten Kontrollen zulässig; die CRA-Abgrenzung wurde für diesen Vergleichsfall geklärt.';s.registers.legal.forEach(item=>{item.status='resolved';item.result='Rechtsfrage für den Vergleichsfall geklärt.';item.blocking='no';item.ruleBlocking='no';});api.setStateForTest(s);});
     await page.locator('#stepNavigation [data-step="2"]').click();
     await page.locator('[data-field="purposeAlignment"]').selectOption('partial');
     const derived=await page.evaluate(()=>{const api=window.__riskAppTest,decision=api.overallDecision(false,true),state=api.getState(),pb=state.registers.legal.find(item=>item.id==='PB-DUTY-45'&&item.sourceActive!==false);return{decision:decision.code,pb,report:api.buildReport(api.buildReportData())};});
@@ -115,7 +115,7 @@ const qaDir=path.join(root,'tmp','ui-qa');
   });
 
   await test('Inaktive Registereinträge werden historisch getrennt und statusneutral angezeigt',async()=>{
-    const result=await page.evaluate(()=>{const api=window.__riskAppTest,s=api.exampleState();s.form.tGeneralRequirements='yes';s.form.overallReasoning='Pilotbetrieb ist mit den dokumentierten Kontrollen zulässig; die CRA-Abgrenzung wurde für diesen Vergleichsfall geklärt.';s.registers.legal.forEach(item=>{item.status='resolved';item.result='Rechtsfrage für den Vergleichsfall geklärt.';item.blocking='no';item.ruleBlocking='no';});api.setStateForTest(s);const before=api.overallDecision(false,true).code;s.registers.legal.push({id:'PB-HISTORISCH',derived:true,sourceStep:'7',sourceId:'alt',sourceActive:false,status:'open',blocking:'yes'});s.step=6;api.setStateForTest(s);return{before,after:api.overallDecision(false,true).code,review11:api.reviewOperationalResults().find(item=>item.id==='REVIEW-11').value};});
+    const result=await page.evaluate(()=>{const api=window.__riskAppTest,s=api.exampleState();s.form.tGeneralRequirements='yes';s.guideAnswers['TR-06']={value:'yes',sourceField:'tGeneralRequirements'};s.form.overallReasoning='Pilotbetrieb ist mit den dokumentierten Kontrollen zulässig; die CRA-Abgrenzung wurde für diesen Vergleichsfall geklärt.';s.registers.legal.forEach(item=>{item.status='resolved';item.result='Rechtsfrage für den Vergleichsfall geklärt.';item.blocking='no';item.ruleBlocking='no';});api.setStateForTest(s);const before=api.overallDecision(false,true).code;s.registers.legal.push({id:'PB-HISTORISCH',derived:true,sourceStep:'7',sourceId:'alt',sourceActive:false,status:'open',blocking:'yes'});s.step=6;api.setStateForTest(s);return{before,after:api.overallDecision(false,true).code,review11:api.reviewOperationalResults().find(item=>item.id==='REVIEW-11').value};});
     if(result.before!==result.after||result.review11!=='no')throw new Error('Inaktiver Registereintrag beeinflusst weiterhin den aktuellen Status.');
     const text=await page.locator('#stepContent').textContent();
     if(!text.includes('Historische beziehungsweise nicht mehr aktive Einträge')||!text.includes('PB-HISTORISCH'))throw new Error('Historischer Registereintrag wird nicht getrennt angezeigt.');
@@ -153,6 +153,30 @@ const qaDir=path.join(root,'tmp','ui-qa');
     if(!await page.locator('.warning-only').isVisible())throw new Error('Der nicht statusverändernde Konsistenzhinweis fehlt.');
     await page.screenshot({path:path.join(qaDir,'decision-warning.png'),fullPage:true});
     await page.evaluate(()=>window.__riskAppTest.setStateForTest(window.__riskAppTest.exampleState()));
+  });
+
+  await test('Import B verwirft den geöffneten Kurzbericht A und erzeugt Titel sowie PDF nur aus Fall B',async()=>{
+    const result=await page.evaluate(()=>{const api=window.__riskAppTest,a=api.exampleState(),b=api.exampleState();a.form.toolName='Fall A Kurzbericht';a.guideAnswers['TOOL-01']={value:a.form.toolName,sourceField:'toolName'};a.form.internalToolId='FALL-A-KURZ';b.form.toolName='Fall B Kurzbericht';b.form.internalToolId='FALL-B-KURZ';b.step=7;b.guideAnswers['TOOL-01']={value:b.form.toolName,sourceField:'toolName'};api.setStateForTest(b);const json=JSON.stringify(api.assessmentExportObject());api.setStateForTest(a);api.setReportTypeForTest('compact');const before=api.getActiveReportInfo();api.importAssessmentJson(json);const afterImport=api.getActiveReportInfo();api.showReportForTest('compact');const afterReport=api.getActiveReportInfo();window.__printedTitle='';const originalPrint=window.print;window.print=()=>{window.__printedTitle=document.title;};api.printReportForTest('compact');window.print=originalPrint;return{before,afterImport,afterReport,printedTitle:window.__printedTitle,text:document.querySelector('.report-area')?.textContent||''};});
+    if(result.before.toolName!=='Fall A Kurzbericht'||result.afterImport.visible||result.afterImport.hasSnapshot)throw new Error('Der Bericht A wurde nach dem Import nicht vollständig verworfen.');
+    if(result.afterReport.toolName!=='Fall B Kurzbericht'||!result.afterReport.title.includes('Fall B Kurzbericht')||result.text.includes('Fall A Kurzbericht')||!result.text.includes('Fall B Kurzbericht'))throw new Error(`Der neu erzeugte Kurzbericht oder Titel gehört nicht eindeutig zu Fall B: ${JSON.stringify({afterReport:result.afterReport,hasA:result.text.includes('Fall A Kurzbericht'),hasB:result.text.includes('Fall B Kurzbericht')})}`);
+    if(!result.printedTitle.includes('FALL-B-KURZ'))throw new Error('Der PDF-Drucktitel enthält nicht die Fallkennung B.');
+    await page.emulateMedia({media:'print'});const pdfPath=path.join(qaDir,'import-fall-b-kurzbericht.pdf');await page.pdf({path:pdfPath,format:'A4',printBackground:true});if(fs.statSync(pdfPath).size<50000)throw new Error('Der PDF-Nachweis für Fall B wurde nicht vollständig erzeugt.');await page.emulateMedia({media:'screen'});
+  });
+
+  await test('Import B verwirft den geöffneten Nachweisbericht A',async()=>{
+    const result=await page.evaluate(()=>{const api=window.__riskAppTest,a=api.exampleState(),b=api.exampleState();a.form.toolName='Fall A Nachweis';a.guideAnswers['TOOL-01']={value:a.form.toolName,sourceField:'toolName'};a.form.internalToolId='FALL-A-NACHWEIS';b.form.toolName='Fall B Nachweis';b.form.internalToolId='FALL-B-NACHWEIS';b.step=7;b.guideAnswers['TOOL-01']={value:b.form.toolName,sourceField:'toolName'};api.setStateForTest(b);const json=JSON.stringify(api.assessmentExportObject());api.setStateForTest(a);api.setReportTypeForTest('evidence');api.importAssessmentJson(json);const afterImport=api.getActiveReportInfo();api.showReportForTest('evidence');return{afterImport,afterReport:api.getActiveReportInfo(),text:document.querySelector('.report-area')?.textContent||''};});
+    if(result.afterImport.visible||result.afterImport.hasSnapshot)throw new Error('Der alte Nachweisbericht blieb nach dem Import aktiv.');
+    if(result.afterReport.type!=='evidence'||result.afterReport.toolName!=='Fall B Nachweis'||result.text.includes('Fall A Nachweis')||!result.text.includes('Fall B Nachweis'))throw new Error(`Der neue Nachweisbericht gehört nicht eindeutig zu Fall B: ${JSON.stringify({afterReport:result.afterReport,hasA:result.text.includes('Fall A Nachweis'),hasB:result.text.includes('Fall B Nachweis')})}`);
+  });
+
+  await test('Fehlerhafter Import erhält Arbeitsstand, Bericht, Titel und Speicherung von Fall A',async()=>{
+    const result=await page.evaluate(()=>{const api=window.__riskAppTest,a=api.exampleState();a.form.toolName='Gültiger Fall A';a.guideAnswers['TOOL-01']={value:a.form.toolName,sourceField:'toolName'};a.form.internalToolId='GUELTIG-A';api.setStateForTest(a);api.setReportTypeForTest('compact');const bad=api.assessmentExportObject();bad.assessment.step=100;const storageSnapshot=()=>Object.keys(localStorage).sort().map(key=>[key,localStorage.getItem(key)]);const before={state:api.getState(),report:api.getActiveReportInfo(),storage:storageSnapshot()};let message='';try{api.importAssessmentJson(JSON.stringify(bad));}catch(error){message=error.message;}return{before,after:{state:api.getState(),report:api.getActiveReportInfo(),storage:storageSnapshot()},message};});
+    if(!result.message.includes('Navigationsschritt')||JSON.stringify(result.before)!==JSON.stringify(result.after))throw new Error('Der fehlgeschlagene Import hat den gültigen Fall oder seine Anzeige verändert.');
+  });
+
+  await test('Neu beginnen und Musterfall laden verwerfen jeweils einen geöffneten Bericht',async()=>{
+    const result=await page.evaluate(()=>{const api=window.__riskAppTest,s=api.exampleState();s.form.toolName='Alter Bericht';s.guideAnswers['TOOL-01']={value:s.form.toolName,sourceField:'toolName'};api.setStateForTest(s);api.setReportTypeForTest('evidence');api.reset();const afterReset=api.getActiveReportInfo();api.setStateForTest(s);api.setReportTypeForTest('compact');api.loadExample();return{afterReset,afterExample:api.getActiveReportInfo()};});
+    if(result.afterReset.visible||result.afterReset.hasSnapshot||result.afterExample.visible||result.afterExample.hasSnapshot)throw new Error('Ein Fallwechsel ließ einen alten Berichtssnapshot aktiv.');
   });
 
   await test('Bericht enthält alle Pflichtabschnitte und ausschließlich zulässige Statusbegriffe',async()=>{

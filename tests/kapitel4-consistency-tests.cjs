@@ -92,7 +92,7 @@ test('Export enthält Eingaben, Versionen und abgeleitete Ergebnisse; Import erh
   const s=state();Object.assign(s.form,{assessmentUpdate:'2026-10-04',assessmentUpdateReason:'Dokumentierte Konsistenzprüfung.',guideVersion:'Version 2.0 – vorläufige Fassung'});set(s);
   const exported=api.assessmentExportObject(),manualBefore={craConclusion:exported.assessment.form.craConclusion,tGeneralRequirements:exported.assessment.form.tGeneralRequirements,duty26:exported.assessment.registers.regulatory.find(item=>item.id==='REG-DUTY-26')?.status};
   const imported=api.importAssessmentJson(JSON.stringify(exported));
-  return exported.schemaVersion===14&&exported.versions.dataModelVersion==='14'&&Boolean(exported.derivedResults.resultSignature)&&exported.assessment.form.assessmentUpdateReason==='Dokumentierte Konsistenzprüfung.'&&imported.form.guideVersion==='Version 2.0 – vorläufige Fassung'&&imported.form.craConclusion===manualBefore.craConclusion&&imported.form.tGeneralRequirements===manualBefore.tGeneralRequirements&&imported.registers.regulatory.find(item=>item.id==='REG-DUTY-26')?.status===manualBefore.duty26;
+  return exported.schemaVersion===16&&exported.versions.dataModelVersion==='16'&&Boolean(exported.derivedResults.resultSignature)&&exported.assessment.form.assessmentUpdateReason==='Dokumentierte Konsistenzprüfung.'&&imported.form.guideVersion==='Version 2.0 – vorläufige Fassung'&&imported.form.craConclusion===manualBefore.craConclusion&&imported.form.tGeneralRequirements===manualBefore.tGeneralRequirements&&imported.registers.regulatory.find(item=>item.id==='REG-DUTY-26')?.status===manualBefore.duty26;
 });
 
 test('Der Musterfall kennzeichnet alle Nachweisangaben ausdrücklich als fiktive Verweise',()=>{

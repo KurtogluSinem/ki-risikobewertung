@@ -13,6 +13,17 @@ Statischer Prototyp für eine geführte und nachvollziehbare Erstbewertung von K
 
 Die Anwendung verwendet kein Backend und ruft keine externen Dienste oder Programmierschnittstellen auf.
 
+## Versionsstand
+
+- Prototyp 1.11
+- Datenmodell 16
+- Regelwerk 2.10
+- Leitfaden Version 2.0 – vorläufige Fassung
+
+Das Datenmodell unterstützt die dokumentierte Migration älterer Arbeitsstände. Die mitgelieferten Version-13-, Version-14- und Version-15-Dateien dienen ausschließlich als fiktive Regressionstestdaten. Importierte Berechnungsergebnisse werden nicht ungeprüft übernommen, sondern aus den Eingaben mit dem aktuellen Regelwerk neu berechnet.
+
+Die CRA-Rollenauswahl wird aus den fünf sichtbaren Einzelrollen in einen stabilen internen Code überführt. Speicherung und Export werden vor dem Schreiben vollständig validiert. Nicht lesbare Altstände werden nicht still überschrieben: Eine getrennte Rohsicherung kann über die nur in diesem Fall eingeblendete Schaltfläche heruntergeladen werden. Fehlgeschlagene Importe lassen Arbeitsstand, lokalen Speicher und bereits erzeugte Berichtssnapshots unverändert.
+
 ## Lokal starten
 
 Im Projektordner einen lokalen Webserver starten:
@@ -34,6 +45,18 @@ Exportierte Bewertungen können sensible oder personenbezogene Angaben enthalten
 Die Startdatei `index.html` und alle Laufzeitdateien liegen im Projektstamm. Relative Pfade ermöglichen den Betrieb unter dem Repository-Unterpfad `/ki-risikobewertung/`. Ein Build-Schritt ist nicht erforderlich.
 
 Nach aktivierter Veröffentlichung wird die konkrete Adresse im Repository unter „Settings → Pages“ angezeigt.
+
+## Lokale Prüfungen
+
+Die zentralen Konsistenztests werden aus dem Projektordner gestartet:
+
+```bash
+node tests/consistency-regression-tests.cjs
+node tests/run-tests.cjs
+node tests/report-tests.cjs
+```
+
+Die Browser- und PDF-Prüfungen benötigen eine lokale Chromium- oder Chrome-Installation sowie Playwright. Die Berichtsgeneratoren verwenden die unveränderten produktiven Dateien `guide-reference.js` und `styles.css`. Erzeugte Prüfstände und Berichte liegen unter `output/`; dieser Ausgabeordner ist nicht Bestandteil der veröffentlichten Anwendung.
 
 ## Bekannte Einschränkungen
 

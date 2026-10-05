@@ -1,0 +1,3086 @@
+{
+  "format": "ki-risikobewertung",
+  "schemaVersion": 15,
+  "exportedAt": "2026-10-04T23:15:01.180Z",
+  "versions": {
+    "prototypeVersion": "1.10",
+    "dataModelVersion": "15",
+    "ruleSetVersion": "2.9",
+    "methodologyVersion": "2.0 – Risikoanalyse- und Bewertungsansatz nach Kapitel 3",
+    "assessmentDateLabel": "Bewertungsstichtag der jeweiligen Bewertung",
+    "legalStatus": "30.09.2026",
+    "fullSourceReview": "2026-09-06",
+    "lastCurrentnessReview": "2026-09-30",
+    "sources": [
+      "Verordnung (EU) 2024/1689 – konsolidierte Fassung vom 27.07.2026",
+      "Verordnung (EU) 2026/1744 – gesonderter Änderungsrechtsakt",
+      "Verordnung (EU) 2024/2847 – Cyber Resilience Act",
+      "NIST AI RMF 1.0",
+      "ISO/IEC 23894:2023",
+      "ISO/IEC 42001:2023"
+    ],
+    "verifiedDates": {
+      "aiLiteracy": "2025-02-02",
+      "article5General": "2025-02-02",
+      "article5New": "2026-12-02",
+      "aiActGeneral": "2026-08-02",
+      "transparency": "2026-08-02",
+      "transparencyExisting": "2026-12-02",
+      "gpai": "2025-08-02",
+      "gpaiExisting": "2027-08-02",
+      "highRiskAnnexIII": "2027-12-02",
+      "highRiskAnnexI": "2028-08-02",
+      "publicExistingHighRisk": "2030-08-02",
+      "craReporting": "2026-09-11",
+      "craGeneral": "2027-12-11"
+    },
+    "matrix": {
+      "formula": "R = E × A",
+      "levels": {
+        "low": "1–2",
+        "medium": "3–4",
+        "high": "6–9"
+      }
+    }
+  },
+  "derivedResults": {
+    "resultSignature": "bericht-v1-fde4218bd223b69efb9191ce9320f84e-429678",
+    "decision": {
+      "code": "ASSESSMENT_NOT_CONCLUDABLE",
+      "label": "Bewertung nicht abschließbar",
+      "tone": "danger",
+      "blockers": [],
+      "uncertainties": [
+        {
+          "code": "REVIEW-OPEN",
+          "severity": "uncertainty",
+          "source": "PB-DUTY-41",
+          "text": "Entscheidungsblockierender Prüfbedarf ist offen."
+        },
+        {
+          "code": "REVIEW-OPEN",
+          "severity": "uncertainty",
+          "source": "PB-DUTY-42",
+          "text": "Entscheidungsblockierender Prüfbedarf ist offen."
+        },
+        {
+          "code": "REVIEW-OPEN",
+          "severity": "uncertainty",
+          "source": "PB-DUTY-43",
+          "text": "Entscheidungsblockierender Prüfbedarf ist offen."
+        },
+        {
+          "code": "REVIEW-11",
+          "severity": "uncertainty",
+          "source": "Entscheidungstabelle 34",
+          "text": "3 fallbezogen und ausdrücklich als entscheidungsblockierend begründete Prüfbedarfe offen."
+        }
+      ],
+      "mandatory": [],
+      "conditions": [
+        {
+          "code": "REVIEW-OPEN",
+          "severity": "condition",
+          "source": "JP-CRA",
+          "text": "Nicht entscheidungsblockierender Prüfbedarf ist offen."
+        }
+      ],
+      "reviews": {
+        "REVIEW-08": {
+          "id": "REVIEW-08",
+          "label": "Wurde eine verbotene KI-Praxis für die vorgesehene Verwendung festgestellt?",
+          "value": "no",
+          "reason": "Kein aktuell anwendbarer Verbotstatbestand festgestellt",
+          "sources": [
+            "ART5-01 bis ART5-10"
+          ],
+          "path": "reviewOperationalResult: verbotene Praxis"
+        },
+        "REVIEW-09": {
+          "id": "REVIEW-09",
+          "label": "Kann eine aktuell anwendbare zwingende regulatorische Pflicht für die vorgesehene Verwendung nicht erfüllt werden?",
+          "value": "no",
+          "reason": "Keine nachweislich nicht erfüllbare, aktuell anwendbare Pflicht festgestellt; offene, aber als erfüllbar dokumentierte Pflichten bleiben Maßnahmen.",
+          "sources": [
+            "Regulatorisches Anforderungsregister"
+          ],
+          "path": "reviewOperationalResult: nicht erfüllbare Pflicht"
+        },
+        "REVIEW-10": {
+          "id": "REVIEW-10",
+          "label": "Liegt ein nicht ausreichend behandeltes hohes Risiko vor, also ein hohes Risiko außerhalb der festgelegten Risikotoleranz, für das keine geeignete Behandlung bestimmt werden kann?",
+          "value": "no",
+          "reason": "R-01: verifiziertes Restrisiko liegt innerhalb der dokumentierten Toleranz.",
+          "sources": [
+            "R-01"
+          ],
+          "path": "reviewOperationalResult: Risikotoleranz und Behandlungsmöglichkeit"
+        },
+        "REVIEW-11": {
+          "id": "REVIEW-11",
+          "label": "Ist mindestens ein entscheidungsblockierender PB-Eintrag offen, etwa zu einem möglichen Verbotstatbestand, zur Hochrisiko-Einstufung, zur Rolle, zur GPAI-Anbieterrolle, zur CRA-Anwendbarkeit oder zu einem nicht beurteilbaren Risikoszenario?",
+          "value": "yes",
+          "reason": "3 fallbezogen und ausdrücklich als entscheidungsblockierend begründete Prüfbedarfe offen.",
+          "sources": [
+            "Alle aktiven Register",
+            "PB-DUTY-41",
+            "PB-DUTY-42",
+            "PB-DUTY-43"
+          ],
+          "path": "reviewOperationalResult: blockierender Prüfbedarf"
+        },
+        "REVIEW-12": {
+          "id": "REVIEW-12",
+          "label": "Sind einschlägige Pflichten nicht oder nur teilweise erfüllt, sind Risikobehandlungsmaßnahmen noch nicht umgesetzt oder nicht verifiziert, oder sind organisatorische Lücken offen (einschließlich der Vorbereitung künftig anwendbarer Pflichten)?",
+          "value": "yes",
+          "reason": "4 offene einschlägige Registereinträge. Nicht anwendbare Pflichten bleiben dokumentiert, werden aber nicht als offen gezählt.",
+          "sources": [
+            "PB-DUTY-41",
+            "JP-CRA",
+            "PB-DUTY-42",
+            "PB-DUTY-43"
+          ],
+          "path": "reviewOperationalResult: offene Pflichten/Maßnahmen/Lücken"
+        }
+      },
+      "reasons": [
+        {
+          "code": "REVIEW-OPEN",
+          "severity": "uncertainty",
+          "source": "PB-DUTY-41",
+          "text": "Entscheidungsblockierender Prüfbedarf ist offen."
+        },
+        {
+          "code": "REVIEW-OPEN",
+          "severity": "uncertainty",
+          "source": "PB-DUTY-42",
+          "text": "Entscheidungsblockierender Prüfbedarf ist offen."
+        },
+        {
+          "code": "REVIEW-OPEN",
+          "severity": "uncertainty",
+          "source": "PB-DUTY-43",
+          "text": "Entscheidungsblockierender Prüfbedarf ist offen."
+        },
+        {
+          "code": "REVIEW-11",
+          "severity": "uncertainty",
+          "source": "Entscheidungstabelle 34",
+          "text": "3 fallbezogen und ausdrücklich als entscheidungsblockierend begründete Prüfbedarfe offen."
+        },
+        {
+          "code": "REVIEW-OPEN",
+          "severity": "condition",
+          "source": "JP-CRA",
+          "text": "Nicht entscheidungsblockierender Prüfbedarf ist offen."
+        }
+      ],
+      "approvalWarnings": [
+        "Hinweis: Die gesonderte Entscheidung „Bedingt“ weicht vom regelbasierten Bewertungsstatus „Bewertung nicht abschließbar“ ab. Der regelbasierte Status wird dadurch nicht verändert."
+      ]
+    },
+    "regulatory": {
+      "prohibition": {
+        "code": "none",
+        "label": "Kein aktuell anwendbarer Verbotstatbestand festgestellt",
+        "triggers": [],
+        "missing": [],
+        "contradictions": [],
+        "reviewNeeds": [],
+        "critical": false,
+        "basis": "EU AI Act Art. 5",
+        "manual": "none",
+        "manualLabel": "Kein aktuell anwendbarer Verbotstatbestand festgestellt",
+        "items": [
+          {
+            "key": "pManipulation",
+            "label": "Subliminale, manipulative oder täuschende Techniken subliminale Techniken außerhalb des Bewusstseins oder absichtlich manipulative bzw. täuschende Techniken erhebliche Beeinträchtigung der Fähigkeit zu einer informierten Entscheidung und wesentliche Verhaltensverzerrung dadurch veranlasste Entscheidung, die andernfalls nicht getroffen worden wäre erheblicher Schaden eingetreten oder hinreichend wahrscheinlich",
+            "code": "not_met"
+          },
+          {
+            "key": "pVulnerability",
+            "label": "Ausnutzung von Vulnerabilitäten Vulnerabilität aufgrund von Alter, Behinderung oder besonderer sozialer bzw. wirtschaftlicher Situation Ausnutzung dieser Vulnerabilität und wesentliche Verhaltensverzerrung erheblicher Schaden eingetreten oder hinreichend wahrscheinlich",
+            "code": "not_met"
+          },
+          {
+            "key": "pNonConsensualIntimate",
+            "label": "Nicht einvernehmliches intimes Material (ab 2. Dezember 2026) Erzeugung oder Manipulation realistischer Bilder, Videos, Audioinhalte oder vergleichbaren Materials, das intime Körperbereiche einer identifizierbaren natürlichen Person oder diese bei sexuell expliziten Handlungen darstellt ohne deren freiwillige, spezifische, informierte, unmissverständliche und ausdrückliche Einwilligung Anbieter (Abs. 1a lit. a): Die Erzeugung ist Zweckbestimmung, oder sie ist aufgrund von Design, Training, Architektur, Fähigkeiten oder Nutzerfunktionen ohne erhebliche technische Änderung vernünftigerweise vorhersehbar und reproduzierbar, und angemessene technische und sonstige Schutzvorkehrungen fehlen Betreiber (Abs. 1a lit. b): Verwendung zum Zweck der Erzeugung oder Manipulation solchen Materials keine Manipulation, wenn weder die Darstellung intimer Körperbereiche erweitert noch die Art sexuell expliziter Handlungen verändert wird (Abs. 1b)",
+            "code": "not_met"
+          },
+          {
+            "key": "pCsam",
+            "label": "Material über sexuellen Kindesmissbrauch (ab 2. Dezember 2026) Erzeugung oder Manipulation von Material oder Darbietungen im Sinne des Art. 2 lit. c und e der Richtlinie 2011/93/EU kein Verbot, soweit nach nationalem Recht der Einwand greift, nicht unrechtmäßig gehandelt zu haben („without right“-Einwand) Anbieter- und Betreiberbezug wie bei ART5-03 (Abs. 1a)",
+            "code": "not_met"
+          },
+          {
+            "key": "pSocialScoring",
+            "label": "Social Scoring Bewertung oder Klassifizierung natürlicher Personen oder Gruppen über einen bestimmten Zeitraum auf Grundlage des sozialen Verhaltens oder bekannter, abgeleiteter oder vorhergesagter persönlicher Merkmale nachteilige Behandlung in sachfremden Kontexten oder ungerechtfertigte bzw. unverhältnismäßige Benachteiligung",
+            "code": "not_met"
+          },
+          {
+            "key": "pCrimePrediction",
+            "label": "Individuelle Kriminalitätsprognose Bewertung oder Vorhersage des Risikos, dass eine natürliche Person eine Straftat begeht ausschließlich auf Grundlage von Profiling oder der Bewertung von Persönlichkeitsmerkmalen nicht erfasst: Unterstützung einer menschlichen Bewertung, die bereits auf objektiven, überprüfbaren und unmittelbar mit einer kriminellen Tätigkeit verbundenen Tatsachen beruht",
+            "code": "not_met"
+          },
+          {
+            "key": "pFaceDatabase",
+            "label": "Gesichtserkennungsdatenbanken Erstellung oder Erweiterung einer Gesichtserkennungsdatenbank durch ungezieltes Auslesen von Gesichtsbildern aus dem Internet oder aus Videoüberwachungsaufnahmen",
+            "code": "not_met"
+          },
+          {
+            "key": "pEmotion",
+            "label": "Emotionserkennung am Arbeitsplatz oder in Bildungseinrichtungen Ableitung von Emotionen natürlicher Personen am Arbeitsplatz oder in Bildungseinrichtungen Ausnahme: Einsatz aus medizinischen oder Sicherheitsgründen",
+            "code": "not_met"
+          },
+          {
+            "key": "pBiometricCategory",
+            "label": "Biometrische Kategorisierung anhand sensibler Merkmale individuelle Kategorisierung natürlicher Personen anhand biometrischer Daten um Rasse, politische Meinungen, Gewerkschaftszugehörigkeit, religiöse oder weltanschauliche Überzeugungen, Sexualleben oder sexuelle Orientierung abzuleiten Ausnahme: Kennzeichnung oder Filterung rechtmäßig erworbener biometrischer Datensätze sowie Kategorisierung im Bereich der Strafverfolgung",
+            "code": "not_met"
+          },
+          {
+            "key": "pRealtimeBiometric",
+            "label": "Biometrische Echtzeit-Fernidentifizierung zu Strafverfolgungszwecken Echtzeit-Fernidentifizierungssystem in öffentlich zugänglichen Räumen zu Strafverfolgungszwecken abschließende Ausnahmezwecke: gezielte Suche nach Opfern von Entführung, Menschenhandel oder sexueller Ausbeutung sowie nach vermissten Personen; Abwehr einer konkreten, erheblichen und unmittelbaren Gefahr für Leben oder körperliche Sicherheit oder einer terroristischen Bedrohung; Lokalisierung oder Identifizierung einer Person, die einer Straftat nach Anhang II verdächtigt wird zusätzlich nach Abs. 2 bis 5: Erforderlichkeit und Verhältnismäßigkeit, zeitliche, räumliche und personelle Begrenzung, Grundrechte-Folgenabschätzung nach Art. 27, Registrierung nach Art. 49, vorherige gerichtliche oder unabhängige behördliche Genehmigung (jeweils mit Dringlichkeitsregel), nationale Rechtsgrundlage, Mitteilungen an Behörden",
+            "code": "not_met"
+          }
+        ],
+        "provisional": false
+      },
+      "productHighRisk": {
+        "code": "no",
+        "label": "Art. 6 Abs. 1 nicht einschlägig",
+        "triggers": [],
+        "missing": [],
+        "contradictions": [],
+        "reviewNeeds": [],
+        "critical": false,
+        "basis": "EU AI Act Art. 6 Abs. 1 bis 1c und Anhang I",
+        "manual": "no",
+        "manualLabel": "Art. 6 Abs. 1 nicht einschlägig"
+      },
+      "annexHighRisk": {
+        "code": "no",
+        "label": "Art. 6 Abs. 2 nicht einschlägig",
+        "triggers": [],
+        "missing": [],
+        "contradictions": [],
+        "reviewNeeds": [],
+        "critical": false,
+        "basis": "EU AI Act Art. 6 Abs. 2 bis 4 sowie Anhang III",
+        "manual": "no",
+        "manualLabel": "Art. 6 Abs. 2 nicht einschlägig",
+        "filterApplied": false
+      },
+      "art25": {
+        "code": "not_applicable",
+        "label": "Nicht anwendbar – keine festgestellte Hochrisikoeinstufung",
+        "triggers": [],
+        "missing": [],
+        "contradictions": [],
+        "reviewNeeds": [],
+        "critical": false,
+        "basis": "EU AI Act Art. 25",
+        "manual": "",
+        "manualLabel": "",
+        "reason": "Kein Hochrisiko-KI-System"
+      },
+      "transparency": {
+        "code": "review",
+        "label": "Nicht eindeutig beurteilbar / weiterer Prüfbedarf",
+        "triggers": [
+          "Direkte Interaktion (Abs. 1) KI-System ist zur direkten Interaktion mit natürlichen Personen bestimmt; die Information, dass mit einem KI-System interagiert wird, ist durch Konzeption und Entwicklung sichergestellt."
+        ],
+        "missing": [],
+        "contradictions": [
+          "TR-06 ist als nicht einschlägig markiert, obwohl mindestens eine Pflicht nach TR-01 bis TR-05 einschlägig ist und DUTY-26 deshalb gesondert zu prüfen ist. Anwendbarkeit und Erfüllungsstatus bleiben getrennt.",
+          "Art. 50: Manuelle Schlussfolgerung „Anbieterpflicht“ widerspricht dem automatisch ableitbaren Ergebnis."
+        ],
+        "reviewNeeds": [],
+        "critical": false,
+        "basis": "EU AI Act Art. 50",
+        "manual": "provider",
+        "manualLabel": "Anbieterpflicht",
+        "items": [
+          {
+            "key": "tInteraction",
+            "label": "Direkte Interaktion (Abs. 1) KI-System ist zur direkten Interaktion mit natürlichen Personen bestimmt; die Information, dass mit einem KI-System interagiert wird, ist durch Konzeption und Entwicklung sichergestellt.",
+            "code": "applicable",
+            "actor": "provider",
+            "storedActor": "provider",
+            "duty": "Anbieter stellt eine verständliche Information über die unmittelbare Interaktion mit dem KI-System sicher.",
+            "exception": "no",
+            "expectedResult": "applicable"
+          },
+          {
+            "key": "tSynthetic",
+            "label": "Synthetische Inhalte (Abs. 2) Erzeugung synthetischer Audio-, Bild-, Video- oder Textinhalte, auch durch KI-Systeme mit allgemeinem Verwendungszweck; maschinenlesbare Kennzeichnung und Erkennbarkeit als künstlich erzeugt oder manipuliert, soweit technisch machbar und unter Berücksichtigung von Inhaltsart, Kosten und Stand der Technik",
+            "code": "not_applicable"
+          },
+          {
+            "key": "tEmotionBiometric",
+            "label": "Emotionserkennung und biometrische Kategorisierung (Abs. 3) System nach Art. 3 Nr. 39 bzw. Nr. 40; natürliche Personen sind seinem Betrieb ausgesetzt; Information der betroffenen Personen; Verarbeitung personenbezogener Daten nach der Verordnung (EU) 2016/679, der Verordnung (EU) 2018/1725 bzw. der Richtlinie (EU) 2016/680",
+            "code": "not_applicable"
+          },
+          {
+            "key": "tDeepfake",
+            "label": "Deepfakes (Abs. 4) KI-erzeugte oder manipulierte Bild-, Audio- oder Videoinhalte, die realen Personen, Gegenständen, Orten, Einrichtungen oder Ereignissen ähneln und fälschlich als echt erscheinen würden (Art. 3 Nr. 60); Offenlegung",
+            "code": "not_applicable"
+          },
+          {
+            "key": "tPublicText",
+            "label": "Texte zu Angelegenheiten von öffentlichem Interesse (Abs. 4) KI-erzeugter oder manipulierter Text wird veröffentlicht, um die Öffentlichkeit über Angelegenheiten von öffentlichem Interesse zu informieren; Offenlegung",
+            "code": "not_applicable"
+          },
+          {
+            "key": "tGeneralRequirements",
+            "label": "Übergreifende Anforderungen (Abs. 5) Information klar und unterscheidbar, spätestens bei der ersten Interaktion oder Exposition, unter Einhaltung der Barrierefreiheitsanforderungen",
+            "code": "not_applicable"
+          },
+          {
+            "key": "tHighRiskAffectedInfo",
+            "label": "Zusätzliche Transparenzpflichten bei Hochrisiko-KI-Systemen insbesondere Information betroffener Personen nach Art. 26 Abs. 11; weitere Pflichten nach Unions- oder nationalem Recht",
+            "code": "not_applicable"
+          }
+        ],
+        "actors": [
+          "provider"
+        ],
+        "provisional": false
+      },
+      "gpai": {
+        "code": "none",
+        "label": "Keine GPAI-Relevanz",
+        "triggers": [],
+        "missing": [],
+        "contradictions": [],
+        "reviewNeeds": [],
+        "critical": false,
+        "basis": "EU AI Act Art. 51 ff.",
+        "manual": "none",
+        "manualLabel": "Keine GPAI-Relevanz",
+        "role": "Keine",
+        "roleOutcome": "none",
+        "relevance": "none",
+        "duties": [],
+        "ownObligations": false,
+        "openSource": false,
+        "openSourceException": false,
+        "thirdCountryRepresentativeRequired": false,
+        "systemic": false,
+        "provisional": false
+      },
+      "cra": {
+        "code": "review",
+        "label": "Nicht eindeutig beurteilbar / weiterer Prüfbedarf",
+        "triggers": [
+          "Handelt es sich um ein Software- oder Hardwareprodukt oder um eine getrennt in Verkehr gebrachte Software- oder Hardwarekomponente (Art. 3 Nr. 1)?",
+          "Gehört eine Datenfernverarbeitung zum Produkt, deren Software vom Hersteller oder unter seiner Verantwortung entwickelt wurde und ohne die das Produkt eine seiner Funktionen nicht erfüllen könnte (Art. 3 Nr. 2)?",
+          "Umfasst die Zweckbestimmung oder vernünftigerweise vorhersehbare Verwendung eine direkte oder indirekte logische oder physische Datenverbindung mit einem Gerät oder Netz (Art. 2 Abs. 1)?",
+          "Wird das Produkt im Rahmen einer Geschäftstätigkeit auf dem Unionsmarkt bereitgestellt, entgeltlich oder unentgeltlich?"
+        ],
+        "missing": [],
+        "contradictions": [
+          "CRA: Manuelle Schlussfolgerung „CRA auf das Produkt anwendbar; keine eigene Wirtschaftsakteursrolle festgestellt“ widerspricht dem automatisch ableitbaren Ergebnis."
+        ],
+        "reviewNeeds": [
+          "JP-CRA: Die offene Frage zur CRA-Produktanwendbarkeit ist Voraussetzung des ausgegebenen CRA-Ergebnisses."
+        ],
+        "critical": true,
+        "basis": "Cyber Resilience Act",
+        "manual": "product_only",
+        "manualLabel": "CRA auf das Produkt anwendbar; keine eigene Wirtschaftsakteursrolle festgestellt",
+        "roles": [],
+        "possibleRoles": [],
+        "roleCodes": [],
+        "category": "other",
+        "duties": [],
+        "productApplicable": false,
+        "ownObligations": false,
+        "roleOutcome": "none",
+        "specialCase": "",
+        "steward": false,
+        "overlap": "Cybersicherheitsanforderungen werden mit den AI-Act-Kontrollen abgestimmt.",
+        "openSource": false,
+        "pathStatus": "review",
+        "pathReason": "Der CRA-Pfad ist anwendbar oder als Sonderfall weiter zu prüfen.",
+        "openPrerequisiteReviewIds": [
+          "JP-CRA"
+        ],
+        "openRoleReviewIds": [],
+        "openDutyReviewIds": [],
+        "openTemporalReviewIds": [],
+        "openOperationalReviewIds": [],
+        "ambiguousCraDependencyIds": []
+      }
+    },
+    "reviews": [
+      {
+        "id": "REVIEW-01",
+        "label": "Toolprofil und Informationsstand",
+        "value": "complete",
+        "reason": "Tool: Assistenzsystem zur Dokumentenklassifikation · Informationsstatus: Vollständig.",
+        "sources": [
+          "TOOL-01",
+          "TOOL-12"
+        ],
+        "path": "reviewOperationalResult: Toolprofil"
+      },
+      {
+        "id": "REVIEW-02",
+        "label": "KI-System-Eigenschaft und Anwendungsbereich einschließlich Sonderregelungen",
+        "value": "yes",
+        "reason": "KI-System nach Art. 3 Nr. 1 · Anwendungsbereich eröffnet.",
+        "sources": [
+          "DEF-01 bis DEF-15",
+          "SCOPE-01 bis SCOPE-18"
+        ],
+        "path": "reviewOperationalResult: Definition/Anwendungsbereich"
+      },
+      {
+        "id": "REVIEW-03",
+        "label": "Einsatz- und Rollenprofil einschließlich Ergebnis der Prüfung nach Art. 25",
+        "value": "yes",
+        "reason": "Kontext: Posteingang und Fallrouting · Rollen: Anbieter, Betreiber · Rollenwechsel nach Art. 25: Nicht anwendbar – keine festgestellte Hochrisikoeinstufung.",
+        "sources": [
+          "CTX-01 bis CTX-14",
+          "ROLE-01 bis ROLE-15"
+        ],
+        "path": "reviewOperationalResult: Kontext/Rollen"
+      },
+      {
+        "id": "REVIEW-04",
+        "label": "Regulatorisches Einordnungsprofil mit zeitlichem Status",
+        "value": "review",
+        "reason": "Kein aktuell anwendbarer Verbotstatbestand festgestellt · Art. 6 Abs. 1 nicht einschlägig · Art. 6 Abs. 2 nicht einschlägig · Nicht anwendbar – keine festgestellte Hochrisikoeinstufung · Nicht eindeutig beurteilbar / weiterer Prüfbedarf · Keine GPAI-Relevanz · Nicht eindeutig beurteilbar / weiterer Prüfbedarf · Zeitstatus: aktuell 3, künftig 0, nicht anwendbar 0, nicht beurteilbar 0.",
+        "sources": [
+          "Prüfschritt 4",
+          "Regulatorisches Anforderungsregister"
+        ],
+        "path": "reviewOperationalResult: regulatorisches Profil"
+      },
+      {
+        "id": "REVIEW-05",
+        "label": "Risikoübersicht mit höchstem aktuellem Einzelrisiko sowie erwarteten und verifizierten Restrisiken",
+        "value": "yes",
+        "reason": "1 Risiko · höchstes aktuelles Einzelrisiko Hoch · erwartete Restrisiken 1 · verifizierte Restrisiken 1 · doppelte Risiko-IDs 0 · REVIEW-10: Nein.",
+        "sources": [
+          "R-01"
+        ],
+        "path": "reviewOperationalResult: Risikoprofil"
+      },
+      {
+        "id": "REVIEW-06",
+        "label": "Organisatorisches Bewertungsprofil und Lücken",
+        "value": "yes",
+        "reason": "Organisatorische Voraussetzungen ausreichend",
+        "sources": [
+          "ORG-01 bis ORG-36"
+        ],
+        "path": "reviewOperationalResult: Organisationsprofil"
+      },
+      {
+        "id": "REVIEW-07",
+        "label": "Register REG, RM und PB mit Umsetzungs- und Klärungsstand",
+        "value": "review",
+        "reason": "9 aktive Registereinträge · 9 fehlende Pflichtangaben · 0 historische Einträge ohne Einfluss auf die aktuelle Bewertung.",
+        "sources": [
+          "REG/RM/OM/PB"
+        ],
+        "path": "reviewOperationalResult: Registerprofil"
+      },
+      {
+        "id": "REVIEW-08",
+        "label": "Wurde eine verbotene KI-Praxis für die vorgesehene Verwendung festgestellt?",
+        "value": "no",
+        "reason": "Kein aktuell anwendbarer Verbotstatbestand festgestellt",
+        "sources": [
+          "ART5-01 bis ART5-10"
+        ],
+        "path": "reviewOperationalResult: verbotene Praxis"
+      },
+      {
+        "id": "REVIEW-09",
+        "label": "Kann eine aktuell anwendbare zwingende regulatorische Pflicht für die vorgesehene Verwendung nicht erfüllt werden?",
+        "value": "no",
+        "reason": "Keine nachweislich nicht erfüllbare, aktuell anwendbare Pflicht festgestellt; offene, aber als erfüllbar dokumentierte Pflichten bleiben Maßnahmen.",
+        "sources": [
+          "Regulatorisches Anforderungsregister"
+        ],
+        "path": "reviewOperationalResult: nicht erfüllbare Pflicht"
+      },
+      {
+        "id": "REVIEW-10",
+        "label": "Liegt ein nicht ausreichend behandeltes hohes Risiko vor, also ein hohes Risiko außerhalb der festgelegten Risikotoleranz, für das keine geeignete Behandlung bestimmt werden kann?",
+        "value": "no",
+        "reason": "R-01: verifiziertes Restrisiko liegt innerhalb der dokumentierten Toleranz.",
+        "sources": [
+          "R-01"
+        ],
+        "path": "reviewOperationalResult: Risikotoleranz und Behandlungsmöglichkeit"
+      },
+      {
+        "id": "REVIEW-11",
+        "label": "Ist mindestens ein entscheidungsblockierender PB-Eintrag offen, etwa zu einem möglichen Verbotstatbestand, zur Hochrisiko-Einstufung, zur Rolle, zur GPAI-Anbieterrolle, zur CRA-Anwendbarkeit oder zu einem nicht beurteilbaren Risikoszenario?",
+        "value": "yes",
+        "reason": "3 fallbezogen und ausdrücklich als entscheidungsblockierend begründete Prüfbedarfe offen.",
+        "sources": [
+          "Alle aktiven Register",
+          "PB-DUTY-41",
+          "PB-DUTY-42",
+          "PB-DUTY-43"
+        ],
+        "path": "reviewOperationalResult: blockierender Prüfbedarf"
+      },
+      {
+        "id": "REVIEW-12",
+        "label": "Sind einschlägige Pflichten nicht oder nur teilweise erfüllt, sind Risikobehandlungsmaßnahmen noch nicht umgesetzt oder nicht verifiziert, oder sind organisatorische Lücken offen (einschließlich der Vorbereitung künftig anwendbarer Pflichten)?",
+        "value": "yes",
+        "reason": "4 offene einschlägige Registereinträge. Nicht anwendbare Pflichten bleiben dokumentiert, werden aber nicht als offen gezählt.",
+        "sources": [
+          "PB-DUTY-41",
+          "JP-CRA",
+          "PB-DUTY-42",
+          "PB-DUTY-43"
+        ],
+        "path": "reviewOperationalResult: offene Pflichten/Maßnahmen/Lücken"
+      },
+      {
+        "id": "REVIEW-13",
+        "label": "Identifikation",
+        "value": "yes",
+        "reason": "Bewertungs-ID KIR-2026-001 · eigenständige interne Tool-Kennung TOOL-DOK-001 · Assistenzsystem zur Dokumentenklassifikation von Beispiel Software GmbH, Version 3.2 · vorgesehener Verwendungszweck: Eingehende Geschäftsdokumente vorsortieren und Mitarbeitenden Klassifikationsvorschläge bereitstellen. · Nutzungskontext: Unterstützende Vorsortierung eingehender Dokumente.; Posteingang und Fallrouting · bewertende Stelle: Dokumentenmanagement, Durchführung/Prüfung: Interne Revision · Bewertungsstichtag 16.9.2026 · Rechts- und Regelwerksstand: 30.09.2026; EU AI Act Art. 3, 4, 22–27, 49 und 50; CRA. · frühere Bewertung beziehungsweise dokumentierter Erststand: 1.0 – Erstbewertung des Pilotbetriebs; keine frühere Bewertung vorhanden..",
+        "sources": [
+          "assessmentId",
+          "internalToolId",
+          "toolName",
+          "provider",
+          "version",
+          "purpose",
+          "intendedUse",
+          "process",
+          "department",
+          "reviewer",
+          "assessmentDate",
+          "legalSources",
+          "changeHistory"
+        ],
+        "path": "reviewOperationalResult: Identifikation"
+      },
+      {
+        "id": "REVIEW-14",
+        "label": "Versions- und Rechtsstand",
+        "value": "yes",
+        "reason": "Bewertung 1.0 · Leitfaden Version 2.0 – vorläufige Fassung · Tool 3.2 · Bewertungsstichtag 16.9.2026 · Rechtsstand 30.09.2026.",
+        "sources": [
+          "TOOL-03",
+          "assessmentVersion",
+          "guideVersion",
+          "assessmentDate"
+        ],
+        "path": "reviewOperationalResult: Versionen/Rechtsstand"
+      },
+      {
+        "id": "REVIEW-15",
+        "label": "Ergebnisse je Prüfschritt",
+        "value": "yes",
+        "reason": "1: Toolprofil vollständig | 2: KI-System nach Art. 3 Nr. 1 · Anwendungsbereich eröffnet | 3: Rolle(n): Anbieter, Betreiber | 4: Kein aktuell anwendbarer Verbotstatbestand festgestellt · Art. 6 Abs. 1 nicht einschlägig · Art. 6 Abs. 2 nicht einschlägig | 5: 1 Risiko · höchstes aktuelles Niveau: Hoch | 6: Organisatorische Voraussetzungen ausreichend | 7: 9 aktive Registereinträge · 0 historisch · aktive Einträge unvollständig | 8: Bewertung nicht abschließbar",
+        "sources": [
+          "Prüfschritte 1–8"
+        ],
+        "path": "reviewOperationalResult: Schrittresultate"
+      },
+      {
+        "id": "REVIEW-16",
+        "label": "Register",
+        "value": "yes",
+        "reason": "regulatory: 3 aktiv · risk: 1 aktiv · organizational: 1 aktiv · expert: 1 aktiv · legal: 3 aktiv · historisch: 0.",
+        "sources": [
+          "Prüfschritt 7"
+        ],
+        "path": "reviewOperationalResult: Register"
+      },
+      {
+        "id": "REVIEW-17",
+        "label": "Nachvollziehbarkeit",
+        "value": "yes",
+        "reason": "Registereinträge sind über Quell-ID und verknüpftes Ergebnis nachvollziehbar.",
+        "sources": [
+          "sourceQuestionId",
+          "linkedResult"
+        ],
+        "path": "reviewOperationalResult: Nachvollziehbarkeit"
+      },
+      {
+        "id": "REVIEW-18",
+        "label": "Nachweise",
+        "value": "yes",
+        "reason": "Nachweisinventar: Fiktiver Nachweisverweis – Technische Dokumentation: Produktdokumentation und Systembeschreibung; Risikomanagement nach Art. 9: nicht einschlägig; Qualitätsmanagement: nicht einschlägig; Protokollierung: Pilotprotokoll; Konformitätserklärung: nicht einschlägig; Registrierung: nicht einschlägig; Post-Market-Monitoring: Monitoringbericht; Vorfälle: keine; Grundrechte-Folgenabschätzung: nicht einschlägig; Datenschutz-Folgenabschätzung: Datenschutzprüfung; GPAI-Dokumentation: nicht einschlägig; CRA-Risikobewertung und technische CRA-Dokumentation: Herstellerunterlagen. · Version 1.0 · Stand 16.9.2026 · Fundstelle Zentrale Bewertungsakte / KIR-2026-001 / Nachweise.",
+        "sources": [
+          "evidenceInventory",
+          "evidenceInventoryVersion",
+          "evidenceInventoryDate",
+          "evidenceInventoryLocation"
+        ],
+        "path": "reviewOperationalResult: Nachweise"
+      },
+      {
+        "id": "REVIEW-19",
+        "label": "Gesetzliche Dokumentationen",
+        "value": "yes",
+        "reason": "Alle einschlägigen Nachweiskategorien sind im Nachweisverzeichnis mit Fundstelle oder als nicht einschlägig dokumentiert. 3 juristische Prüfbedarfe; 0 ohne vollständige Rechtsgrundlage oder Ergebnis. Verwendete Quellen: EU AI Act Art. 3, 4, 22–27, 49 und 50; CRA..",
+        "sources": [
+          "evidenceInventory",
+          "evidenceInventoryLocation",
+          "legalSources",
+          "JP-CRA",
+          "PB-DUTY-42",
+          "PB-DUTY-43"
+        ],
+        "path": "reviewOperationalResult: Rechtsdokumentation"
+      },
+      {
+        "id": "REVIEW-20",
+        "label": "Bewertungsstatus und Verantwortlichkeiten",
+        "value": "review",
+        "reason": "Verantwortlichkeiten oder Status unvollständig: explizite Verantwortung für PB-DUTY-42, PB-DUTY-43. regulatorische/juristische Prüfung: Rechtsabteilung (JP-CRA, PB-DUTY-42, PB-DUTY-43).",
+        "sources": [
+          "reviewer",
+          "TOOL-04",
+          "riskOwner",
+          "JP-CRA",
+          "PB-DUTY-42",
+          "PB-DUTY-43",
+          "documentationOwner",
+          "approver",
+          "approvalStatus",
+          "approvalDate"
+        ],
+        "path": "reviewOperationalResult: Status/Verantwortlichkeiten"
+      },
+      {
+        "id": "REVIEW-21",
+        "label": "Aufbewahrung und Versionierung",
+        "value": "yes",
+        "reason": "Ablage: Zentrale Bewertungsakte / KIR-2026-001 · Zugriff: Rollenbasierter Zugriff für Fachbereich, IT, Compliance, Datenschutz und Revision. · gesetzliche Frist/Rechtsgrundlage: Die einschlägige Frist und Rechtsgrundlage sind im Rechtskataster des Musterfalls dokumentiert. · interne Frist: Bis zum Abschluss des nächsten regulären Reviews, danach gemäß interner Aktenordnung. · Version: 1.0 · frühere Stände: Ja.",
+        "sources": [
+          "documentLocation",
+          "accessRights",
+          "statutoryRetentionStatus",
+          "statutoryRetentionBasis",
+          "internalRetentionPeriod",
+          "assessmentVersion",
+          "changeHistory",
+          "preservePreviousAssessments"
+        ],
+        "path": "reviewOperationalResult: Aufbewahrung/Versionierung"
+      },
+      {
+        "id": "REVIEW-22",
+        "label": "Technik",
+        "value": "yes",
+        "reason": "Neubewertung festgelegt · 1, 2, 4, 5 · Compliance-Koordination · 30.9.2026.",
+        "sources": [
+          "REVIEW-22"
+        ],
+        "path": "reviewOperationalResult: Neubewertungsauslöser"
+      },
+      {
+        "id": "REVIEW-23",
+        "label": "Zweck und Kontext",
+        "value": "yes",
+        "reason": "Neubewertung festgelegt · 3, 4, 5 · Compliance-Koordination · 30.9.2026.",
+        "sources": [
+          "REVIEW-23"
+        ],
+        "path": "reviewOperationalResult: Neubewertungsauslöser"
+      },
+      {
+        "id": "REVIEW-24",
+        "label": "Akteure und Lieferkette",
+        "value": "yes",
+        "reason": "Neubewertung festgelegt · 3, 4, 6 · Compliance-Koordination · 30.9.2026.",
+        "sources": [
+          "REVIEW-24"
+        ],
+        "path": "reviewOperationalResult: Neubewertungsauslöser"
+      },
+      {
+        "id": "REVIEW-25",
+        "label": "Risiko und Vorfälle",
+        "value": "yes",
+        "reason": "Neubewertung festgelegt · 5, 7 · Compliance-Koordination · 30.9.2026.",
+        "sources": [
+          "REVIEW-25"
+        ],
+        "path": "reviewOperationalResult: Neubewertungsauslöser"
+      },
+      {
+        "id": "REVIEW-26",
+        "label": "Organisation",
+        "value": "yes",
+        "reason": "Neubewertung festgelegt · 6, 7 · Compliance-Koordination · 30.9.2026.",
+        "sources": [
+          "REVIEW-26"
+        ],
+        "path": "reviewOperationalResult: Neubewertungsauslöser"
+      },
+      {
+        "id": "REVIEW-27",
+        "label": "Regulatorik",
+        "value": "yes",
+        "reason": "Neubewertung festgelegt · 2, 4, 7 · Compliance-Koordination · 30.9.2026.",
+        "sources": [
+          "REVIEW-27"
+        ],
+        "path": "reviewOperationalResult: Neubewertungsauslöser"
+      },
+      {
+        "id": "REVIEW-28",
+        "label": "CRA-spezifisch",
+        "value": "yes",
+        "reason": "Neubewertung festgelegt · 4, 5, 7 · Compliance-Koordination · 30.9.2026.",
+        "sources": [
+          "REVIEW-28"
+        ],
+        "path": "reviewOperationalResult: Neubewertungsauslöser"
+      },
+      {
+        "id": "REVIEW-29",
+        "label": "Bewertungsgegenstand",
+        "value": "yes",
+        "reason": "Assistenzsystem zur Dokumentenklassifikation · Assistenzsystem ohne automatische Letztentscheidung..",
+        "sources": [
+          "TOOL-01",
+          "TOOL-12"
+        ],
+        "path": "reviewOperationalResult: Bewertungsgegenstand"
+      },
+      {
+        "id": "REVIEW-30",
+        "label": "KI-System und Anwendungsbereich",
+        "value": "ai_system_in_scope",
+        "reason": "KI-System-Definition: KI-System nach Art. 3 Nr. 1. Anwendungsbereichsprüfung: Anwendungsbereich eröffnet.",
+        "sources": [
+          "DEF-01 bis DEF-15",
+          "SCOPE-01 bis SCOPE-18"
+        ],
+        "path": "reviewOperationalResult: Definition/Scope-Zusammenfassung"
+      },
+      {
+        "id": "REVIEW-31",
+        "label": "Akteursrolle(n)",
+        "value": "Weiterer Prüfbedarf · EU-AI-Act-Rollen: Anbieter, Betreiber | Art. 25: nicht relevant – keine Hochrisikoeinstufung | CRA-Rollen: keine bestätigte eigene CRA-Rolle",
+        "reason": "EU-AI-Act-Rollen, Art.-25-Ergebnis sowie bestätigte und ungeklärte CRA-Rollen werden getrennt ausgegeben.",
+        "sources": [
+          "ROLE-01 bis ROLE-15",
+          "CRA-08"
+        ],
+        "path": "reviewOperationalResult: Rollen-Zusammenfassung"
+      },
+      {
+        "id": "REVIEW-32",
+        "label": "Verbotene KI-Praktiken",
+        "value": "Kein Verbotstatbestand",
+        "reason": "Kein aktuell anwendbarer Verbotstatbestand festgestellt",
+        "sources": [
+          "ART5-01 bis ART5-10"
+        ],
+        "path": "reviewOperationalResult: Art.-5-Zusammenfassung"
+      },
+      {
+        "id": "REVIEW-33",
+        "label": "Hochrisiko",
+        "value": "Kein Hochrisiko-KI-System",
+        "reason": "Art. 6 Abs. 1: nicht festgestellt · Art. 6 Abs. 2: nicht festgestellt.",
+        "sources": [
+          "HR-01 bis HR-20"
+        ],
+        "path": "reviewOperationalResult: Hochrisiko-Zusammenfassung"
+      },
+      {
+        "id": "REVIEW-34",
+        "label": "Transparenz",
+        "value": "Weiterer Prüfbedarf",
+        "reason": "Nicht eindeutig beurteilbar / weiterer Prüfbedarf",
+        "sources": [
+          "TR-01 bis TR-07"
+        ],
+        "path": "reviewOperationalResult: Transparenz-Zusammenfassung"
+      },
+      {
+        "id": "REVIEW-35",
+        "label": "GPAI",
+        "value": "Keine GPAI-Relevanz festgestellt | Keine | Keine eigenen Anbieterpflichten festgestellt",
+        "reason": "GPAI-Relevanz: Keine GPAI-Relevanz festgestellt. Organisationsrolle: Keine. Pflichtenfolge: Keine eigenen Anbieterpflichten festgestellt.",
+        "sources": [
+          "GPAI-01 bis GPAI-11"
+        ],
+        "path": "reviewOperationalResult: GPAI-Zusammenfassung"
+      },
+      {
+        "id": "REVIEW-36",
+        "label": "CRA",
+        "value": "Weiterer Prüfbedarf | Eigene Organisationspflichten: weiterer Prüfbedarf",
+        "reason": "Produktanwendbarkeit, Sonderregelung, Produktkategorie und eigene Organisationspflichten sind getrennt bewertet. Bestätigte Rollen: keine. Ungeklärte mögliche Rollen: keine.",
+        "sources": [
+          "CRA-01 bis CRA-12"
+        ],
+        "path": "reviewOperationalResult: CRA-Zusammenfassung"
+      },
+      {
+        "id": "REVIEW-37",
+        "label": "Zeitliche Anwendbarkeit",
+        "value": "Aktuell anwendbar: 3 (REG-DUTY-22, REG-DUTY-26, REG-DUTY-01) · Künftig anwendbar: 0 · Nicht anwendbar: 0 · Nicht eindeutig beurteilbar / weiterer Prüfbedarf: 0",
+        "reason": "Aktuell anwendbar: 3 (REG-DUTY-22, REG-DUTY-26, REG-DUTY-01) · Künftig anwendbar: 0 · Nicht anwendbar: 0 · Nicht eindeutig beurteilbar / weiterer Prüfbedarf: 0",
+        "sources": [
+          "REG-DUTY-22",
+          "REG-DUTY-26",
+          "REG-DUTY-01"
+        ],
+        "path": "reviewOperationalResult: zeitliche Anwendbarkeit"
+      },
+      {
+        "id": "REVIEW-38",
+        "label": "Technische Risiken",
+        "value": "Niedrig: 0 | Mittel: 0 | Hoch: 1 | nicht beurteilbar: 0 | höchstes aktuelles Einzelrisiko: Hoch | erwartete Restrisiken: R-01: Niedrig | verifizierte Restrisiken: R-01: Niedrig | REVIEW-10: Nein",
+        "reason": "Niedrig: 0 | Mittel: 0 | Hoch: 1 | nicht beurteilbar: 0 | höchstes aktuelles Einzelrisiko: Hoch | erwartete Restrisiken: R-01: Niedrig | verifizierte Restrisiken: R-01: Niedrig | REVIEW-10: Nein",
+        "sources": [
+          "R-01"
+        ],
+        "path": "reviewOperationalResult: technische Risiken"
+      },
+      {
+        "id": "REVIEW-39",
+        "label": "Organisation",
+        "value": "sufficient",
+        "reason": "Organisatorische Voraussetzungen ausreichend. Eine organisatorische Lücke wird nur bei ausdrücklich dokumentierter Regel oder begründetem Registereintrag entscheidungsblockierend; solche Einträge: 0.",
+        "sources": [
+          "ORG-01 bis ORG-36"
+        ],
+        "path": "reviewOperationalResult: Organisation"
+      },
+      {
+        "id": "REVIEW-40",
+        "label": "Offene Punkte",
+        "value": "Regulatorische Pflichten: 0 | Risikomaßnahmen: 0 | Organisationsmaßnahmen: 0 | Prüfbedarfe gesamt: 4 | fachlich: 1 | juristisch: 3 | vor Nutzung: 0 | entscheidungsblockierend: 3",
+        "reason": "Regulatorische Pflichten: 0 | Risikomaßnahmen: 0 | Organisationsmaßnahmen: 0 | Prüfbedarfe gesamt: 4 | fachlich: 1 | juristisch: 3 | vor Nutzung: 0 | entscheidungsblockierend: 3. Nicht anwendbare Pflichten werden nicht als offen gezählt.",
+        "sources": [
+          "PB-DUTY-41",
+          "JP-CRA",
+          "PB-DUTY-42",
+          "PB-DUTY-43"
+        ],
+        "path": "reviewOperationalResult: offene Punkte"
+      },
+      {
+        "id": "REVIEW-41",
+        "label": "Bewertungsstatus",
+        "value": "ASSESSMENT_NOT_CONCLUDABLE",
+        "reason": "Bewertung nicht abschließbar",
+        "sources": [
+          "Regelbasierte Zusammenführung nach Abschnitt 10.2"
+        ],
+        "path": "reviewOperationalResult: Gesamtstatus",
+        "statusOptions": [
+          "USE_NOT_CONTINUABLE",
+          "ASSESSMENT_NOT_CONCLUDABLE",
+          "ASSESSMENT_COMPLETE_WITH_OPEN_MEASURES",
+          "ASSESSMENT_COMPLETE"
+        ]
+      },
+      {
+        "id": "REVIEW-42",
+        "label": "Neubewertung",
+        "value": "yes",
+        "reason": "Alle sieben Kategorien REVIEW-22 bis REVIEW-28 sind bewertet. Nächster Review: 31.3.2027 · Frequenz: Halbjährlich und anlassbezogen · 7 verbindliche Auslöser.",
+        "sources": [
+          "nextReviewDate",
+          "reviewFrequency",
+          "REVIEW-22 bis REVIEW-28"
+        ],
+        "path": "reviewOperationalResult: Reviewplanung"
+      }
+    ],
+    "duties": [
+      {
+        "id": "DUTY-01",
+        "label": "Prüfung und Dokumentation angemessener Maßnahmen zur Unterstützung der Entwicklung der KI-Kompetenz nach Art. 4 Abs. 1 EU AI Act",
+        "value": "yes",
+        "reason": "Anbieter / Betreiber · Aktuell anwendbar · fachliche Pflicht und gegebenenfalls verknüpfter Registrierungseintrag vollständig nachverfolgt.",
+        "sources": [
+          "ROLE-01 / ROLE-03",
+          "REG-DUTY-01"
+        ],
+        "path": "requiredHighRiskDuties + regulatory register",
+        "applicable": true,
+        "roles": "Anbieter / Betreiber",
+        "registerId": "REG-DUTY-01",
+        "registrationId": ""
+      },
+      {
+        "id": "DUTY-02",
+        "label": "kontinuierliches, iteratives und dokumentiertes Risikomanagementsystem",
+        "value": "no",
+        "reason": "Aus Rollen-, Regulierungs- und Anwendungspfad derzeit nicht einschlägig.",
+        "sources": [
+          "ROLE-01 bis ROLE-15 / HR-01 bis HR-20"
+        ],
+        "path": "requiredHighRiskDuties + regulatory register"
+      },
+      {
+        "id": "DUTY-03",
+        "label": "Daten-Governance für Trainings-, Validierungs- und Testdaten",
+        "value": "no",
+        "reason": "Aus Rollen-, Regulierungs- und Anwendungspfad derzeit nicht einschlägig.",
+        "sources": [
+          "ROLE-01 bis ROLE-15 / HR-01 bis HR-20"
+        ],
+        "path": "requiredHighRiskDuties + regulatory register"
+      },
+      {
+        "id": "DUTY-04",
+        "label": "technische Dokumentation vor Inverkehrbringen bzw. Inbetriebnahme, aktuell gehalten",
+        "value": "no",
+        "reason": "Aus Rollen-, Regulierungs- und Anwendungspfad derzeit nicht einschlägig.",
+        "sources": [
+          "ROLE-01 bis ROLE-15 / HR-01 bis HR-20"
+        ],
+        "path": "requiredHighRiskDuties + regulatory register"
+      },
+      {
+        "id": "DUTY-05",
+        "label": "automatische Aufzeichnung von Ereignissen",
+        "value": "no",
+        "reason": "Aus Rollen-, Regulierungs- und Anwendungspfad derzeit nicht einschlägig.",
+        "sources": [
+          "ROLE-01 bis ROLE-15 / HR-01 bis HR-20"
+        ],
+        "path": "requiredHighRiskDuties + regulatory register"
+      },
+      {
+        "id": "DUTY-06",
+        "label": "Transparenz und Gebrauchsanweisung für Betreiber",
+        "value": "no",
+        "reason": "Aus Rollen-, Regulierungs- und Anwendungspfad derzeit nicht einschlägig.",
+        "sources": [
+          "ROLE-01 bis ROLE-15 / HR-01 bis HR-20"
+        ],
+        "path": "requiredHighRiskDuties + regulatory register"
+      },
+      {
+        "id": "DUTY-07",
+        "label": "wirksame menschliche Aufsicht technisch und organisatorisch ermöglichen",
+        "value": "no",
+        "reason": "Aus Rollen-, Regulierungs- und Anwendungspfad derzeit nicht einschlägig.",
+        "sources": [
+          "ROLE-01 bis ROLE-15 / HR-01 bis HR-20"
+        ],
+        "path": "requiredHighRiskDuties + regulatory register"
+      },
+      {
+        "id": "DUTY-08",
+        "label": "angemessene Genauigkeit, Robustheit und Cybersicherheit einschließlich KI-spezifischer Angriffsvektoren",
+        "value": "no",
+        "reason": "Aus Rollen-, Regulierungs- und Anwendungspfad derzeit nicht einschlägig.",
+        "sources": [
+          "ROLE-01 bis ROLE-15 / HR-01 bis HR-20"
+        ],
+        "path": "requiredHighRiskDuties + regulatory register"
+      },
+      {
+        "id": "DUTY-09",
+        "label": "Einhaltung der Anforderungen sicherstellen; Name und Kontaktangaben angeben; Barrierefreiheitsanforderungen berücksichtigen",
+        "value": "no",
+        "reason": "Aus Rollen-, Regulierungs- und Anwendungspfad derzeit nicht einschlägig.",
+        "sources": [
+          "ROLE-01 bis ROLE-15 / HR-01 bis HR-20"
+        ],
+        "path": "requiredHighRiskDuties + regulatory register"
+      },
+      {
+        "id": "DUTY-10",
+        "label": "Qualitätsmanagementsystem",
+        "value": "no",
+        "reason": "Aus Rollen-, Regulierungs- und Anwendungspfad derzeit nicht einschlägig.",
+        "sources": [
+          "ROLE-01 bis ROLE-15 / HR-01 bis HR-20"
+        ],
+        "path": "requiredHighRiskDuties + regulatory register"
+      },
+      {
+        "id": "DUTY-11",
+        "label": "Dokumentation und automatisch erzeugte Protokolle aufbewahren",
+        "value": "no",
+        "reason": "Aus Rollen-, Regulierungs- und Anwendungspfad derzeit nicht einschlägig.",
+        "sources": [
+          "ROLE-01 bis ROLE-15 / HR-01 bis HR-20"
+        ],
+        "path": "requiredHighRiskDuties + regulatory register"
+      },
+      {
+        "id": "DUTY-12",
+        "label": "Konformitätsbewertung, EU-Konformitätserklärung, CE-Kennzeichnung; Registrierung des Anbieters und des Systems vor Inverkehrbringen oder Inbetriebnahme",
+        "value": "no",
+        "reason": "Aus Rollen-, Regulierungs- und Anwendungspfad derzeit nicht einschlägig.",
+        "sources": [
+          "ROLE-01 bis ROLE-15 / HR-01 bis HR-20"
+        ],
+        "path": "requiredHighRiskDuties + regulatory register"
+      },
+      {
+        "id": "DUTY-13",
+        "label": "Korrekturmaßnahmen, Informationspflichten, Nachweis der Konformität gegenüber Behörden",
+        "value": "no",
+        "reason": "Aus Rollen-, Regulierungs- und Anwendungspfad derzeit nicht einschlägig.",
+        "sources": [
+          "ROLE-01 bis ROLE-15 / HR-01 bis HR-20"
+        ],
+        "path": "requiredHighRiskDuties + regulatory register"
+      },
+      {
+        "id": "DUTY-14",
+        "label": "Beobachtung nach dem Inverkehrbringen und Meldung schwerwiegender Vorfälle",
+        "value": "no",
+        "reason": "Aus Rollen-, Regulierungs- und Anwendungspfad derzeit nicht einschlägig.",
+        "sources": [
+          "ROLE-01 bis ROLE-15 / HR-01 bis HR-20"
+        ],
+        "path": "requiredHighRiskDuties + regulatory register"
+      },
+      {
+        "id": "DUTY-15",
+        "label": "schriftliche Vereinbarung mit Zulieferern von Komponenten, Werkzeugen und Diensten",
+        "value": "no",
+        "reason": "Aus Rollen-, Regulierungs- und Anwendungspfad derzeit nicht einschlägig.",
+        "sources": [
+          "ROLE-01 bis ROLE-15 / HR-01 bis HR-20"
+        ],
+        "path": "requiredHighRiskDuties + regulatory register"
+      },
+      {
+        "id": "DUTY-16",
+        "label": "Dokumentation der Bewertung und Registrierung des Anbieters und des Systems vor Inverkehrbringen oder Inbetriebnahme, wenn ein Anhang-III-System nach Art. 6 Abs. 3 als nicht hochriskant eingestuft wird",
+        "value": "no",
+        "reason": "Aus Rollen-, Regulierungs- und Anwendungspfad derzeit nicht einschlägig.",
+        "sources": [
+          "ROLE-01 bis ROLE-15 / HR-01 bis HR-20"
+        ],
+        "path": "Art.-6-Abs.-3-Ausnahme + Anbieter/Bevollmächtigter"
+      },
+      {
+        "id": "DUTY-17",
+        "label": "schriftliches Mandat; Prüfung bestimmter Anbieterpflichten; Dokumentations- und Behördenaufgaben",
+        "value": "no",
+        "reason": "Aus Rollen-, Regulierungs- und Anwendungspfad derzeit nicht einschlägig.",
+        "sources": [
+          "ROLE-01 bis ROLE-15 / HR-01 bis HR-20"
+        ],
+        "path": "Bevollmächtigtenrolle + regulatory register"
+      },
+      {
+        "id": "DUTY-18",
+        "label": "Konformität vor dem Inverkehrbringen prüfen (Konformitätsbewertung, technische Dokumentation, CE-Kennzeichnung, Erklärung, Gebrauchsanweisung); Kennzeichnung, Aufbewahrung, Zusammenarbeit",
+        "value": "no",
+        "reason": "Aus Rollen-, Regulierungs- und Anwendungspfad derzeit nicht einschlägig.",
+        "sources": [
+          "ROLE-01 bis ROLE-15 / HR-01 bis HR-20"
+        ],
+        "path": "Einführerrolle + regulatory register"
+      },
+      {
+        "id": "DUTY-19",
+        "label": "CE-Kennzeichnung, Erklärung und Gebrauchsanweisung prüfen; keine Bereitstellung bei Nichtkonformität; Korrektur-, Informations- und Kooperationspflichten",
+        "value": "no",
+        "reason": "Aus Rollen-, Regulierungs- und Anwendungspfad derzeit nicht einschlägig.",
+        "sources": [
+          "ROLE-01 bis ROLE-15 / HR-01 bis HR-20"
+        ],
+        "path": "Händlerrolle + regulatory register"
+      },
+      {
+        "id": "DUTY-20",
+        "label": "Verwendung gemäß Gebrauchsanweisung; menschliche Aufsicht durch kompetente Personen; relevante Eingabedaten; Überwachung des Betriebs mit Information und Aussetzung bei Risiken; Aufbewahrung der Protokolle; Information der Beschäftigten; Bezug zur Datenschutz-Folgenabschätzung; Information betroffener Personen; Zusammenarbeit mit Behörden Registrierung als Betreiber: vor Inbetriebnahme bzw. Verwendung prüfen, ob sich der Betreiber registrieren, das System auswählen und die Verwendung registrieren muss",
+        "value": "no",
+        "reason": "Aus Rollen-, Regulierungs- und Anwendungspfad derzeit nicht einschlägig.",
+        "sources": [
+          "ROLE-01 bis ROLE-15 / HR-01 bis HR-20"
+        ],
+        "path": "Betreiberrolle + regulatory register"
+      },
+      {
+        "id": "DUTY-21",
+        "label": "Grundrechte-Folgenabschätzung vor der erstmaligen Verwendung und Mitteilung ihrer Ergebnisse an die Marktüberwachungsbehörde",
+        "value": "no",
+        "reason": "Aus Rollen-, Regulierungs- und Anwendungspfad derzeit nicht einschlägig.",
+        "sources": [
+          "ROLE-01 bis ROLE-15 / HR-01 bis HR-20"
+        ],
+        "path": "Art.-27-Kontext + regulatory register"
+      },
+      {
+        "id": "DUTY-22",
+        "label": "Information über die direkte Interaktion mit einem KI-System",
+        "value": "yes",
+        "reason": "Anbieter · Aktuell anwendbar · fachliche Pflicht und gegebenenfalls verknüpfter Registrierungseintrag vollständig nachverfolgt.",
+        "sources": [
+          "TR-01",
+          "REG-DUTY-22"
+        ],
+        "path": "Transparenzpfad TR-01",
+        "applicable": true,
+        "roles": "Anbieter",
+        "registerId": "REG-DUTY-22",
+        "registrationId": ""
+      },
+      {
+        "id": "DUTY-23",
+        "label": "maschinenlesbare Kennzeichnung synthetischer Inhalte",
+        "value": "no",
+        "reason": "Aus Rollen-, Regulierungs- und Anwendungspfad derzeit nicht einschlägig.",
+        "sources": [
+          "TR-01 bis TR-07"
+        ],
+        "path": "Transparenzpfad TR-02"
+      },
+      {
+        "id": "DUTY-24",
+        "label": "Information bei Emotionserkennung oder biometrischer Kategorisierung",
+        "value": "no",
+        "reason": "Aus Rollen-, Regulierungs- und Anwendungspfad derzeit nicht einschlägig.",
+        "sources": [
+          "TR-01 bis TR-07"
+        ],
+        "path": "Transparenzpfad TR-03"
+      },
+      {
+        "id": "DUTY-25",
+        "label": "Offenlegung von Deepfakes und von Texten zu Angelegenheiten von öffentlichem Interesse",
+        "value": "no",
+        "reason": "Aus Rollen-, Regulierungs- und Anwendungspfad derzeit nicht einschlägig.",
+        "sources": [
+          "TR-01 bis TR-07"
+        ],
+        "path": "Transparenzpfad TR-04/TR-05"
+      },
+      {
+        "id": "DUTY-26",
+        "label": "klare, unterscheidbare, rechtzeitige und barrierefreie Information",
+        "value": "yes",
+        "reason": "Anbieter · Aktuell anwendbar · fachliche Pflicht und gegebenenfalls verknüpfter Registrierungseintrag vollständig nachverfolgt.",
+        "sources": [
+          "TR-01 bis TR-05",
+          "REG-DUTY-26"
+        ],
+        "path": "Transparenzpflichten gesamt",
+        "applicable": true,
+        "roles": "Anbieter",
+        "registerId": "REG-DUTY-26",
+        "registrationId": ""
+      },
+      {
+        "id": "DUTY-27",
+        "label": "technische Dokumentation (Anhang XI) und Informationen für nachgelagerte Anbieter (Anhang XII), vorbehaltlich der Open-Source-Ausnahme",
+        "value": "no",
+        "reason": "Aus Rollen-, Regulierungs- und Anwendungspfad derzeit nicht einschlägig.",
+        "sources": [
+          "GPAI-01 bis GPAI-11"
+        ],
+        "path": "GPAI-Rollenpfad"
+      },
+      {
+        "id": "DUTY-28",
+        "label": "Strategie zur Einhaltung des Urheberrechts; öffentliche Zusammenfassung der Trainingsinhalte; Zusammenarbeit mit Kommission und Behörden",
+        "value": "no",
+        "reason": "Aus Rollen-, Regulierungs- und Anwendungspfad derzeit nicht einschlägig.",
+        "sources": [
+          "GPAI-01 bis GPAI-11"
+        ],
+        "path": "GPAI-Rollenpfad"
+      },
+      {
+        "id": "DUTY-29",
+        "label": "Benennung eines Bevollmächtigten in der Union",
+        "value": "no",
+        "reason": "Aus Rollen-, Regulierungs- und Anwendungspfad derzeit nicht einschlägig.",
+        "sources": [
+          "GPAI-01 bis GPAI-11"
+        ],
+        "path": "GPAI-Drittlandspfad"
+      },
+      {
+        "id": "DUTY-30",
+        "label": "Mitteilung an die Kommission bei Erreichen der Schwelle",
+        "value": "no",
+        "reason": "Aus Rollen-, Regulierungs- und Anwendungspfad derzeit nicht einschlägig.",
+        "sources": [
+          "GPAI-01 bis GPAI-11"
+        ],
+        "path": "GPAI-systemisches Risiko"
+      },
+      {
+        "id": "DUTY-31",
+        "label": "Modellbewertung einschließlich Angriffstests; Bewertung und Minderung systemischer Risiken; Meldung schwerwiegender Vorfälle; angemessene Cybersicherheit",
+        "value": "no",
+        "reason": "Aus Rollen-, Regulierungs- und Anwendungspfad derzeit nicht einschlägig.",
+        "sources": [
+          "GPAI-01 bis GPAI-11"
+        ],
+        "path": "GPAI-systemisches Risiko"
+      },
+      {
+        "id": "DUTY-32",
+        "label": "grundlegende Cybersicherheitsanforderungen an Produkteigenschaften und Schwachstellenbehandlung einschließlich koordinierter Offenlegung und Sicherheitsaktualisierungen",
+        "value": "no",
+        "reason": "Aus Rollen-, Regulierungs- und Anwendungspfad derzeit nicht einschlägig.",
+        "sources": [
+          "CRA-01 bis CRA-12"
+        ],
+        "path": "CRA-Herstellerpfad"
+      },
+      {
+        "id": "DUTY-33",
+        "label": "Cybersicherheitsrisikobewertung; Sorgfalt bei Drittkomponenten einschließlich Open Source; Festlegung des Unterstützungszeitraums",
+        "value": "no",
+        "reason": "Aus Rollen-, Regulierungs- und Anwendungspfad derzeit nicht einschlägig.",
+        "sources": [
+          "CRA-01 bis CRA-12"
+        ],
+        "path": "CRA-Herstellerpfad"
+      },
+      {
+        "id": "DUTY-34",
+        "label": "technische Dokumentation, Konformitätsbewertung nach Produktkategorie, EU-Konformitätserklärung, CE-Kennzeichnung",
+        "value": "no",
+        "reason": "Aus Rollen-, Regulierungs- und Anwendungspfad derzeit nicht einschlägig.",
+        "sources": [
+          "CRA-01 bis CRA-12"
+        ],
+        "path": "CRA-Herstellerpfad"
+      },
+      {
+        "id": "DUTY-35",
+        "label": "Meldung aktiv ausgenutzter Schwachstellen und schwerwiegender Sicherheitsvorfälle",
+        "value": "no",
+        "reason": "Aus Rollen-, Regulierungs- und Anwendungspfad derzeit nicht einschlägig.",
+        "sources": [
+          "CRA-01 bis CRA-12"
+        ],
+        "path": "CRA-Herstellerpfad"
+      },
+      {
+        "id": "DUTY-36",
+        "label": "rollenspezifische Pflichten der Bevollmächtigten, Einführer und Händler",
+        "value": "no",
+        "reason": "Aus Rollen-, Regulierungs- und Anwendungspfad derzeit nicht einschlägig.",
+        "sources": [
+          "CRA-01 bis CRA-12"
+        ],
+        "path": "CRA-Wirtschaftsakteurspfad"
+      },
+      {
+        "id": "DUTY-37",
+        "label": "Das aktuelle bzw. erwartete Restrisiko liegt innerhalb der festgelegten Risikotoleranz.",
+        "value": "yes",
+        "reason": "Aktuelle beziehungsweise verifizierte Restrisiken liegen innerhalb der dokumentierten Toleranz.",
+        "sources": [
+          "R-01"
+        ],
+        "path": "evaluateDutyOperationalResult: Risikotoleranz"
+      },
+      {
+        "id": "DUTY-38",
+        "label": "Die Einstufung beruht auf ausreichenden Informationen; das Risiko ist nicht „nicht beurteilbar“.",
+        "value": "yes",
+        "reason": "Informationslage und Risikobewertbarkeit sind ausreichend.",
+        "sources": [
+          "TOOL-11",
+          "TOOL-12",
+          "RISK-24 bis RISK-31"
+        ],
+        "path": "evaluateDutyOperationalResult: Informationslage"
+      },
+      {
+        "id": "DUTY-39",
+        "label": "Keine zwingende regulatorische Anforderung verlangt eine weitere Maßnahme, und Auswirkungen auf schutzbedürftige Gruppen sind berücksichtigt.",
+        "value": "yes",
+        "reason": "Keine offene zwingende Pflicht festgestellt; Schutzgruppen wurden berücksichtigt.",
+        "sources": [
+          "RISK-30"
+        ],
+        "path": "evaluateDutyOperationalResult: offene Pflichten und Schutzgruppen"
+      },
+      {
+        "id": "DUTY-40",
+        "label": "Die risikoverantwortliche Stelle hat die Akzeptanz bestätigt, und die Entscheidung ist dokumentiert.",
+        "value": "yes",
+        "reason": "Risikoakzeptanzen, Risk Owner und Entscheidungen sind dokumentiert.",
+        "sources": [
+          "R-01"
+        ],
+        "path": "evaluateDutyOperationalResult: Risikoakzeptanz"
+      },
+      {
+        "id": "DUTY-41",
+        "label": "Eine entscheidungsrelevante Information fehlt, oder Angaben widersprechen sich.",
+        "value": "yes",
+        "reason": "TR-06 ist als nicht einschlägig markiert, obwohl mindestens eine Pflicht nach TR-01 bis TR-05 einschlägig ist und DUTY-26 deshalb gesondert zu prüfen ist. Anwendbarkeit und Erfüllungsstatus bleiben getrennt. Art. 50: Manuelle Schlussfolgerung „Anbieterpflicht“ widerspricht dem automatisch ableitbaren Ergebnis. CRA: Manuelle Schlussfolgerung „CRA auf das Produkt anwendbar; keine eigene Wirtschaftsakteursrolle festgestellt“ widerspricht dem automatisch ableitbaren Ergebnis.",
+        "sources": [
+          "TOOL-12",
+          "Prüfschritte 1–7"
+        ],
+        "path": "evaluateDutyOperationalResult: entscheidende Informationen/Widersprüche"
+      },
+      {
+        "id": "DUTY-42",
+        "label": "Eine mit „weiterer Prüfbedarf“ beantwortete Tatsachenfrage beeinflusst die regulatorische Einordnung.",
+        "value": "yes",
+        "reason": "Nicht eindeutig beurteilbar / weiterer Prüfbedarf · Nicht eindeutig beurteilbar / weiterer Prüfbedarf",
+        "sources": [
+          "Prüfschritt 4"
+        ],
+        "path": "evaluateDutyOperationalResult: regulatorischer Prüfbedarf"
+      },
+      {
+        "id": "DUTY-43",
+        "label": "Eine gesetzliche Ausnahme erscheint nur teilweise erfüllt, oder es besteht ein Grenzfall bei Art. 5, Art. 6 Abs. 3, Art. 25, Art. 50, GPAI oder CRA.",
+        "value": "yes",
+        "reason": "Rechtliche Ausnahme oder Grenzfall ist offen beziehungsweise nur teilweise belegt.",
+        "sources": [
+          "ART5",
+          "HR-14 bis HR-19",
+          "TR-01 bis TR-07",
+          "GPAI",
+          "CRA"
+        ],
+        "path": "evaluateDutyOperationalResult: Rechtsausnahme/Grenzfall"
+      },
+      {
+        "id": "DUTY-44",
+        "label": "Eintrittswahrscheinlichkeit oder Auswirkung eines Szenarios ist nicht beurteilbar.",
+        "value": "no",
+        "reason": "Eintritt und Auswirkung aller Risiken sind bestimmbar.",
+        "sources": [],
+        "path": "evaluateDutyOperationalResult: Risikobewertbarkeit"
+      },
+      {
+        "id": "DUTY-45",
+        "label": "Die regulatorische Rolle ist nicht beurteilbar, oder Zweckbestimmung und tatsächliche Nutzung weichen voneinander ab.",
+        "value": "no",
+        "reason": "Die dokumentierte Nutzung entspricht der Zweckbestimmung des Anbieters; aus CTX-02 ergibt sich kein zusätzlicher Prüfbedarf.",
+        "sources": [
+          "CTX-02",
+          "DUTY-45",
+          "ROLE-01 bis ROLE-11"
+        ],
+        "path": "evaluateDutyOperationalResult: Rolle und Nutzung"
+      },
+      {
+        "id": "DUTY-46",
+        "label": "Eine neue, bisher nicht erfasste technische Funktion liegt vor.",
+        "value": "no",
+        "reason": "Die technische Systemgrenze und alle eingesetzten Komponenten sind im aktuellen Stand erfasst.",
+        "sources": [
+          "DUTY-46",
+          "RISK-01 bis RISK-06"
+        ],
+        "path": "evaluateDutyOperationalResult: neue technische Eigenschaft"
+      },
+      {
+        "id": "DUTY-47",
+        "label": "Es ist unklar, ob eine Maßnahme eine rechtliche Pflicht erfüllt, oder mehrere Rechtsregime wirken unklar zusammen (etwa EU AI Act, CRA, Datenschutz, sektorales Recht).",
+        "value": "no",
+        "reason": "Die Pflichterfüllung und das Zusammenwirken der einschlägigen Rechtsregime sind anhand der dokumentierten Begründung und Nachweise eindeutig geklärt; aus diesem Kriterium entsteht kein zusätzlicher juristischer Prüfbedarf.",
+        "sources": [
+          "DUTY-47",
+          "legalRegimeFulfilment",
+          "legalRegimeFulfilmentEvidence",
+          "CRA-12"
+        ],
+        "path": "evaluateDutyOperationalResult: Rechtsregime/gesetzliche Pflicht"
+      }
+    ],
+    "riskLevels": [
+      "high"
+    ],
+    "organizationalOverall": "Organisatorische Voraussetzungen ausreichend"
+  },
+  "assessment": {
+    "schemaVersion": 15,
+    "step": 0,
+    "form": {
+      "internalToolId": "TOOL-DOK-001",
+      "toolName": "Assistenzsystem zur Dokumentenklassifikation",
+      "provider": "Beispiel Software GmbH",
+      "version": "3.2",
+      "assessmentDate": "2026-09-16",
+      "assessmentUpdate": "2026-09-16",
+      "department": "Dokumentenmanagement",
+      "owner": "Fachverantwortung Dokumentenmanagement",
+      "purpose": "Eingehende Geschäftsdokumente vorsortieren und Mitarbeitenden Klassifikationsvorschläge bereitstellen.",
+      "tasks": "Dokumenttyp erkennen, Metadaten vorschlagen und Fälle an zuständige Teams verteilen.",
+      "systemBoundary": "Cloud-Anwendung einschließlich Modell, Konnektoren und Administrationsoberfläche; die fachliche Entscheidung verbleibt bei Mitarbeitenden.",
+      "inputs": "Geschäftsdokumente und freigegebene Metadaten.",
+      "dataSources": "Dokumentenmanagementsystem und manuelle Uploads.",
+      "outputsDescription": "Klassifikations- und Routingvorschläge mit Konfidenzwert.",
+      "techComponents": "Vortrainiertes Klassifikationsmodell, Regelwerk und API-Konnektor.",
+      "interfaces": "Dokumentenmanagement, Identitätsverwaltung und Monitoring.",
+      "integration": "Vorschlag wird vor Übernahme von einer sachbearbeitenden Person geprüft.",
+      "users": "Geschulte Sachbearbeitung und Administration.",
+      "infoSources": "Fiktiver Nachweisverweis – Produktdokumentation, Vertrag, technische Systembeschreibung und Pilotprotokoll.",
+      "shortDescription": "Assistenzsystem ohne automatische Letztentscheidung.",
+      "infoStatus": "complete",
+      "otherEvidence": "Fiktiver Nachweisverweis – Pilotbericht und Berechtigungskonzept.",
+      "providerContact": "Produktmanagement des Anbieters",
+      "personalScope": "yes",
+      "materialScope": "yes",
+      "territorialScope": "yes",
+      "euOutputEffect": "yes",
+      "specialRules": "no",
+      "researchScientificOnly": "no",
+      "researchBeforeMarket": "no",
+      "realWorldTesting": "no",
+      "actualOperationalUse": "yes",
+      "militarySecurity": "no",
+      "personalUse": "no",
+      "openSource": "no",
+      "machineBased": "yes",
+      "autonomy": "yes",
+      "adaptivity": "no",
+      "systemGoals": "yes",
+      "inference": "yes",
+      "aiOutputs": "yes",
+      "environmentInfluence": "yes",
+      "deterministicOnly": "no",
+      "modelOnly": "no",
+      "definitionEvidence": "Fiktiver Nachweisverweis – yes",
+      "scopeBasis": "Einsatz und Ergebnisse liegen in der EU; kein Ausschluss festgestellt.",
+      "scopeEvidence": "Fiktiver Nachweisverweis – Vertrag, Einsatzkonzept und Niederlassungsangaben.",
+      "definitionBasis": "Das System leitet Klassifikationsvorschläge aus Dokumentinhalten ab.",
+      "definitionEvidenceSource": "Fiktiver Nachweisverweis – Technische Produktbeschreibung und Pilotbeobachtung.",
+      "scopeNotes": "Erstbewertung für den Pilotbetrieb.",
+      "definitionNotes": "Anpassungsfähigkeit nach Bereitstellung ist deaktiviert.",
+      "transitionDate": "2026-12-31",
+      "intendedUse": "Unterstützende Vorsortierung eingehender Dokumente.",
+      "actualUse": "Pilotbetrieb mit verpflichtender menschlicher Bestätigung.",
+      "useLocation": "Deutschland",
+      "businessArea": "Dokumentenmanagement",
+      "process": "Posteingang und Fallrouting",
+      "decisionInfluence": "support",
+      "usersContext": "Geschulte interne Mitarbeitende.",
+      "affected": "Beschäftigte, Kunden und Vertragspartner in den Dokumenten.",
+      "spatialTemporal": "Deutscher Pilotbetrieb, werktägliche Nutzung.",
+      "rightsImpact": "Mittelbare Verzögerungen oder Fehlzuordnungen möglich.",
+      "organizationalConsequences": "Fehlrouting kann Bearbeitungszeiten verlängern.",
+      "societalConsequences": "Keine wesentliche kollektive Wirkung erwartet.",
+      "humanCorrection": "yes",
+      "personalData": "yes",
+      "individualImpact": "yes",
+      "organizationalImpact": "yes",
+      "societalImpact": "no",
+      "ownBrand": "no",
+      "substantialModification": "no",
+      "purposeChange": "no",
+      "role_provider": true,
+      "role_deployer": true,
+      "roleBasis": "Die Organisation stellt die konkrete Assistenzoberfläche bereit und betreibt sie im eigenen Prozess; die zugrunde liegende Modellkomponente stammt von einem Dritten.",
+      "roleEvidence": "Fiktiver Nachweisverweis – Vertrag, technische Systemabgrenzung und Einsatzkonzept.",
+      "roleReviewDate": "2027-03-31",
+      "roleNotes": "Rollen bei wesentlichen Änderungen erneut prüfen.",
+      "prohibitionConclusion": "none",
+      "prohibitionBasis": "Keine der geprüften Praktiken ist Bestandteil des vorgesehenen Einsatzes.",
+      "prohibitionEvidence": "Fiktiver Nachweisverweis – Zweckbestimmung, Funktionsbeschreibung und Testfälle.",
+      "productOrSafetyComponent": "no",
+      "annexILaw": "no",
+      "thirdPartyConformity": "no",
+      "transitionRule": "yes",
+      "productTransitionEffect": "none",
+      "productHighRiskConclusion": "no",
+      "productHighRiskBasis": "Kein Produkt oder Sicherheitsbauteil nach Anhang I.",
+      "productHighRiskEvidence": "Fiktiver Nachweisverweis – Produktbeschreibung.",
+      "annexHighRiskConclusion": "no",
+      "annexBasis": "Kein Verwendungsfall der acht Annex-III-Bereiche.",
+      "annexEvidence": "Fiktiver Nachweisverweis – Prozessbeschreibung.",
+      "tInteraction": "yes",
+      "tInteractionUse": "Vorsortierung mit sichtbarem Klassifikationsvorschlag.",
+      "tInteractionActor": "provider",
+      "tInteractionDuty": "Anbieter stellt eine verständliche Information über die unmittelbare Interaktion mit dem KI-System sicher.",
+      "tInteractionException": "no",
+      "tInteractionReason": "Direkte Interaktion ist in der Oberfläche erkennbar.",
+      "tInteractionEvidence": "Fiktiver Nachweisverweis – Abnahmetest und Oberflächenkonzept.",
+      "tInteractionResult": "applicable",
+      "transparencyConclusion": "provider",
+      "transparencyBasis": "Die direkte Interaktion löst nach Art. 50 Abs. 1 eine Anbieterpflicht aus.",
+      "transparencyEvidence": "Fiktiver Nachweisverweis – Kennzeichnung in der Oberfläche vorgesehen.",
+      "transparencyTemporalStatus": "current",
+      "transparencyTemporalReason": "Die Informationspflicht ist für die dokumentierte Interaktion am Bewertungsstichtag umzusetzen.",
+      "gpaiOrganizationRole": "none",
+      "gpaiThreshold": "not_met",
+      "gpaiCommissionStatus": "no",
+      "gpaiConclusion": "none",
+      "gpaiBasis": "Kein GPAI-Modell wird durch die Organisation bereitgestellt oder integriert.",
+      "gpaiEvidence": "Fiktiver Nachweisverweis – Anbieterangaben.",
+      "craDigitalProduct": "yes",
+      "craCommercial": "yes",
+      "craUseOnly": "yes",
+      "craOpenSource": "no",
+      "craManufacturerTakeover": "no",
+      "craExclusion": "no",
+      "craAiActOverlap": "no",
+      "craProductType": "software",
+      "craProductRelation": "standalone",
+      "craRoleManufacturer": "no",
+      "craRoleImporter": "no",
+      "craRoleDistributor": "no",
+      "craRoleRepresentative": "no",
+      "craRoleSteward": "no",
+      "craProductClass": "other",
+      "craConformityProcedure": "Produktunterlagen des Herstellers werden als Nachweis geführt.",
+      "craVulnerabilityProcess": "Schwachstelleninformationen des Herstellers werden überwacht und intern bearbeitet.",
+      "craReportingProcess": "Interne Eskalation an den Hersteller ist dokumentiert; keine eigene Wirtschaftsakteursrolle festgestellt.",
+      "craTransitionDates": "Anwendungszeitpunkte werden im Rechtskataster überwacht.",
+      "craAiActOverlapNotes": "Cybersicherheitsanforderungen werden mit den AI-Act-Kontrollen abgestimmt.",
+      "craConclusion": "product_only",
+      "craBasis": "Das Produkt mit digitalen Elementen ist vom CRA erfasst; die betrachtete Organisation nutzt es ausschließlich und übernimmt keine CRA-Wirtschaftsakteursrolle.",
+      "craEvidence": "Fiktiver Nachweisverweis – Vertrag, Herstellerangaben und technische Architektur.",
+      "regulatoryNotes": "Datenschutzprüfung wird separat durchgeführt.",
+      "legalSources": "EU AI Act Art. 3, 4, 22–27, 49 und 50; CRA.",
+      "transitionNotes": "Stichtage im Maßnahmenplan nachhalten.",
+      "planCoordinator": "Compliance-Koordination",
+      "planStatus": "complete",
+      "implementationNotes": "Monatliche Statusrunde bis Abschluss.",
+      "planEvidence": "Fiktiver Nachweisverweis – Maßnahmenprotokoll.",
+      "crossReferences": "R-01 ↔ RM-R-01; REG-TR-01 ↔ Kennzeichnung.",
+      "newTechnicalFeature": "no",
+      "newTechnicalFeatureReason": "Die technische Systemgrenze und alle eingesetzten Komponenten sind im aktuellen Stand erfasst.",
+      "legalRegimeFulfilment": "clarified",
+      "legalRegimeFulfilmentEvidence": "Fiktiver Nachweisverweis – EU AI Act, Cyber Resilience Act und Datenschutzrecht wurden für die vorgesehenen Maßnahmen abgegrenzt; Rechtskataster, Datenschutzprüfung und Herstellerunterlagen dokumentieren die Pflichterfüllung.",
+      "assessmentId": "KIR-2026-001",
+      "assessmentVersion": "1.0",
+      "guideVersion": "Version 2.0 – vorläufige Fassung",
+      "changeHistory": "1.0 – Erstbewertung des Pilotbetriebs; keine frühere Bewertung vorhanden.",
+      "documentationOwner": "Compliance-Koordination",
+      "reviewer": "Interne Revision",
+      "approver": "Bereichsleitung",
+      "overallReasoning": "Pilotbetrieb ist nur unter den dokumentierten Kontrollen und nach CRA-Klärung zulässig.",
+      "conditions": "Ergänzende Erläuterung: menschliche Bestätigung und Monitoring.",
+      "blockers": "Keine ergänzende Anmerkung.",
+      "openRequirements": "CRA-Abgrenzung als ergänzende Anmerkung.",
+      "openMeasures": "Monitoringindikator ergänzend beschrieben.",
+      "openReviews": "Nicht blockierende CRA-Rechtsprüfung.",
+      "manualBlockerActive": "no",
+      "manualBlockerReason": "",
+      "nextReviewDate": "2027-03-31",
+      "reviewFrequency": "Halbjährlich und anlassbezogen",
+      "reviewEvidence": "Fiktiver Nachweisverweis – Reviewprotokoll, Monitoringbericht und Maßnahmenstatus.",
+      "approvalStatus": "conditional",
+      "approvalDate": "2026-09-16",
+      "documentLocation": "Zentrale Bewertungsakte / KIR-2026-001",
+      "accessRights": "Rollenbasierter Zugriff für Fachbereich, IT, Compliance, Datenschutz und Revision.",
+      "statutoryRetentionStatus": "determined",
+      "statutoryRetentionBasis": "Die einschlägige Frist und Rechtsgrundlage sind im Rechtskataster des Musterfalls dokumentiert.",
+      "internalRetentionPeriod": "Bis zum Abschluss des nächsten regulären Reviews, danach gemäß interner Aktenordnung.",
+      "preservePreviousAssessments": "yes",
+      "evidenceInventory": "Fiktiver Nachweisverweis – Technische Dokumentation: Produktdokumentation und Systembeschreibung; Risikomanagement nach Art. 9: nicht einschlägig; Qualitätsmanagement: nicht einschlägig; Protokollierung: Pilotprotokoll; Konformitätserklärung: nicht einschlägig; Registrierung: nicht einschlägig; Post-Market-Monitoring: Monitoringbericht; Vorfälle: keine; Grundrechte-Folgenabschätzung: nicht einschlägig; Datenschutz-Folgenabschätzung: Datenschutzprüfung; GPAI-Dokumentation: nicht einschlägig; CRA-Risikobewertung und technische CRA-Dokumentation: Herstellerunterlagen.",
+      "evidenceInventoryVersion": "1.0",
+      "evidenceInventoryDate": "2026-09-16",
+      "evidenceInventoryLocation": "Zentrale Bewertungsakte / KIR-2026-001 / Nachweise",
+      "distribution": "Fachbereich, IT, Compliance, Datenschutz",
+      "additionalNotes": "Die Bewertung ersetzt keine Einzelfallrechtsberatung.",
+      "beyondHumanRules": "yes",
+      "usesPatterns": "yes",
+      "beyondStaticProcessing": "yes",
+      "basicDataProcessing": "no",
+      "establishedMath": "no",
+      "simpleHeuristics": "no",
+      "objectType": "system_with_model",
+      "scopeProviderMarketEU": "yes",
+      "scopeDeployerEU": "yes",
+      "scopeImporterDistributor": "no",
+      "scopeProductManufacturer": "no",
+      "scopeAuthorisedRepresentative": "no",
+      "scopeAffectedEU": "yes",
+      "scopeAnnexIB": "no",
+      "scopeOutsideUnionLaw": "no",
+      "scopeNonEUOutputSecurity": "no",
+      "scopeThirdCountryCooperation": "no",
+      "openSourceHighRiskArt5Art50": "no",
+      "scopeAnnexIAEquivalent": "no",
+      "purposeAlignment": "matches",
+      "humanReview": "yes",
+      "foreseeableMisuse": "no",
+      "sensitiveSituation": "no",
+      "publicServiceEntity": "no",
+      "unionAuthority": "no",
+      "roleProviderFact": "yes",
+      "roleGpaiProviderFact": "no",
+      "roleDeployerFact": "yes",
+      "roleRepresentativeFact": "no",
+      "roleImporterFact": "no",
+      "roleDistributorFact": "no",
+      "roleProductManufacturerFact": "no",
+      "productIntegration": "no",
+      "pManipulation": "not_met",
+      "pVulnerability": "not_met",
+      "pNonConsensualIntimate": "not_met",
+      "pCsam": "not_met",
+      "pSocialScoring": "not_met",
+      "pCrimePrediction": "not_met",
+      "pFaceDatabase": "not_met",
+      "pEmotion": "not_met",
+      "pBiometricCategory": "not_met",
+      "pRealtimeBiometric": "not_met",
+      "annexBiometrics": "no",
+      "annexCriticalInfrastructure": "no",
+      "annexEducation": "no",
+      "annexEmployment": "no",
+      "annexEssentialServices": "no",
+      "annexLawEnforcement": "no",
+      "annexMigration": "no",
+      "annexJusticeDemocracy": "no",
+      "tSynthetic": "no",
+      "tEmotionBiometric": "no",
+      "tDeepfake": "no",
+      "tPublicText": "no",
+      "tGeneralRequirements": "no",
+      "tHighRiskAffectedInfo": "no",
+      "productCovered": "no",
+      "productSafetyComponent": "no",
+      "annexISection": "A",
+      "conformityNonSafetyOnly": "no",
+      "gModel": "no",
+      "gIndicativeFlops": "no",
+      "gResearchOnly": "no",
+      "gObjectType": "system",
+      "gSelfProvision": "no",
+      "gModification": "no",
+      "gNonEuProvider": "no",
+      "gOpenSource": "no",
+      "gSystemicRisk": "no",
+      "gCommissionDesignation": "no",
+      "gAnnexXIII": "no",
+      "craRemoteProcessing": "yes",
+      "craDataConnection": "yes",
+      "craPrototype": "no",
+      "craRole": "none",
+      "craSubstantialChange": "no",
+      "timeAssessmentBasis": "yes",
+      "timeDutyStatuses": "yes",
+      "timeTransition": "no",
+      "timeLawChanged": "no",
+      "publicAuthorityIntendedUse": "no",
+      "timeBasis": "Bewertungsstichtag und Rechtsstand sind dokumentiert.",
+      "timeEvidence": "Fiktiver Nachweisverweis – Rechtskataster und Bewertungsakte.",
+      "intendedUseDate": "2026-09-16",
+      "firstMarketDate": "2026-09-01",
+      "firstOperationDate": "2026-09-16",
+      "substantialChangeStatus": "no",
+      "craFirstMarketDate": "2026-09-01",
+      "craTransitionEvidence": "Fiktiver Nachweisverweis – Herstellerunterlagen und Produktakte belegen das erstmalige Inverkehrbringen.",
+      "scopeLimitationOwner": "Rechts- und Compliance-Funktion",
+      "scopeLimitationDue": "2026-10-15",
+      "riskSystemBoundary": "Cloud-Anwendung einschließlich Modell, Konnektoren und Administrationsoberfläche; die fachliche Entscheidung verbleibt bei Mitarbeitenden.",
+      "riskDataSources": "Dokumentenmanagementsystem und manuelle Uploads.",
+      "riskModelsComponents": "Vortrainiertes Klassifikationsmodell, Regelwerk und API-Konnektor.",
+      "riskInterfacesEnvironment": "Dokumentenmanagement, Identitätsverwaltung und Monitoring.",
+      "riskHumanOversight": "Menschliche Bestätigung und Übersteuerung sind möglich.",
+      "riskExistingControls": "Rollenbasierter Zugriff, Stichprobentests und Monitoring.",
+      "riskDomain10": "no",
+      "riskDomain11": "yes",
+      "riskDomain12": "yes",
+      "riskDomain13": "no",
+      "riskDomain14": "no",
+      "riskDomain15": "no",
+      "riskDomain16": "yes",
+      "riskDomain17": "yes",
+      "riskDomain18": "no",
+      "riskDomain19": "yes",
+      "riskDomain20": "yes",
+      "riskDomain21": "no",
+      "riskDomain22": "no",
+      "riskDomain23": "no",
+      "riskHealthRights": "no",
+      "riskForeseeableUse": "no",
+      "riskDesignMitigation": "no",
+      "riskTestProcedures": "no",
+      "riskCombinedOccurrence": "no",
+      "riskCascade": "no",
+      "riskProtectedGroups": "no",
+      "riskRegulatoryFeedback": "no"
+    },
+    "guideAnswers": {
+      "TOOL-01": {
+        "value": "Assistenzsystem zur Dokumentenklassifikation",
+        "sourceField": "toolName"
+      },
+      "TOOL-02": {
+        "value": "Beispiel Software GmbH",
+        "sourceField": "provider"
+      },
+      "TOOL-03": {
+        "value": "3.2",
+        "sourceField": "version"
+      },
+      "TOOL-04": {
+        "value": "Dokumentenmanagement",
+        "sourceField": "department"
+      },
+      "TOOL-05": {
+        "value": "Eingehende Geschäftsdokumente vorsortieren und Mitarbeitenden Klassifikationsvorschläge bereitstellen.",
+        "sourceField": "purpose"
+      },
+      "TOOL-06": {
+        "value": "Dokumenttyp erkennen, Metadaten vorschlagen und Fälle an zuständige Teams verteilen.",
+        "sourceField": "tasks"
+      },
+      "TOOL-07": {
+        "value": "Vortrainiertes Klassifikationsmodell, Regelwerk und API-Konnektor.",
+        "sourceField": "techComponents"
+      },
+      "TOOL-08": {
+        "value": "Geschäftsdokumente und freigegebene Metadaten.",
+        "sourceField": "inputs"
+      },
+      "TOOL-09": {
+        "value": "Klassifikations- und Routingvorschläge mit Konfidenzwert.",
+        "sourceField": "outputsDescription"
+      },
+      "TOOL-10": {
+        "value": "Cloud-Anwendung einschließlich Modell, Konnektoren und Administrationsoberfläche; die fachliche Entscheidung verbleibt bei Mitarbeitenden.",
+        "sourceField": "systemBoundary"
+      },
+      "TOOL-11": {
+        "value": "Fiktiver Nachweisverweis – Produktdokumentation, Vertrag, technische Systembeschreibung und Pilotprotokoll.",
+        "sourceField": "infoSources"
+      },
+      "TOOL-12": {
+        "value": "Assistenzsystem ohne automatische Letztentscheidung.",
+        "sourceField": "shortDescription"
+      },
+      "DEF-01": {
+        "value": "yes",
+        "sourceField": "machineBased"
+      },
+      "DEF-02": {
+        "value": "yes",
+        "sourceField": "autonomy"
+      },
+      "DEF-03": {
+        "value": "no",
+        "sourceField": "adaptivity"
+      },
+      "DEF-04": {
+        "value": "yes",
+        "sourceField": "systemGoals"
+      },
+      "DEF-05": {
+        "value": "yes",
+        "sourceField": "inference"
+      },
+      "DEF-06": {
+        "value": "yes",
+        "sourceField": "aiOutputs"
+      },
+      "DEF-07": {
+        "value": "yes",
+        "sourceField": "environmentInfluence"
+      },
+      "DEF-08": {
+        "value": "yes",
+        "sourceField": "beyondHumanRules"
+      },
+      "DEF-09": {
+        "value": "yes",
+        "sourceField": "usesPatterns"
+      },
+      "DEF-10": {
+        "value": "yes",
+        "sourceField": "beyondStaticProcessing"
+      },
+      "DEF-11": {
+        "value": "no",
+        "sourceField": "deterministicOnly"
+      },
+      "DEF-12": {
+        "value": "no",
+        "sourceField": "basicDataProcessing"
+      },
+      "DEF-13": {
+        "value": "no",
+        "sourceField": "establishedMath"
+      },
+      "DEF-14": {
+        "value": "no",
+        "sourceField": "simpleHeuristics"
+      },
+      "DEF-15": {
+        "value": "system_with_model",
+        "sourceField": "objectType"
+      },
+      "SCOPE-01": {
+        "value": "yes",
+        "sourceField": "scopeProviderMarketEU"
+      },
+      "SCOPE-02": {
+        "value": "yes",
+        "sourceField": "scopeDeployerEU"
+      },
+      "SCOPE-03": {
+        "value": "yes",
+        "sourceField": "euOutputEffect"
+      },
+      "SCOPE-04": {
+        "value": "no",
+        "sourceField": "scopeImporterDistributor"
+      },
+      "SCOPE-05": {
+        "value": "no",
+        "sourceField": "scopeProductManufacturer"
+      },
+      "SCOPE-06": {
+        "value": "no",
+        "sourceField": "scopeAuthorisedRepresentative"
+      },
+      "SCOPE-07": {
+        "value": "yes",
+        "sourceField": "scopeAffectedEU"
+      },
+      "SCOPE-08": {
+        "value": "no",
+        "sourceField": "scopeAnnexIB"
+      },
+      "SCOPE-09": {
+        "value": "no",
+        "sourceField": "scopeOutsideUnionLaw"
+      },
+      "SCOPE-10": {
+        "value": "no",
+        "sourceField": "militarySecurity"
+      },
+      "SCOPE-11": {
+        "value": "no",
+        "sourceField": "scopeNonEUOutputSecurity"
+      },
+      "SCOPE-12": {
+        "value": "no",
+        "sourceField": "scopeThirdCountryCooperation"
+      },
+      "SCOPE-13": {
+        "value": "no",
+        "sourceField": "researchScientificOnly"
+      },
+      "SCOPE-14": {
+        "value": "no",
+        "sourceField": "researchBeforeMarket"
+      },
+      "SCOPE-15": {
+        "value": "no",
+        "sourceField": "personalUse"
+      },
+      "SCOPE-16": {
+        "value": "no",
+        "sourceField": "openSource"
+      },
+      "SCOPE-17": {
+        "value": "no",
+        "sourceField": "openSourceHighRiskArt5Art50"
+      },
+      "SCOPE-18": {
+        "value": "no",
+        "sourceField": "scopeAnnexIAEquivalent"
+      },
+      "CTX-01": {
+        "value": "Unterstützende Vorsortierung eingehender Dokumente.",
+        "sourceField": "intendedUse"
+      },
+      "CTX-02": {
+        "value": "matches",
+        "sourceField": "purposeAlignment"
+      },
+      "CTX-03": {
+        "value": "Posteingang und Fallrouting",
+        "sourceField": "process"
+      },
+      "CTX-04": {
+        "value": "Geschulte interne Mitarbeitende.",
+        "sourceField": "usersContext"
+      },
+      "CTX-05": {
+        "value": "Beschäftigte, Kunden und Vertragspartner in den Dokumenten.",
+        "sourceField": "affected"
+      },
+      "CTX-06": {
+        "value": "support",
+        "sourceField": "decisionInfluence"
+      },
+      "CTX-07": {
+        "value": "yes",
+        "sourceField": "humanReview"
+      },
+      "CTX-08": {
+        "value": "yes",
+        "sourceField": "humanCorrection"
+      },
+      "CTX-09": {
+        "value": "Deutscher Pilotbetrieb, werktägliche Nutzung.",
+        "sourceField": "spatialTemporal"
+      },
+      "CTX-10": {
+        "value": "no",
+        "sourceField": "foreseeableMisuse"
+      },
+      "CTX-11": {
+        "value": "no",
+        "sourceField": "sensitiveSituation"
+      },
+      "CTX-12": {
+        "value": "Mittelbare Verzögerungen oder Fehlzuordnungen möglich.",
+        "sourceField": "rightsImpact"
+      },
+      "CTX-13": {
+        "value": "no",
+        "sourceField": "publicServiceEntity"
+      },
+      "CTX-14": {
+        "value": "no",
+        "sourceField": "unionAuthority"
+      },
+      "ROLE-01": {
+        "value": "yes",
+        "sourceField": "roleProviderFact"
+      },
+      "ROLE-02": {
+        "value": "no",
+        "sourceField": "roleGpaiProviderFact"
+      },
+      "ROLE-03": {
+        "value": "yes",
+        "sourceField": "roleDeployerFact"
+      },
+      "ROLE-04": {
+        "value": "no",
+        "sourceField": "roleRepresentativeFact"
+      },
+      "ROLE-05": {
+        "value": "no",
+        "sourceField": "roleImporterFact"
+      },
+      "ROLE-06": {
+        "value": "no",
+        "sourceField": "roleDistributorFact"
+      },
+      "ROLE-07": {
+        "value": "no",
+        "sourceField": "roleProductManufacturerFact"
+      },
+      "ROLE-08": {
+        "value": "no",
+        "sourceField": "ownBrand"
+      },
+      "ROLE-09": {
+        "value": "no",
+        "sourceField": "substantialModification"
+      },
+      "ROLE-10": {
+        "value": "no",
+        "sourceField": "purposeChange"
+      },
+      "ROLE-11": {
+        "value": "no",
+        "sourceField": "productIntegration"
+      },
+      "ART5-01": {
+        "value": "not_met",
+        "sourceField": "pManipulation"
+      },
+      "ART5-02": {
+        "value": "not_met",
+        "sourceField": "pVulnerability"
+      },
+      "ART5-03": {
+        "value": "not_met",
+        "sourceField": "pNonConsensualIntimate"
+      },
+      "ART5-04": {
+        "value": "not_met",
+        "sourceField": "pCsam"
+      },
+      "ART5-05": {
+        "value": "not_met",
+        "sourceField": "pSocialScoring"
+      },
+      "ART5-06": {
+        "value": "not_met",
+        "sourceField": "pCrimePrediction"
+      },
+      "ART5-07": {
+        "value": "not_met",
+        "sourceField": "pFaceDatabase"
+      },
+      "ART5-08": {
+        "value": "not_met",
+        "sourceField": "pEmotion"
+      },
+      "ART5-09": {
+        "value": "not_met",
+        "sourceField": "pBiometricCategory"
+      },
+      "ART5-10": {
+        "value": "not_met",
+        "sourceField": "pRealtimeBiometric"
+      },
+      "HR-01": {
+        "value": "no",
+        "sourceField": "productCovered"
+      },
+      "HR-02": {
+        "value": "no",
+        "sourceField": "productSafetyComponent"
+      },
+      "HR-03": {
+        "value": "A",
+        "sourceField": "annexISection"
+      },
+      "HR-04": {
+        "value": "no",
+        "sourceField": "thirdPartyConformity"
+      },
+      "HR-05": {
+        "value": "no",
+        "sourceField": "conformityNonSafetyOnly"
+      },
+      "HR-06": {
+        "value": "no",
+        "sourceField": "annexBiometrics"
+      },
+      "HR-07": {
+        "value": "no",
+        "sourceField": "annexCriticalInfrastructure"
+      },
+      "HR-08": {
+        "value": "no",
+        "sourceField": "annexEducation"
+      },
+      "HR-09": {
+        "value": "no",
+        "sourceField": "annexEmployment"
+      },
+      "HR-10": {
+        "value": "no",
+        "sourceField": "annexEssentialServices"
+      },
+      "HR-11": {
+        "value": "no",
+        "sourceField": "annexLawEnforcement"
+      },
+      "HR-12": {
+        "value": "no",
+        "sourceField": "annexMigration"
+      },
+      "HR-13": {
+        "value": "no",
+        "sourceField": "annexJusticeDemocracy"
+      },
+      "TR-01": {
+        "value": "yes",
+        "sourceField": "tInteraction"
+      },
+      "TR-02": {
+        "value": "no",
+        "sourceField": "tSynthetic"
+      },
+      "TR-03": {
+        "value": "no",
+        "sourceField": "tEmotionBiometric"
+      },
+      "TR-04": {
+        "value": "no",
+        "sourceField": "tDeepfake"
+      },
+      "TR-05": {
+        "value": "no",
+        "sourceField": "tPublicText"
+      },
+      "TR-06": {
+        "value": "no",
+        "sourceField": "tGeneralRequirements"
+      },
+      "TR-07": {
+        "value": "no",
+        "sourceField": "tHighRiskAffectedInfo"
+      },
+      "GPAI-01": {
+        "value": "no",
+        "sourceField": "gModel"
+      },
+      "GPAI-02": {
+        "value": "no",
+        "sourceField": "gIndicativeFlops"
+      },
+      "GPAI-03": {
+        "value": "no",
+        "sourceField": "gResearchOnly"
+      },
+      "GPAI-04": {
+        "value": "system",
+        "sourceField": "gObjectType"
+      },
+      "GPAI-05": {
+        "value": "no",
+        "sourceField": "gSelfProvision"
+      },
+      "GPAI-06": {
+        "value": "no",
+        "sourceField": "gModification"
+      },
+      "GPAI-07": {
+        "value": "no",
+        "sourceField": "gNonEuProvider"
+      },
+      "GPAI-08": {
+        "value": "no",
+        "sourceField": "gOpenSource"
+      },
+      "GPAI-09": {
+        "value": "no",
+        "sourceField": "gSystemicRisk"
+      },
+      "GPAI-10": {
+        "value": "no",
+        "sourceField": "gCommissionDesignation"
+      },
+      "GPAI-11": {
+        "value": "no",
+        "sourceField": "gAnnexXIII"
+      },
+      "CRA-01": {
+        "value": "yes",
+        "sourceField": "craDigitalProduct"
+      },
+      "CRA-02": {
+        "value": "yes",
+        "sourceField": "craRemoteProcessing"
+      },
+      "CRA-03": {
+        "value": "yes",
+        "sourceField": "craDataConnection"
+      },
+      "CRA-04": {
+        "value": "yes",
+        "sourceField": "craCommercial"
+      },
+      "CRA-05": {
+        "value": "no",
+        "sourceField": "craPrototype"
+      },
+      "CRA-06": {
+        "value": "no",
+        "sourceField": "craOpenSource"
+      },
+      "CRA-07": {
+        "value": "no",
+        "sourceField": "craExclusion"
+      },
+      "CRA-08": {
+        "value": "none",
+        "sourceField": "craRole"
+      },
+      "CRA-09": {
+        "value": "no",
+        "sourceField": "craSubstantialChange"
+      },
+      "CRA-10": {
+        "value": "no",
+        "sourceField": "craManufacturerTakeover"
+      },
+      "CRA-11": {
+        "value": "other",
+        "sourceField": "craProductClass"
+      },
+      "CRA-12": {
+        "value": "no",
+        "sourceField": "craAiActOverlap"
+      },
+      "TIME-01": {
+        "value": "yes",
+        "sourceField": "timeAssessmentBasis"
+      },
+      "TIME-02": {
+        "value": "yes",
+        "sourceField": "timeDutyStatuses"
+      },
+      "TIME-03": {
+        "value": "no",
+        "sourceField": "timeTransition"
+      },
+      "TIME-04": {
+        "value": "no",
+        "sourceField": "timeLawChanged"
+      },
+      "RISK-01": {
+        "value": "Cloud-Anwendung einschließlich Modell, Konnektoren und Administrationsoberfläche; die fachliche Entscheidung verbleibt bei Mitarbeitenden.",
+        "sourceField": "riskSystemBoundary"
+      },
+      "RISK-02": {
+        "value": "Dokumentenmanagementsystem und manuelle Uploads.",
+        "sourceField": "riskDataSources"
+      },
+      "RISK-03": {
+        "value": "Vortrainiertes Klassifikationsmodell, Regelwerk und API-Konnektor.",
+        "sourceField": "riskModelsComponents"
+      },
+      "RISK-04": {
+        "value": "Dokumentenmanagement, Identitätsverwaltung und Monitoring.",
+        "sourceField": "riskInterfacesEnvironment"
+      },
+      "RISK-05": {
+        "value": "Menschliche Bestätigung und Übersteuerung sind möglich.",
+        "sourceField": "riskHumanOversight"
+      },
+      "RISK-06": {
+        "value": "Rollenbasierter Zugriff, Stichprobentests und Monitoring.",
+        "sourceField": "riskExistingControls"
+      },
+      "RISK-10": {
+        "value": "no",
+        "sourceField": "riskDomain10"
+      },
+      "RISK-11": {
+        "value": "yes",
+        "sourceField": "riskDomain11"
+      },
+      "RISK-12": {
+        "value": "yes",
+        "sourceField": "riskDomain12"
+      },
+      "RISK-13": {
+        "value": "no",
+        "sourceField": "riskDomain13"
+      },
+      "RISK-14": {
+        "value": "no",
+        "sourceField": "riskDomain14"
+      },
+      "RISK-15": {
+        "value": "no",
+        "sourceField": "riskDomain15"
+      },
+      "RISK-16": {
+        "value": "yes",
+        "sourceField": "riskDomain16"
+      },
+      "RISK-17": {
+        "value": "yes",
+        "sourceField": "riskDomain17"
+      },
+      "RISK-18": {
+        "value": "no",
+        "sourceField": "riskDomain18"
+      },
+      "RISK-19": {
+        "value": "yes",
+        "sourceField": "riskDomain19"
+      },
+      "RISK-20": {
+        "value": "yes",
+        "sourceField": "riskDomain20"
+      },
+      "RISK-21": {
+        "value": "no",
+        "sourceField": "riskDomain21"
+      },
+      "RISK-22": {
+        "value": "no",
+        "sourceField": "riskDomain22"
+      },
+      "RISK-23": {
+        "value": "no",
+        "sourceField": "riskDomain23"
+      },
+      "RISK-24": {
+        "value": "no",
+        "sourceField": "riskHealthRights"
+      },
+      "RISK-25": {
+        "value": "no",
+        "sourceField": "riskForeseeableUse"
+      },
+      "RISK-26": {
+        "value": "no",
+        "sourceField": "riskDesignMitigation"
+      },
+      "RISK-27": {
+        "value": "no",
+        "sourceField": "riskTestProcedures"
+      },
+      "RISK-28": {
+        "value": "no",
+        "sourceField": "riskCombinedOccurrence"
+      },
+      "RISK-29": {
+        "value": "no",
+        "sourceField": "riskCascade"
+      },
+      "RISK-30": {
+        "value": "no",
+        "sourceField": "riskProtectedGroups"
+      },
+      "RISK-31": {
+        "value": "no",
+        "sourceField": "riskRegulatoryFeedback"
+      }
+    },
+    "evaluated": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "risks": [
+      {
+        "suitableTreatmentAvailability": "available",
+        "treatmentAvailabilityReason": "Konfidenzschwelle und Monitoring sind als geeignete Behandlung bestimmt.",
+        "riskId": "R-01",
+        "source": "Pilotbeobachtung",
+        "description": "Fehlklassifikation eines Geschäftsdokuments",
+        "event": "Das Modell ordnet ein Dokument dem falschen Vorgang zu.",
+        "consequence": "Verzögerte Bearbeitung und mögliche Fehladressierung.",
+        "affectedAreas": "Dokumentenmanagement sowie betroffene Kunden und Vertragspartner.",
+        "orgEffect": "Mehraufwand und Fristversäumnis.",
+        "personEffect": "Verspätete Bearbeitung eines Anliegens.",
+        "societalEffect": "Keine wesentliche kollektive Auswirkung.",
+        "environmentalEffect": "Keine erkennbare Umweltauswirkung.",
+        "category": "Zuverlässigkeit und Datenschutz",
+        "existingControls": "Menschliche Bestätigung und rollenbasierter Zugriff.",
+        "controlEvidence": "Fiktiver Nachweisverweis – Pilotprotokoll und Berechtigungstest.",
+        "probability": "2",
+        "impact": "3",
+        "controlEffectiveness": "effective",
+        "currentRisk": "high",
+        "uncertainty": "low",
+        "acceptance": "conditional",
+        "riskOwner": "Fachverantwortung",
+        "acceptanceApproval": "Bedingte Akzeptanz für den Pilotbetrieb durch die Fachverantwortung.",
+        "treatmentNeeded": "yes",
+        "treatmentStrategy": "reduce",
+        "priority": "high",
+        "proposedTreatment": "Konfidenzschwelle und Stichprobenmonitoring etablieren.",
+        "treatmentDue": "2026-10-15",
+        "expectedResidual": "low",
+        "owner": "Fachverantwortung",
+        "expertReview": "no",
+        "legalReview": "no",
+        "decisionCriticality": "no",
+        "verifiedResidual": "low",
+        "treatmentStatus": "verified",
+        "effectivenessCriterion": "Fehlklassifikationsquote unter 2 Prozent.",
+        "effectivenessEvidence": "Fiktiver Nachweisverweis – Pilotmonitoring und Stichprobenprotokoll.",
+        "effectivenessDate": "2026-09-15",
+        "effectivenessReviewer": "Qualitätsmanagement",
+        "linkedRequirement": "Interne Qualitätsvorgabe",
+        "monitoringIndicator": "Fehlklassifikationsquote < 2 %",
+        "comments": "Monatliche Stichprobe."
+      }
+    ],
+    "org": {
+      "governance": {
+        "status": "fulfilled",
+        "criteria": {
+          "org01": {
+            "answer": "fulfilled",
+            "reason": ""
+          },
+          "org02": {
+            "answer": "fulfilled",
+            "reason": ""
+          },
+          "org03": {
+            "answer": "fulfilled",
+            "reason": ""
+          },
+          "org04": {
+            "answer": "fulfilled",
+            "reason": ""
+          },
+          "org05": {
+            "answer": "fulfilled",
+            "reason": ""
+          },
+          "org06": {
+            "answer": "fulfilled",
+            "reason": ""
+          },
+          "org07": {
+            "answer": "fulfilled",
+            "reason": ""
+          },
+          "org08": {
+            "answer": "fulfilled",
+            "reason": ""
+          }
+        },
+        "finding": "Verfahren ist für den Pilotbetrieb festgelegt.",
+        "rationale": "Rollen, Ablauf und Kontrollen sind dokumentiert.",
+        "evidence": "Fiktiver Nachweisverweis – Freigegebene Prozessbeschreibung.",
+        "evidenceLocation": "Bewertungsakte",
+        "gap": "Keine entscheidungskritische Lücke.",
+        "impact": "Keine wesentliche Auswirkung.",
+        "measure": "Regelmäßig überprüfen und aktualisieren.",
+        "owner": "Bereichsleitung",
+        "transfer": "no",
+        "decisionCritical": "no",
+        "deadline": "2027-03-31",
+        "notes": "Im Review erneut bewerten."
+      },
+      "policies": {
+        "status": "fulfilled",
+        "criteria": {
+          "org09": {
+            "answer": "fulfilled",
+            "reason": ""
+          },
+          "org10": {
+            "answer": "fulfilled",
+            "reason": ""
+          },
+          "org11": {
+            "answer": "fulfilled",
+            "reason": ""
+          },
+          "org12": {
+            "answer": "fulfilled",
+            "reason": ""
+          },
+          "org13": {
+            "answer": "fulfilled",
+            "reason": ""
+          },
+          "org14": {
+            "answer": "fulfilled",
+            "reason": ""
+          },
+          "org15": {
+            "answer": "fulfilled",
+            "reason": ""
+          },
+          "org16": {
+            "answer": "fulfilled",
+            "reason": ""
+          },
+          "org17": {
+            "answer": "fulfilled",
+            "reason": ""
+          },
+          "org18": {
+            "answer": "fulfilled",
+            "reason": ""
+          },
+          "org19": {
+            "answer": "fulfilled",
+            "reason": ""
+          }
+        },
+        "finding": "Verfahren ist für den Pilotbetrieb festgelegt.",
+        "rationale": "Rollen, Ablauf und Kontrollen sind dokumentiert.",
+        "evidence": "Fiktiver Nachweisverweis – Freigegebene Prozessbeschreibung.",
+        "evidenceLocation": "Bewertungsakte",
+        "gap": "Keine entscheidungskritische Lücke.",
+        "impact": "Keine wesentliche Auswirkung.",
+        "measure": "Regelmäßig überprüfen und aktualisieren.",
+        "owner": "Bereichsleitung",
+        "transfer": "no",
+        "decisionCritical": "no",
+        "deadline": "2027-03-31",
+        "notes": "Im Review erneut bewerten."
+      },
+      "resources": {
+        "status": "fulfilled",
+        "criteria": {
+          "org20": {
+            "answer": "fulfilled",
+            "reason": ""
+          },
+          "org21": {
+            "answer": "fulfilled",
+            "reason": ""
+          },
+          "org22": {
+            "answer": "fulfilled",
+            "reason": ""
+          },
+          "org23": {
+            "answer": "fulfilled",
+            "reason": ""
+          },
+          "org24": {
+            "answer": "fulfilled",
+            "reason": ""
+          },
+          "org25": {
+            "answer": "fulfilled",
+            "reason": ""
+          }
+        },
+        "finding": "Verfahren ist für den Pilotbetrieb festgelegt.",
+        "rationale": "Rollen, Ablauf und Kontrollen sind dokumentiert.",
+        "evidence": "Fiktiver Nachweisverweis – Freigegebene Prozessbeschreibung.",
+        "evidenceLocation": "Bewertungsakte",
+        "gap": "Keine entscheidungskritische Lücke.",
+        "impact": "Keine wesentliche Auswirkung.",
+        "measure": "Regelmäßig überprüfen und aktualisieren.",
+        "owner": "Bereichsleitung",
+        "transfer": "no",
+        "decisionCritical": "no",
+        "deadline": "2027-03-31",
+        "notes": "Im Review erneut bewerten."
+      },
+      "communication": {
+        "status": "fulfilled",
+        "criteria": {
+          "org26": {
+            "answer": "fulfilled",
+            "reason": ""
+          },
+          "org27": {
+            "answer": "fulfilled",
+            "reason": ""
+          },
+          "org28": {
+            "answer": "fulfilled",
+            "reason": ""
+          },
+          "org29": {
+            "answer": "fulfilled",
+            "reason": ""
+          },
+          "org30": {
+            "answer": "fulfilled",
+            "reason": ""
+          },
+          "org31": {
+            "answer": "fulfilled",
+            "reason": ""
+          },
+          "org32": {
+            "answer": "fulfilled",
+            "reason": ""
+          }
+        },
+        "finding": "Verfahren ist für den Pilotbetrieb festgelegt.",
+        "rationale": "Rollen, Ablauf und Kontrollen sind dokumentiert.",
+        "evidence": "Fiktiver Nachweisverweis – Freigegebene Prozessbeschreibung.",
+        "evidenceLocation": "Bewertungsakte",
+        "gap": "Keine entscheidungskritische Lücke.",
+        "impact": "Keine wesentliche Auswirkung.",
+        "measure": "Regelmäßig überprüfen und aktualisieren.",
+        "owner": "Bereichsleitung",
+        "transfer": "no",
+        "decisionCritical": "no",
+        "deadline": "2027-03-31",
+        "notes": "Im Review erneut bewerten."
+      },
+      "monitoring": {
+        "status": "fulfilled",
+        "criteria": {
+          "org33": {
+            "answer": "fulfilled",
+            "reason": ""
+          },
+          "org34": {
+            "answer": "fulfilled",
+            "reason": ""
+          },
+          "org35": {
+            "answer": "fulfilled",
+            "reason": ""
+          },
+          "org36": {
+            "answer": "fulfilled",
+            "reason": ""
+          }
+        },
+        "finding": "Verfahren ist für den Pilotbetrieb festgelegt.",
+        "rationale": "Rollen, Ablauf und Kontrollen sind dokumentiert.",
+        "evidence": "Fiktiver Nachweisverweis – Freigegebene Prozessbeschreibung.",
+        "evidenceLocation": "Bewertungsakte",
+        "gap": "Keine entscheidungskritische Lücke.",
+        "impact": "Keine wesentliche Auswirkung.",
+        "measure": "Regelmäßig überprüfen und aktualisieren.",
+        "owner": "Bereichsleitung",
+        "transfer": "no",
+        "decisionCritical": "no",
+        "deadline": "2027-03-31",
+        "notes": "Im Review erneut bewerten."
+      }
+    },
+    "registers": {
+      "regulatory": [
+        {
+          "id": "REG-DUTY-22",
+          "sourceQuestionId": "TR-01",
+          "dutyCode": "DUTY-22",
+          "basis": "Art. 50 Abs. 1",
+          "requirement": "Information über die direkte Interaktion mit einem KI-System",
+          "linkedResult": "Transparenzpflicht – Anbieter",
+          "obligatedRole": "Anbieter",
+          "applicability": "current",
+          "applicableDate": "2026-09-16",
+          "applicabilityReason": "Für die dokumentierte Interaktion am Bewertungsstichtag umzusetzen.",
+          "assessmentDate": "2026-09-16",
+          "beforeRelease": "no",
+          "decisionCritical": "no",
+          "blocking": "no",
+          "owner": "Produktverantwortung",
+          "due": "2026-10-15",
+          "status": "fulfilled",
+          "evidence": "Fiktiver Nachweisverweis – Abnahmetest Kennzeichnung",
+          "priority": "high",
+          "fulfillability": "fulfillable",
+          "fulfillabilityReason": "Erfüllbarkeit wurde bejaht; der Umsetzungsstatus ist gesondert manuell als erfüllt dokumentiert.",
+          "calculatedApplicability": "current",
+          "manualApplicability": "current",
+          "temporalPaths": [],
+          "subRequirements": [],
+          "registrationTemporal": null,
+          "syncSourceActive": true,
+          "syncSourceStep": "4",
+          "syncSourceId": "duty-DUTY-22",
+          "syncSourceSnapshot": {
+            "sourceQuestionId": "TR-01",
+            "linkedResult": "TR-01",
+            "blocking": "no",
+            "id": "REG-DUTY-22",
+            "dutyCode": "DUTY-22",
+            "basis": "Art. 50 Abs. 1",
+            "requirement": "Information über die direkte Interaktion mit einem KI-System",
+            "obligatedRole": "Anbieter",
+            "applicability": "current",
+            "applicableDate": "2026-08-02",
+            "applicabilityReason": "Art. 50 gilt grundsätzlich ab 2. August 2026. Der belegte Anwendungsstichtag liegt am oder vor dem Bewertungsstichtag. Manuelle Bestätigung: Die Informationspflicht ist für die dokumentierte Interaktion am Bewertungsstichtag umzusetzen. Bewertungsstichtag und Rechtsstand sind dokumentiert. Fiktiver Nachweisverweis – Rechtskataster und Bewertungsakte.",
+            "calculatedApplicability": "current",
+            "manualApplicability": "current",
+            "temporalPaths": [],
+            "subRequirements": [],
+            "registrationTemporal": null,
+            "assessmentDate": "2026-09-16",
+            "fulfillability": "not_assessable",
+            "fulfillabilityReason": "Die Erfüllbarkeit dieser abgeleiteten Pflicht ist durch die verantwortliche Stelle zu bestätigen.",
+            "beforeRelease": "no",
+            "decisionCritical": "no",
+            "owner": "",
+            "due": "",
+            "status": "open",
+            "evidence": "",
+            "priority": "high"
+          },
+          "syncConflictEvidence": ""
+        },
+        {
+          "id": "REG-DUTY-26",
+          "sourceQuestionId": "TR-01 bis TR-05",
+          "dutyCode": "DUTY-26",
+          "basis": "Art. 50 Abs. 5",
+          "requirement": "klare, unterscheidbare, rechtzeitige und barrierefreie Information",
+          "linkedResult": "Transparenzpflichten",
+          "obligatedRole": "Anbieter",
+          "applicability": "current",
+          "applicableDate": "2026-09-16",
+          "applicabilityReason": "Allgemeine Formanforderung zu der festgestellten Pflicht.",
+          "assessmentDate": "2026-09-16",
+          "beforeRelease": "no",
+          "decisionCritical": "no",
+          "blocking": "no",
+          "owner": "Produktverantwortung",
+          "due": "2026-10-15",
+          "status": "fulfilled",
+          "evidence": "Fiktiver Nachweisverweis – Barrierefreier Oberflächentest",
+          "priority": "high",
+          "fulfillability": "fulfillable",
+          "fulfillabilityReason": "Erfüllbarkeit wurde bejaht; der Umsetzungsstatus ist gesondert manuell als erfüllt dokumentiert.",
+          "calculatedApplicability": "current",
+          "manualApplicability": "current",
+          "temporalPaths": [],
+          "subRequirements": [],
+          "registrationTemporal": null,
+          "syncSourceActive": true,
+          "syncSourceStep": "4",
+          "syncSourceId": "duty-DUTY-26",
+          "syncSourceSnapshot": {
+            "sourceQuestionId": "TR-01 bis TR-05",
+            "linkedResult": "TR-01 bis TR-05",
+            "blocking": "no",
+            "id": "REG-DUTY-26",
+            "dutyCode": "DUTY-26",
+            "basis": "Art. 50 Abs. 5",
+            "requirement": "klare, unterscheidbare, rechtzeitige und barrierefreie Information",
+            "obligatedRole": "Anbieter",
+            "applicability": "current",
+            "applicableDate": "2026-08-02",
+            "applicabilityReason": "Art. 50 gilt grundsätzlich ab 2. August 2026. Der belegte Anwendungsstichtag liegt am oder vor dem Bewertungsstichtag. Manuelle Bestätigung: Die Informationspflicht ist für die dokumentierte Interaktion am Bewertungsstichtag umzusetzen. Bewertungsstichtag und Rechtsstand sind dokumentiert. Fiktiver Nachweisverweis – Rechtskataster und Bewertungsakte.",
+            "calculatedApplicability": "current",
+            "manualApplicability": "current",
+            "temporalPaths": [],
+            "subRequirements": [],
+            "registrationTemporal": null,
+            "assessmentDate": "2026-09-16",
+            "fulfillability": "not_assessable",
+            "fulfillabilityReason": "Die Erfüllbarkeit dieser abgeleiteten Pflicht ist durch die verantwortliche Stelle zu bestätigen.",
+            "beforeRelease": "no",
+            "decisionCritical": "no",
+            "owner": "",
+            "due": "",
+            "status": "open",
+            "evidence": "",
+            "priority": "high"
+          },
+          "syncConflictEvidence": ""
+        },
+        {
+          "id": "REG-DUTY-01",
+          "sourceQuestionId": "ROLE-01 / ROLE-03",
+          "dutyCode": "DUTY-01",
+          "basis": "Art. 4 Abs. 1 i. d. F. der VO (EU) 2026/1744",
+          "requirement": "Prüfung und Dokumentation angemessener Maßnahmen zur Unterstützung der Entwicklung der KI-Kompetenz nach Art. 4 Abs. 1 EU AI Act",
+          "linkedResult": "Anbieter- und Betreiberrolle",
+          "obligatedRole": "Anbieter / Betreiber",
+          "applicability": "current",
+          "applicableDate": "2026-09-16",
+          "applicabilityReason": "Für Anbieter und Betreiber einschlägig.",
+          "assessmentDate": "2026-09-16",
+          "beforeRelease": "yes",
+          "decisionCritical": "yes",
+          "blocking": "no",
+          "owner": "Personalentwicklung",
+          "due": "2026-09-16",
+          "status": "fulfilled",
+          "evidence": "Fiktiver Nachweisverweis – Schulungskonzept und Teilnahmeprotokoll",
+          "priority": "medium",
+          "fulfillability": "fulfillable",
+          "fulfillabilityReason": "Erfüllbarkeit wurde bejaht; der Umsetzungsstatus ist gesondert manuell als erfüllt dokumentiert.",
+          "temporalPaths": [],
+          "subRequirements": [],
+          "registrationTemporal": null,
+          "syncSourceActive": true,
+          "syncSourceStep": "4",
+          "syncSourceId": "duty-DUTY-01",
+          "syncSourceSnapshot": {
+            "sourceQuestionId": "ROLE-01 / ROLE-03",
+            "linkedResult": "KI-System",
+            "blocking": "no",
+            "id": "REG-DUTY-01",
+            "dutyCode": "DUTY-01",
+            "basis": "Art. 4 Abs. 1 i. d. F. der VO (EU) 2026/1744",
+            "requirement": "Prüfung und Dokumentation angemessener Maßnahmen zur Unterstützung der Entwicklung der KI-Kompetenz nach Art. 4 Abs. 1 EU AI Act",
+            "obligatedRole": "Anbieter / Betreiber",
+            "applicability": "current",
+            "applicableDate": "2025-02-02",
+            "applicabilityReason": "Art. 4 folgt dem eigenständigen Zeitpfad der KI-Kompetenzpflicht und nicht dem Hochrisiko-Zeitstatus. Der belegte Anwendungsstichtag liegt am oder vor dem Bewertungsstichtag.",
+            "temporalPaths": [],
+            "subRequirements": [],
+            "registrationTemporal": null,
+            "assessmentDate": "2026-09-16",
+            "fulfillability": "not_assessable",
+            "fulfillabilityReason": "Die Erfüllbarkeit dieser abgeleiteten Pflicht ist durch die verantwortliche Stelle zu bestätigen.",
+            "beforeRelease": "no",
+            "decisionCritical": "no",
+            "owner": "",
+            "due": "",
+            "status": "open",
+            "evidence": "",
+            "priority": "high"
+          },
+          "syncConflictEvidence": ""
+        }
+      ],
+      "risk": [
+        {
+          "id": "RM-R-01",
+          "sourceQuestionId": "RISK-24 bis RISK-31",
+          "riskId": "R-01",
+          "basis": "Kapitel 3 – 3×3-Risikomatrix",
+          "measure": "Konfidenzschwelle und Stichprobenmonitoring etablieren.",
+          "target": "Erwartetes Restrisiko Niedrig",
+          "linkedResult": "R-01: Hoch",
+          "strategy": "reduce",
+          "priority": "high",
+          "beforeRelease": "yes",
+          "blocking": "no",
+          "owner": "Fachverantwortung",
+          "due": "2026-10-15",
+          "status": "verified",
+          "effectivenessCriterion": "Fehlklassifikationsquote unter 2 Prozent.",
+          "effectivenessReview": "2026-09-15",
+          "reviewer": "Qualitätsmanagement",
+          "evidence": "Fiktiver Nachweisverweis – Pilotmonitoring und Stichprobenprotokoll.",
+          "residual": "low",
+          "syncSourceActive": true,
+          "syncSourceStep": "5",
+          "syncSourceId": "R-01",
+          "syncSourceSnapshot": {
+            "sourceQuestionId": "RISK-24 bis RISK-31",
+            "linkedResult": "R-01: Hoch",
+            "blocking": "no",
+            "id": "RM-R-01",
+            "riskId": "R-01",
+            "basis": "Kapitel 3 – 3×3-Risikomatrix",
+            "measure": "Konfidenzschwelle und Stichprobenmonitoring etablieren.",
+            "target": "Erwartetes Restrisiko Niedrig",
+            "strategy": "reduce",
+            "priority": "high",
+            "beforeRelease": "yes",
+            "owner": "Fachverantwortung",
+            "due": "2026-10-15",
+            "status": "verified",
+            "effectivenessCriterion": "Fehlklassifikationsquote unter 2 Prozent.",
+            "effectivenessReview": "2026-09-15",
+            "reviewer": "Qualitätsmanagement",
+            "evidence": "Fiktiver Nachweisverweis – Pilotmonitoring und Stichprobenprotokoll.",
+            "residual": "low"
+          },
+          "syncConflictEvidence": ""
+        }
+      ],
+      "organizational": [
+        {
+          "id": "ORG-MON",
+          "area": "Monitoring und Review",
+          "measure": "Monatliches Qualitätsmonitoring",
+          "impact": "Dauerhafte Wirksamkeit der Kontrollen.",
+          "basis": "Organisationsbewertung Schritt 6",
+          "priority": "medium",
+          "beforeRelease": "no",
+          "decisionCritical": "no",
+          "owner": "Fachverantwortung",
+          "due": "2026-10-15",
+          "status": "verified",
+          "evidence": "Fiktiver Nachweisverweis – Monitoringbericht",
+          "sourceQuestionId": "REVIEW-07",
+          "linkedResult": "Bewertungsergebnis des zugehörigen Prüfschritts",
+          "blocking": "no"
+        }
+      ],
+      "expert": [
+        {
+          "sourceQuestionId": "DUTY-41",
+          "linkedResult": "TOOL-12 · Prüfschritte 1–7",
+          "blocking": "yes",
+          "id": "PB-DUTY-41",
+          "question": "Eine entscheidungsrelevante Information fehlt, oder Angaben widersprechen sich.",
+          "reason": "TR-06 ist als nicht einschlägig markiert, obwohl mindestens eine Pflicht nach TR-01 bis TR-05 einschlägig ist und DUTY-26 deshalb gesondert zu prüfen ist. Anwendbarkeit und Erfüllungsstatus bleiben getrennt. Art. 50: Manuelle Schlussfolgerung „Anbieterpflicht“ widerspricht dem automatisch ableitbaren Ergebnis. CRA: Manuelle Schlussfolgerung „CRA auf das Produkt anwendbar; keine eigene Wirtschaftsakteursrolle festgestellt“ widerspricht dem automatisch ableitbaren Ergebnis.",
+          "owner": "",
+          "sourceStep": "4",
+          "assessmentImpact": "Ohne Klärung ist keine belastbare Entscheidung möglich.",
+          "craDecisionArea": "not_applicable",
+          "priority": "high",
+          "due": "",
+          "status": "open",
+          "result": "",
+          "ruleBlocking": "yes",
+          "ruleBlockingReason": "Ohne Klärung dieses entscheidenden Informations-, Regulierungs- oder Rechtswiderspruchs ist keine belastbare Einordnung möglich.",
+          "blockingReason": "Ohne Klärung dieses entscheidenden Informations-, Regulierungs- oder Rechtswiderspruchs ist keine belastbare Einordnung möglich.",
+          "expertise": "Fachliche Prüfung anhand der dokumentierten System- und Risikoinformationen",
+          "derived": true,
+          "sourceId": "duty-41",
+          "sourceActive": true,
+          "sourceSnapshot": {
+            "sourceQuestionId": "DUTY-41",
+            "linkedResult": "TOOL-12 · Prüfschritte 1–7",
+            "blocking": "yes",
+            "id": "PB-DUTY-41",
+            "question": "Eine entscheidungsrelevante Information fehlt, oder Angaben widersprechen sich.",
+            "reason": "TR-06 ist als nicht einschlägig markiert, obwohl mindestens eine Pflicht nach TR-01 bis TR-05 einschlägig ist und DUTY-26 deshalb gesondert zu prüfen ist. Anwendbarkeit und Erfüllungsstatus bleiben getrennt. Art. 50: Manuelle Schlussfolgerung „Anbieterpflicht“ widerspricht dem automatisch ableitbaren Ergebnis. CRA: Manuelle Schlussfolgerung „CRA auf das Produkt anwendbar; keine eigene Wirtschaftsakteursrolle festgestellt“ widerspricht dem automatisch ableitbaren Ergebnis.",
+            "owner": "",
+            "sourceStep": "4",
+            "assessmentImpact": "Ohne Klärung ist keine belastbare Entscheidung möglich.",
+            "craDecisionArea": "not_applicable",
+            "priority": "high",
+            "due": "",
+            "status": "open",
+            "result": "",
+            "ruleBlocking": "yes",
+            "ruleBlockingReason": "Ohne Klärung dieses entscheidenden Informations-, Regulierungs- oder Rechtswiderspruchs ist keine belastbare Einordnung möglich.",
+            "blockingReason": "Ohne Klärung dieses entscheidenden Informations-, Regulierungs- oder Rechtswiderspruchs ist keine belastbare Einordnung möglich.",
+            "expertise": "Fachliche Prüfung anhand der dokumentierten System- und Risikoinformationen"
+          },
+          "syncConflict": ""
+        }
+      ],
+      "legal": [
+        {
+          "id": "JP-CRA",
+          "sourceQuestionId": "CRA-01",
+          "craDecisionArea": "product_applicability",
+          "question": "Ist die konkrete Cloud-Anwendung ein Produkt mit digitalen Elementen?",
+          "reason": "CRA-Abgrenzung für kommerziellen Cloud-Dienst.",
+          "linkedResult": "CRA-Produktanwendbarkeit",
+          "owner": "Rechtsabteilung",
+          "sourceStep": "4",
+          "legalBasis": "Cyber Resilience Act",
+          "assessmentImpact": "Nicht entscheidungsblockierend; Auflage bis Regelbetrieb.",
+          "priority": "medium",
+          "due": "2026-10-31",
+          "status": "inReview",
+          "result": "Prüfung beauftragt.",
+          "ruleBlocking": "no",
+          "ruleBlockingReason": "Die Produktabgrenzung ist als Auflage nachverfolgbar und verhindert den dokumentierten Pilotbetrieb nicht.",
+          "blocking": "no",
+          "blockingReason": "Fachlich als nicht blockierend festgelegt; Klärung vor dem Regelbetrieb."
+        },
+        {
+          "sourceQuestionId": "DUTY-42",
+          "linkedResult": "Prüfschritt 4",
+          "blocking": "yes",
+          "id": "PB-DUTY-42",
+          "question": "Eine mit „weiterer Prüfbedarf“ beantwortete Tatsachenfrage beeinflusst die regulatorische Einordnung.",
+          "reason": "Nicht eindeutig beurteilbar / weiterer Prüfbedarf · Nicht eindeutig beurteilbar / weiterer Prüfbedarf",
+          "owner": "",
+          "sourceStep": "4",
+          "assessmentImpact": "Ohne Klärung ist keine belastbare Entscheidung möglich.",
+          "craDecisionArea": "not_applicable",
+          "priority": "high",
+          "due": "",
+          "status": "open",
+          "result": "",
+          "ruleBlocking": "yes",
+          "ruleBlockingReason": "Ohne Klärung dieses entscheidenden Informations-, Regulierungs- oder Rechtswiderspruchs ist keine belastbare Einordnung möglich.",
+          "blockingReason": "Ohne Klärung dieses entscheidenden Informations-, Regulierungs- oder Rechtswiderspruchs ist keine belastbare Einordnung möglich.",
+          "legalBasis": "EU AI Act und anwendbare Spezialregelungen",
+          "derived": true,
+          "sourceId": "duty-42",
+          "sourceActive": true,
+          "sourceSnapshot": {
+            "sourceQuestionId": "DUTY-42",
+            "linkedResult": "Prüfschritt 4",
+            "blocking": "yes",
+            "id": "PB-DUTY-42",
+            "question": "Eine mit „weiterer Prüfbedarf“ beantwortete Tatsachenfrage beeinflusst die regulatorische Einordnung.",
+            "reason": "Nicht eindeutig beurteilbar / weiterer Prüfbedarf · Nicht eindeutig beurteilbar / weiterer Prüfbedarf",
+            "owner": "",
+            "sourceStep": "4",
+            "assessmentImpact": "Ohne Klärung ist keine belastbare Entscheidung möglich.",
+            "craDecisionArea": "not_applicable",
+            "priority": "high",
+            "due": "",
+            "status": "open",
+            "result": "",
+            "ruleBlocking": "yes",
+            "ruleBlockingReason": "Ohne Klärung dieses entscheidenden Informations-, Regulierungs- oder Rechtswiderspruchs ist keine belastbare Einordnung möglich.",
+            "blockingReason": "Ohne Klärung dieses entscheidenden Informations-, Regulierungs- oder Rechtswiderspruchs ist keine belastbare Einordnung möglich.",
+            "legalBasis": "EU AI Act und anwendbare Spezialregelungen"
+          },
+          "syncConflict": ""
+        },
+        {
+          "sourceQuestionId": "DUTY-43",
+          "linkedResult": "ART5 · HR-14 bis HR-19 · TR-01 bis TR-07 · GPAI · CRA",
+          "blocking": "yes",
+          "id": "PB-DUTY-43",
+          "question": "Eine gesetzliche Ausnahme erscheint nur teilweise erfüllt, oder es besteht ein Grenzfall bei Art. 5, Art. 6 Abs. 3, Art. 25, Art. 50, GPAI oder CRA.",
+          "reason": "Rechtliche Ausnahme oder Grenzfall ist offen beziehungsweise nur teilweise belegt.",
+          "owner": "",
+          "sourceStep": "4",
+          "assessmentImpact": "Ohne Klärung ist keine belastbare Entscheidung möglich.",
+          "craDecisionArea": "not_applicable",
+          "priority": "high",
+          "due": "",
+          "status": "open",
+          "result": "",
+          "ruleBlocking": "yes",
+          "ruleBlockingReason": "Ohne Klärung dieses entscheidenden Informations-, Regulierungs- oder Rechtswiderspruchs ist keine belastbare Einordnung möglich.",
+          "blockingReason": "Ohne Klärung dieses entscheidenden Informations-, Regulierungs- oder Rechtswiderspruchs ist keine belastbare Einordnung möglich.",
+          "legalBasis": "EU AI Act und anwendbare Spezialregelungen",
+          "derived": true,
+          "sourceId": "duty-43",
+          "sourceActive": true,
+          "sourceSnapshot": {
+            "sourceQuestionId": "DUTY-43",
+            "linkedResult": "ART5 · HR-14 bis HR-19 · TR-01 bis TR-07 · GPAI · CRA",
+            "blocking": "yes",
+            "id": "PB-DUTY-43",
+            "question": "Eine gesetzliche Ausnahme erscheint nur teilweise erfüllt, oder es besteht ein Grenzfall bei Art. 5, Art. 6 Abs. 3, Art. 25, Art. 50, GPAI oder CRA.",
+            "reason": "Rechtliche Ausnahme oder Grenzfall ist offen beziehungsweise nur teilweise belegt.",
+            "owner": "",
+            "sourceStep": "4",
+            "assessmentImpact": "Ohne Klärung ist keine belastbare Entscheidung möglich.",
+            "craDecisionArea": "not_applicable",
+            "priority": "high",
+            "due": "",
+            "status": "open",
+            "result": "",
+            "ruleBlocking": "yes",
+            "ruleBlockingReason": "Ohne Klärung dieses entscheidenden Informations-, Regulierungs- oder Rechtswiderspruchs ist keine belastbare Einordnung möglich.",
+            "blockingReason": "Ohne Klärung dieses entscheidenden Informations-, Regulierungs- oder Rechtswiderspruchs ist keine belastbare Einordnung möglich.",
+            "legalBasis": "EU AI Act und anwendbare Spezialregelungen"
+          },
+          "syncConflict": ""
+        }
+      ]
+    },
+    "triggers": [
+      {
+        "id": "REVIEW-22",
+        "required": "yes",
+        "reason": "",
+        "steps": "1, 2, 4, 5",
+        "owner": "Compliance-Koordination",
+        "due": "2026-09-30"
+      },
+      {
+        "id": "REVIEW-23",
+        "required": "yes",
+        "reason": "",
+        "steps": "3, 4, 5",
+        "owner": "Compliance-Koordination",
+        "due": "2026-09-30"
+      },
+      {
+        "id": "REVIEW-24",
+        "required": "yes",
+        "reason": "",
+        "steps": "3, 4, 6",
+        "owner": "Compliance-Koordination",
+        "due": "2026-09-30"
+      },
+      {
+        "id": "REVIEW-25",
+        "required": "yes",
+        "reason": "",
+        "steps": "5, 7",
+        "owner": "Compliance-Koordination",
+        "due": "2026-09-30"
+      },
+      {
+        "id": "REVIEW-26",
+        "required": "yes",
+        "reason": "",
+        "steps": "6, 7",
+        "owner": "Compliance-Koordination",
+        "due": "2026-09-30"
+      },
+      {
+        "id": "REVIEW-27",
+        "required": "yes",
+        "reason": "",
+        "steps": "2, 4, 7",
+        "owner": "Compliance-Koordination",
+        "due": "2026-09-30"
+      },
+      {
+        "id": "REVIEW-28",
+        "required": "yes",
+        "reason": "",
+        "steps": "4, 5, 7",
+        "owner": "Compliance-Koordination",
+        "due": "2026-09-30"
+      }
+    ],
+    "reportVisible": false,
+    "migration": {
+      "fromVersion": 15,
+      "at": "",
+      "issues": []
+    }
+  }
+}

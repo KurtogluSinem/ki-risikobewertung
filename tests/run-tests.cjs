@@ -104,9 +104,9 @@ const staticTests = [
     detail: `Doppelte Funktionen: ${[...new Set(duplicateFunctions)].join(', ')}`
   },
   {
-    name: 'Datenmodell verwendet Version 14 mit vollständiger verlustarmer Migrationskette',
-    pass: /SCHEMA_VERSION\s*=\s*14/.test(source) && /ki-risikobewertung-masterarbeit-v14/.test(source) && /ki-risikobewertung-masterarbeit-v13/.test(source) && /migrateV13ToV14/.test(source) && /migrateV12ToV13/.test(source) && /migrateV11ToV12/.test(source) && /migrateV10ToV11/.test(source) && /migrateV4ToV5/.test(source) && /migrateToCurrent/.test(source) && html.includes('Prototyp 1.9 · Datenmodell 14') && html.includes('Regelwerk 2.8'),
-    detail: 'Version-14-Speicherkennung oder vollständige Migration bis Version 14 fehlt.'
+    name: 'Datenmodell verwendet Version 16 mit vollständiger verlustarmer Migrationskette',
+    pass: /SCHEMA_VERSION\s*=\s*16/.test(source) && /ki-risikobewertung-masterarbeit-v16/.test(source) && /ki-risikobewertung-masterarbeit-v15/.test(source) && /migrateV15ToV16/.test(source) && /migrateV14ToV15/.test(source) && /migrateV13ToV14/.test(source) && /migrateV12ToV13/.test(source) && /migrateV11ToV12/.test(source) && /migrateV10ToV11/.test(source) && /migrateV4ToV5/.test(source) && /migrateToCurrent/.test(source) && html.includes('Prototyp 1.11 · Datenmodell 16') && html.includes('Regelwerk 2.10'),
+    detail: 'Version-16-Speicherkennung oder vollständige Migration bis Version 16 fehlt.'
   },
   {
     name: 'Ausschließlich vier Gesamtstatus und stabile Leitfaden-IDs sind umgesetzt',

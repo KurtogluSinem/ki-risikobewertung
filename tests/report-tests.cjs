@@ -52,6 +52,7 @@ const changed=structuredClone(data.snapshotState),sentinel={
   assessmentId:'SENTINEL-B-BEWERTUNGS-ID',internalToolId:'SENTINEL-B-TOOL-ID',toolName:'SENTINEL-B-TOOLNAME',provider:'SENTINEL-B-ANBIETER',documentLocation:'SENTINEL-B-ABLAGEORT',regulatory:'SENTINEL-B-REGULATORISCHE-ANTWORT',risk:'SENTINEL-B-RISIKOBESCHREIBUNG',org:'SENTINEL-B-ORG-KRITERIUM',regRegister:'SENTINEL-B-REG-REGISTER',riskRegister:'SENTINEL-B-RISIKO-REGISTER',orgRegister:'SENTINEL-B-ORG-REGISTER',expertRegister:'SENTINEL-B-FACHPRUEF-REGISTER',legalRegister:'SENTINEL-B-RECHTSPRUEF-REGISTER',trigger:'SENTINEL-B-NEUBEWERTUNGSAUSLOESER'
 };
 Object.assign(changed.form,{assessmentId:sentinel.assessmentId,internalToolId:sentinel.internalToolId,toolName:sentinel.toolName,provider:sentinel.provider,documentLocation:sentinel.documentLocation,pManipulation:'review',pManipulationReason:sentinel.regulatory});
+changed.guideAnswers['TOOL-01']={value:sentinel.toolName,sourceField:'toolName'};changed.guideAnswers['TOOL-02']={value:sentinel.provider,sourceField:'provider'};changed.guideAnswers['ART5-01']={value:'review',sourceField:'pManipulation'};
 Object.assign(changed.risks[0],{description:sentinel.risk,probability:'1',impact:'1',currentRisk:'low'});
 Object.assign(changed.org.governance.criteria.org01,{answer:'partial',reason:sentinel.org});
 changed.registers.regulatory.push({id:sentinel.regRegister,requirement:sentinel.regRegister,basis:'Testgrundlage',applicability:'current',status:'open',sourceActive:true});

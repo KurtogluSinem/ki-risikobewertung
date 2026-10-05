@@ -67,7 +67,10 @@
  */
 
 /* 1. Konfiguration und Versionen */
-const STORAGE_KEY = 'ki-risikobewertung-masterarbeit-v14';
+const STORAGE_KEY = 'ki-risikobewertung-masterarbeit-v16';
+const LEGACY_V15_KEY = 'ki-risikobewertung-masterarbeit-v15';
+const RECOVERY_BACKUP_KEY = 'ki-risikobewertung-masterarbeit-recovery-backup';
+const LEGACY_V14_KEY = 'ki-risikobewertung-masterarbeit-v14';
 const LEGACY_V13_KEY = 'ki-risikobewertung-masterarbeit-v13';
 const LEGACY_V12_KEY = 'ki-risikobewertung-masterarbeit-v12';
 const LEGACY_V11_KEY = 'ki-risikobewertung-masterarbeit-v11';
@@ -81,7 +84,7 @@ const LEGACY_V4_KEY = 'ki-risikobewertung-masterarbeit-v4';
 const LEGACY_V3_KEY = 'ki-risikobewertung-masterarbeit-v3';
 const LEGACY_V2_KEY = 'ki-risikobewertung-masterarbeit-v2';
 const LEGACY_V1_KEY = 'ki-risikobewertung-masterarbeit-v1';
-const SCHEMA_VERSION = 14;
+const SCHEMA_VERSION = 16;
 /** Friert eine Referenzstruktur einschließlich aller Unterobjekte rekursiv ein. */
 function deepFreezeReference(value){
   if(!value||typeof value!=='object'||Object.isFrozen(value))return value;
@@ -90,7 +93,7 @@ function deepFreezeReference(value){
 let GUIDE_REFERENCE=window.GUIDE_REFERENCE||[];
 let GUIDE_REFERENCE_IDS=window.GUIDE_REFERENCE_IDS||[];
 let GUIDE_REFERENCE_BY_ID=window.GUIDE_REFERENCE_BY_ID||{};
-let KNOWLEDGE_BASE=deepFreezeReference({prototypeVersion:'1.9',dataModelVersion:'14',ruleSetVersion:'2.8',methodologyVersion:'2.0 – Risikoanalyse- und Bewertungsansatz nach Kapitel 3',assessmentDateLabel:'Bewertungsstichtag der jeweiligen Bewertung',legalStatus:'30.09.2026',fullSourceReview:'2026-09-06',lastCurrentnessReview:'2026-09-30',sources:['Verordnung (EU) 2024/1689 – konsolidierte Fassung vom 27.07.2026','Verordnung (EU) 2026/1744 – gesonderter Änderungsrechtsakt','Verordnung (EU) 2024/2847 – Cyber Resilience Act','NIST AI RMF 1.0','ISO/IEC 23894:2023','ISO/IEC 42001:2023'],verifiedDates:{aiLiteracy:'2025-02-02',article5General:'2025-02-02',article5New:'2026-12-02',aiActGeneral:'2026-08-02',transparency:'2026-08-02',transparencyExisting:'2026-12-02',gpai:'2025-08-02',gpaiExisting:'2027-08-02',highRiskAnnexIII:'2027-12-02',highRiskAnnexI:'2028-08-02',publicExistingHighRisk:'2030-08-02',craReporting:'2026-09-11',craGeneral:'2027-12-11'},matrix:{formula:'R = E × A',levels:{low:'1–2',medium:'3–4',high:'6–9'}}});
+let KNOWLEDGE_BASE=deepFreezeReference({prototypeVersion:'1.11',dataModelVersion:'16',ruleSetVersion:'2.10',methodologyVersion:'2.0 – Risikoanalyse- und Bewertungsansatz nach Kapitel 3',assessmentDateLabel:'Bewertungsstichtag der jeweiligen Bewertung',legalStatus:'30.09.2026',fullSourceReview:'2026-09-06',lastCurrentnessReview:'2026-09-30',sources:['Verordnung (EU) 2024/1689 – konsolidierte Fassung vom 27.07.2026','Verordnung (EU) 2026/1744 – gesonderter Änderungsrechtsakt','Verordnung (EU) 2024/2847 – Cyber Resilience Act','NIST AI RMF 1.0','ISO/IEC 23894:2023','ISO/IEC 42001:2023'],verifiedDates:{aiLiteracy:'2025-02-02',article5General:'2025-02-02',article5New:'2026-12-02',aiActGeneral:'2026-08-02',transparency:'2026-08-02',transparencyExisting:'2026-12-02',gpai:'2025-08-02',gpaiExisting:'2027-08-02',highRiskAnnexIII:'2027-12-02',highRiskAnnexI:'2028-08-02',publicExistingHighRisk:'2030-08-02',craReporting:'2026-09-11',craGeneral:'2027-12-11'},matrix:{formula:'R = E × A',levels:{low:'1–2',medium:'3–4',high:'6–9'}}});
 const APPLICATION_TITLE='KI-Risikobewertung nach EU AI Act und Cyber Resilience Act';
 let activeReportType='compact';
 let activeReportData=null;
@@ -199,6 +202,32 @@ const craQuestions = [
 const craRoleFields=Object.freeze([
   ['craRoleManufacturer','manufacturer','Hersteller'],['craRoleRepresentative','representative','Bevollmächtigter'],['craRoleImporter','importer','Einführer'],['craRoleDistributor','distributor','Händler'],['craRoleSteward','steward','Open-Source-Software-Steward']
 ]);
+const CRA_ROLE_SOURCE_FIELDS=Object.freeze(craRoleFields.map(([field])=>field));
+
+/**
+ * Leitet die zusammengefasste CRA-Rolle ausschließlich aus den fünf sichtbaren
+ * Einzelrollen ab. Der Rückgabewert verwendet stabile interne Codes; sichtbare
+ * Bezeichnungen werden nur als zusätzliche Darstellung gespeichert.
+ */
+function deriveCraRoleSummary(form={}){
+  const answers=craRoleFields.map(([field,code,label])=>({field,code,label,value:form[field]}));
+  const answered=answers.filter(item=>isFilled(item.value)),selected=answers.filter(item=>item.value==='yes');
+  const invalidOrOpen=answered.some(item=>typeof item.value!=='string'||!['yes','no','review'].includes(item.value))||answered.some(item=>item.value==='review')||(answered.length>0&&answered.length<answers.length);
+  const code=answered.length===0?'':invalidOrOpen?'review':selected.length>1?'multiple':selected.length===1?selected[0].code:'none';
+  const displayValue=code==='review'?'Weiterer Prüfbedarf':code==='none'?'Keine der genannten Rollen':selected.map(item=>item.label).join(', ');
+  return{code,displayValue,sourceFields:[...CRA_ROLE_SOURCE_FIELDS],selectedCodes:selected.map(item=>item.code)};
+}
+
+/** Schreibt die kanonische CRA-Rollenzusammenfassung in Formular und Leitfadenantwort. */
+function applyCraRoleDerivation(target){
+  if(!target?.form||!target?.guideAnswers)return target;
+  const hasRoleSurface=CRA_ROLE_SOURCE_FIELDS.some(field=>Object.prototype.hasOwnProperty.call(target.form,field))||Object.prototype.hasOwnProperty.call(target.form,'craRole')||Object.prototype.hasOwnProperty.call(target.guideAnswers,'CRA-08');
+  if(!hasRoleSurface)return target;
+  const derived=deriveCraRoleSummary(target.form),prior=target.guideAnswers['CRA-08'];
+  target.form.craRole=derived.code;
+  target.guideAnswers['CRA-08']={...(prior&&typeof prior==='object'&&!Array.isArray(prior)?prior:{}),value:derived.code,displayValue:derived.displayValue,sourceField:'craRole',sourceFields:derived.sourceFields};
+  return target;
+}
 const riskContextKeys=['riskSystemBoundary','riskDataSources','riskModelsComponents','riskInterfacesEnvironment','riskHumanOversight','riskExistingControls'];
 const riskDomainKeys=Array.from({length:14},(_,index)=>`riskDomain${index+10}`);
 const riskEvaluationKeys=['riskHealthRights','riskForeseeableUse','riskDesignMitigation','riskTestProcedures','riskCombinedOccurrence','riskCascade','riskProtectedGroups','riskRegulatoryFeedback'];
@@ -262,7 +291,7 @@ let registerSchemas = {
   organizational: { title:'Organisatorische Maßnahmen', fields:[
     ['id','Maßnahmen-ID','text'],['sourceQuestionId','Herkunft / auslösende Prüffrage','text'],['area','Bereich','text'],['measure','Maßnahme','textarea'],['impact','Zu schließende Lücke / Auswirkung','textarea'],['linkedResult','Verknüpftes Ergebnis','textarea'],
     ['basis','Grundlage','text'],['priority','Priorität','select',[['low','Niedrig'],['medium','Mittel'],['high','Hoch']]],
-    ['beforeRelease','Vor Einsatz beziehungsweise vor verantwortlicher Genehmigung erforderlich','select',[['yes','Ja'],['no','Nein']]],['decisionCritical','Entscheidungskritisch','select',[['yes','Ja'],['no','Nein']]],['blocking','Verhindert den Abschluss','select',[['yes','Ja'],['no','Nein']]],
+    ['beforeRelease','Vor Einsatz beziehungsweise vor verantwortlicher Genehmigung erforderlich','select',[['yes','Ja'],['no','Nein'],['review','Nicht beurteilbar / weiterer Prüfbedarf']]],['decisionCritical','Entscheidungskritisch','select',[['yes','Ja'],['no','Nein'],['review','Nicht beurteilbar / weiterer Prüfbedarf']]],['blocking','Verhindert den Abschluss','select',[['yes','Ja'],['no','Nein'],['review','Nicht beurteilbar / weiterer Prüfbedarf']]],
     ['owner','Verantwortlich','text'],['due','Frist','date'],
     ['status','Status','select',[['planned','Geplant'],['inProgress','In Umsetzung'],['implemented','Umgesetzt'],['verified','Wirksamkeit verifiziert']]],
     ['evidence','Nachweis','textarea']
@@ -277,6 +306,7 @@ let registerSchemas = {
   legal: { title:'Juristischer Prüfbedarf', fields:[
     ['id','Prüf-ID','text'],['sourceQuestionId','Herkunft / auslösende Prüffrage','text'],['question','Rechtsfrage','textarea'],['reason','Grund / Rechtsgrundlage','textarea'],['linkedResult','Verknüpftes Ergebnis','textarea'],['owner','Zuständige Stelle','text'],
     ['sourceStep','Betroffener Prüfschritt','text'],['legalBasis','Betroffene Rechtsgrundlage','text'],['assessmentImpact','Auswirkung auf die Bewertung','textarea'],
+    ['craDecisionArea','Betroffene CRA-Teilentscheidung','select',[['not_applicable','Kein CRA-Bezug'],['product_applicability','Produktanwendbarkeit'],['organizational_role','Organisationsrolle'],['individual_duty','Einzelne Pflicht'],['temporal_applicability','Zeitliche Anwendbarkeit'],['operational_condition','Organisatorische Bedingung für Pilot- oder Regelbetrieb'],['review','Zuordnung noch zu bestätigen']]],
     ['priority','Priorität','select',[['low','Niedrig'],['medium','Mittel'],['high','Hoch']]],
     ['due','Frist','date'],['status','Status','select',[['open','Offen'],['inReview','In Prüfung'],['resolved','Geklärt']]],
     ['result','Ergebnis / Nachweis','textarea'],['ruleBlocking','Regelbasierter Vorschlag zur Blockierungswirkung','select',[['yes','Blockierend'],['no','Nicht blockierend'],['review','Nicht beurteilbar']]],['ruleBlockingReason','Regelbasierte Begründung der Blockierungswirkung','textarea'],['blocking','Fachliche Festlegung der Blockierungswirkung','select',[['yes','Blockierend'],['no','Nicht blockierend'],['review','Nicht beurteilbar']]],['blockingReason','Begründung der fachlichen Festlegung','textarea']
@@ -309,12 +339,13 @@ function freshState() {
  */
 function normalizeState(saved){
   const base=freshState();
-  return {...base,...saved,schemaVersion:SCHEMA_VERSION,form:{...(saved?.form||{})},guideAnswers:Object.fromEntries(Object.entries(saved?.guideAnswers||{}).map(([id,value])=>[id,typeof value==='object'&&value!==null?{...value}:{value}])),evaluated:Array.from({length:8},(_,i)=>Boolean(saved?.evaluated?.[i])),
+  const normalized={...base,...saved,schemaVersion:SCHEMA_VERSION,form:{...(saved?.form||{})},guideAnswers:Object.fromEntries(Object.entries(saved?.guideAnswers||{}).map(([id,value])=>[id,typeof value==='object'&&value!==null&&!Array.isArray(value)?{...value}:{value}])),evaluated:Array.from({length:8},(_,i)=>Boolean(saved?.evaluated?.[i])),
     risks:Array.isArray(saved?.risks)?saved.risks.map(item=>{const risk={suitableTreatmentAvailability:'',treatmentAvailabilityReason:'',...item},score=riskScore(risk);if(score!==null)risk.currentRisk=riskCode(score);return risk;}):[],
     org:Object.fromEntries(orgAreas.map(([id])=>{const prior=saved?.org?.[id]||{},criteria=Object.fromEntries((orgCriteria[id]||[]).map(([key])=>[key,{answer:'',reason:'',...(prior.criteria?.[key]||{})}]));return[id,{...prior,criteria}];})),
     registers:Object.fromEntries(Object.keys(base.registers).map(key=>[key,Array.isArray(saved?.registers?.[key])?saved.registers[key].map(item=>({...item})):[]])),
     triggers:triggerDefs.map(([id])=>({id,required:'',reason:'',steps:'',owner:'',due:'',...(saved?.triggers?.find?.(item=>item.id===id)||{})})),
     migration:{...base.migration,...(saved?.migration||{})}};
+  return applyCraRoleDerivation(normalized);
 }
 
 /**
@@ -626,6 +657,146 @@ function migrateV13ToV14(saved,sourceVersion=13){
   return migrated;
 }
 
+const CRA_DECISION_AREAS=Object.freeze(['not_applicable','product_applicability','organizational_role','individual_duty','temporal_applicability','operational_condition','review']);
+
+/** Ordnet stabile CRA-Quellkennungen einer fachlichen Teilentscheidung zu. */
+function craDecisionAreaFromSourceId(sourceQuestionId){
+  const ids=String(sourceQuestionId||'').toUpperCase().match(/(?:CRA|DUTY|TIME)-\d{2}/g)||[];
+  const areas=new Set(ids.map(id=>{
+    if(/^CRA-0[1-7]$/.test(id))return'product_applicability';
+    if(/^CRA-(0[89]|10)$/.test(id))return'organizational_role';
+    if(/^CRA-(11|12)$/.test(id)||/^DUTY-3[2-6]$/.test(id))return'individual_duty';
+    if(/^TIME-/.test(id))return'temporal_applicability';
+    return'';
+  }).filter(Boolean));
+  return areas.size===1?[...areas][0]:areas.size>1?'review':'';
+}
+
+/**
+ * Bestimmt den CRA-Bezug vorrangig aus strukturierter Zuordnung und Quell-ID.
+ * Freitext kennzeichnet nur einen ungeklärten Altbezug und entscheidet niemals
+ * selbst über Produktanwendbarkeit, Rolle, Pflicht oder Zeitstatus.
+ */
+function classifyCraRegisterItem(item){
+  const explicit=CRA_DECISION_AREAS.includes(item?.craDecisionArea)?item.craDecisionArea:'',inferred=craDecisionAreaFromSourceId(item?.sourceQuestionId);
+  if(explicit&&inferred&&explicit!==inferred)return{area:'review',source:'conflict',reason:`Die gespeicherte CRA-Zuordnung „${explicit}“ widerspricht der Quellkennung ${item.sourceQuestionId}.`};
+  if(explicit)return{area:explicit,source:'explicit',reason:''};
+  if(inferred)return{area:inferred,source:'source_id',reason:''};
+  const craHint=/\bCRA\b|Cyber Resilience|Produkt mit digitalen Elementen/i.test([item?.id,item?.question,item?.reason,item?.legalBasis,item?.linkedResult].filter(Boolean).join(' '));
+  return craHint?{area:'review',source:'legacy_hint',reason:'Ein CRA-Bezug ist erkennbar, die betroffene Teilentscheidung ist jedoch nicht strukturiert zugeordnet.'}:{area:'not_applicable',source:'none',reason:''};
+}
+
+/**
+ * Migriert Version 14 auf 15: ergänzt eine strukturierte CRA-Abhängigkeit für
+ * juristische Prüfpunkte. Eindeutige Quellkennungen werden zugeordnet; reine
+ * Freitextbezüge bleiben ausdrücklich als zu bestätigender Altbestand offen.
+ */
+function migrateV14ToV15(saved,sourceVersion=14){
+  const migrated=normalizeState(saved||{}),issues=[...(saved?.migration?.issues||[])];
+  let reviewRequired=Boolean(saved?.migration?.reviewRequired),ambiguous=false;
+  const legacyInvalidFormValues={};
+  Object.entries(migrated.form||{}).forEach(([field,value])=>{
+    const allowed=FORM_ALLOWED_VALUES[field];
+    if(!allowed||!isFilled(value)||allowed.includes(String(value)))return;
+    legacyInvalidFormValues[field]=structuredClone(value);
+    let replacement='';
+    if(field==='decisionInfluence'&&value==='Unterstützung einer menschlichen Tätigkeit')replacement='support';
+    else if(allowed.includes('review'))replacement='review';
+    migrated.form[field]=replacement;
+    const guideId=QUESTION_IDS[field],guideAnswer=guideId&&migrated.guideAnswers?.[guideId];
+    if(guideAnswer&&typeof guideAnswer==='object'&&!Array.isArray(guideAnswer)){
+      guideAnswer.legacyValue=structuredClone(value);guideAnswer.value=replacement;guideAnswer.sourceField=field;
+    }
+    reviewRequired=true;
+    issues.push(`${guideId||field}: Der Antwortwert „${String(value)}“ aus Datenmodell 14 gehört nicht zum aktuellen Feldkatalog. Der Originalwert wurde unter legacyV14InvalidFormValues erhalten und ${replacement==='review'?'als weiterer Prüfbedarf':'konservativ als offen'} migriert.`);
+  });
+  if(Object.keys(legacyInvalidFormValues).length)migrated.legacyV14InvalidFormValues={...(migrated.legacyV14InvalidFormValues||{}),...legacyInvalidFormValues};
+  migrated.registers.legal.forEach(item=>{
+    if(CRA_DECISION_AREAS.includes(item.craDecisionArea))return;
+    const classification=classifyCraRegisterItem(item);
+    item.craDecisionArea=classification.area;
+    item.craDecisionAreaMigrationSource=classification.source;
+    if(classification.area==='review'){
+      ambiguous=true;reviewRequired=true;
+      issues.push(`${item.id||'Juristischer Prüfpunkt'}: Der erkennbare CRA-Bezug konnte keiner Teilentscheidung eindeutig zugeordnet werden. Produktanwendbarkeit, Rolle, Einzelpflicht, Zeitstatus oder Betriebsbedingung sind fachlich zu bestätigen.`);
+    }
+  });
+  if(ambiguous)[3,6,7].forEach(index=>migrated.evaluated[index]=false);
+  const at=new Date().toISOString(),notes=[...new Set(issues)];
+  migrated.schemaVersion=SCHEMA_VERSION;
+  migrated.migration={...(saved?.migration||{}),fromVersion:sourceVersion,at,issues:notes,reviewRequired,auditTrail:[...(saved?.migration?.auditTrail||[]),{from:14,to:15,at,notes}]};
+  return migrated;
+}
+
+/**
+ * Migriert Version 15 auf 16: repariert die in Version 15 inkonsistent
+ * gespeicherte CRA-Rollenzusammenfassung und überführt organisatorische
+ * Prüfbedarfswerte in den nun gemeinsamen Registerkatalog. Zweifelhafte
+ * Originalwerte werden vollständig erhalten und nicht als sichere Auswahl
+ * ausgegeben.
+ */
+function migrateV15ToV16(saved,sourceVersion=15){
+  const staged=structuredClone(saved||{}),issues=[...(saved?.migration?.issues||[])],repairs={};
+  let reviewRequired=Boolean(saved?.migration?.reviewRequired);
+  staged.form=staged.form&&typeof staged.form==='object'&&!Array.isArray(staged.form)?staged.form:{};
+  staged.guideAnswers=staged.guideAnswers&&typeof staged.guideAnswers==='object'&&!Array.isArray(staged.guideAnswers)?staged.guideAnswers:{};
+
+  const invalidForm={};
+  Object.entries(staged.form).forEach(([field,value])=>{
+    const allowed=FORM_ALLOWED_VALUES[field];
+    if(!allowed||!isFilled(value)||(typeof value==='string'&&allowed.includes(value)))return;
+    invalidForm[field]=structuredClone(value);
+    staged.form[field]=allowed.includes('review')?'review':'';
+    reviewRequired=true;
+    issues.push(`${QUESTION_IDS[field]||field}: Ein nicht skalarer oder unbekannter Auswahlwert aus Datenmodell 15 wurde im Original gesichert und als Prüfbedarf beziehungsweise offen übernommen.`);
+  });
+  if(Object.keys(invalidForm).length)repairs.invalidFormValues=invalidForm;
+
+  const roleValues=Object.fromEntries(craRoleFields.map(([field])=>[field,staged.form[field]]));
+  const hasRoleDetails=CRA_ROLE_SOURCE_FIELDS.some(field=>isFilled(staged.form[field]));
+  const legacySummary=staged.form.craRole;
+  const legacyAnswer=staged.guideAnswers['CRA-08'];
+  const legacyDisplay=legacyAnswer&&typeof legacyAnswer==='object'&&!Array.isArray(legacyAnswer)?legacyAnswer.displayValue||legacyAnswer.value:'';
+  if(!hasRoleDetails&&isFilled(legacySummary)){
+    const selectedByCode=craRoleFields.filter(([,code])=>legacySummary===code).map(([field])=>field);
+    const selectedByLabel=craRoleFields.filter(([, ,label])=>String(legacyDisplay).split(',').map(part=>part.trim()).includes(label)).map(([field])=>field);
+    const selected=[...new Set([...selectedByCode,...selectedByLabel])];
+    if(legacySummary==='none')CRA_ROLE_SOURCE_FIELDS.forEach(field=>{staged.form[field]='no';});
+    else if(selected.length&&legacySummary!=='review')CRA_ROLE_SOURCE_FIELDS.forEach(field=>{staged.form[field]=selected.includes(field)?'yes':'no';});
+    else{
+      CRA_ROLE_SOURCE_FIELDS.forEach(field=>{staged.form[field]='review';});
+      reviewRequired=true;staged.evaluated=Array.from({length:8},(_,index)=>index===3?false:Boolean(staged.evaluated?.[index]));
+      issues.push('CRA-08: Die zusammengefasste Altangabe ließ sich nicht eindeutig auf Einzelrollen verteilen; alle Rollen wurden als weiterer Prüfbedarf markiert.');
+    }
+  }
+  const derivedPreview=deriveCraRoleSummary(staged.form);
+  const legacySource=legacyAnswer&&typeof legacyAnswer==='object'&&!Array.isArray(legacyAnswer)?legacyAnswer.sourceField:'';
+  if(isFilled(legacySummary)||isFilled(legacyDisplay)||isFilled(legacySource)){
+    repairs.craRole={formSummary:structuredClone(legacySummary),guideAnswer:structuredClone(legacyAnswer),individualFields:structuredClone(roleValues)};
+    if(legacySummary!==derivedPreview.code||legacySource!=='craRole'||(legacyAnswer&&typeof legacyAnswer==='object'&&legacyAnswer.value!==derivedPreview.code))issues.push('CRA-08: Inkonsistente Zusammenfassung, Anzeige und Quellenangabe aus Datenmodell 15 wurden durch die fünf Einzelrollen deterministisch neu abgeleitet; die Originaldarstellung bleibt im Migrationsnachweis erhalten.');
+  }
+
+  Object.entries(staged.registers&&typeof staged.registers==='object'&&!Array.isArray(staged.registers)?staged.registers:{}).forEach(([type,list])=>{
+    if(!Array.isArray(list))return;
+    list.forEach((item,index)=>{
+      if(type==='organizational'){
+        ['beforeRelease','decisionCritical','blocking'].forEach(field=>{
+          if(item?.[field]!=='notAssessable')return;
+          repairs.organizationalRegisters??={};repairs.organizationalRegisters[`${index}:${item.id||'ohne-id'}:${field}`]='notAssessable';item[field]='review';reviewRequired=true;
+          issues.push(`${item.id||`Organisationsmaßnahme ${index+1}`}: Der frühere Wert „notAssessable“ für ${field} wurde verlustfrei als „review“ überführt.`);
+        });
+      }
+    });
+  });
+
+  const migrated=normalizeState(staged);applyCraRoleDerivation(migrated);
+  if(Object.keys(repairs).length)migrated.legacyV15TechnicalRepairs={...(migrated.legacyV15TechnicalRepairs||{}),...repairs};
+  const at=new Date().toISOString(),notes=[...new Set(issues)];
+  migrated.schemaVersion=SCHEMA_VERSION;
+  migrated.migration={...(saved?.migration||{}),fromVersion:sourceVersion,at,issues:notes,reviewRequired,auditTrail:[...(saved?.migration?.auditTrail||[]),{from:15,to:16,at,notes}]};
+  return migrated;
+}
+
 /**
  * Überführt Version 1 zunächst in die Version-3-Struktur. Ursprüngliche Risiken,
  * Organisations- und Triggerdaten werden zusätzlich vollständig unter legacyV1
@@ -678,17 +849,102 @@ function migrateToCurrent(saved,version){
   if(version===11)advance(11,12,migrateV11ToV12);
   if(version===12)advance(12,13,migrateV12ToV13);
   if(version===13)advance(13,14,migrateV13ToV14);
+  if(version===14)advance(14,15,migrateV14ToV15);
+  if(version===15)advance(15,16,migrateV15ToV16);
   migrated=normalizeState(migrated);
   if(preNormalizationLegacy.legacyPreV6){migrated.legacyPreV6=preNormalizationLegacy.legacyPreV6;migrated.migration.reviewRequired=true;migrated.evaluated[5]=false;migrated.evaluated[7]=false;migrated.migration.issues=[...new Set([...(migrated.migration.issues||[]),'Nicht eindeutig zuordenbare Organisationsbereiche und Neubewertungsauslöser aus Version 5 oder älter wurden vor der Normalisierung vollständig gesichert.'])];}
   migrated.migration={...(migrated.migration||{}),fromVersion:sourceVersion,auditTrail:[...auditTrail],reviewRequired:Boolean(migrated?.migration?.reviewRequired)};
   return migrated;
 }
 
+const FORM_ALLOWED_VALUES=(()=>{
+  const rules={},assign=(keys,values)=>keys.forEach(key=>{rules[key]=values;});
+  const yesNoReview=['yes','no','review'],yesNoNaReview=['yes','no','na','review'];
+  assign([...definitionQuestionKeys.filter(key=>key!=='objectType'),...scopeQuestionKeys,...roleQuestionKeys,...annexAreas.map(([key])=>key),...transparencyQuestions.map(([key])=>key),...gpaiQuestions.map(([key])=>key).filter(key=>key!=='gObjectType'),...['craDigitalProduct','craRemoteProcessing','craDataConnection','craCommercial','craPrototype','craOpenSource','craExclusion','craSubstantialChange','craManufacturerTakeover','craAiActOverlap','timeAssessmentBasis','timeDutyStatuses','timeTransition','timeLawChanged','publicAuthorityIntendedUse','substantialChangeStatus'],...riskDomainKeys,...riskEvaluationKeys],yesNoReview);
+  assign(['realWorldTesting','actualOperationalUse','foreseeableMisuse','sensitiveSituation','publicServiceEntity','unionAuthority','art25OwnBrand','art25SubstantialModification','art25PurposeChange','art25ProductIntegration','craRoleManufacturer','craRoleRepresentative','craRoleImporter','craRoleDistributor','craRoleSteward','craPrototypeLimitedTesting','craPrototypeMarked','manualBlockerActive','preservePreviousAssessments','newTechnicalFeature'],yesNoReview);
+  assign(prohibitedQuestions.map(([key])=>key),['yes','no','na','review','not_met','possible','confirmed','exception_review','not_applicable']);
+  prohibitedQuestions.forEach(([key])=>{
+    assign([`${key}ProviderProvision`,`${key}OperatorUse`,`${key}IntendedPurpose`,`${key}ForeseeableReproducible`,`${key}Safeguards`,`${key}Circumventions`,`${key}CorrectiveMeasures`,`${key}Consent`,`${key}LegalJustification`],yesNoNaReview);
+    rules[`${key}ElementsResult`]=['not_met','possible','met','review'];rules[`${key}Exception`]=['none','possible','confirmed','review'];rules[`${key}Critical`]=['yes','no'];
+  });
+  transparencyQuestions.forEach(([key])=>{rules[`${key}Exception`]=yesNoReview;rules[`${key}Result`]=['applicable','exception','not_applicable','review'];rules[`${key}Actor`]=['provider','deployer','obligated'];});
+  Object.assign(rules,{
+    infoStatus:['complete','partial','missing'],objectType:['system','model','system_with_model','review'],purposeAlignment:['matches','partial','substantial','review'],decisionInfluence:['information','support','recommendation','material','automated','review'],humanReview:['yes','partial','no','review'],humanCorrection:['yes','limited','no','review'],
+    prohibitionConclusion:['none','exception','confirmed','review'],productHighRiskConclusion:['no','yes','review'],annexHighRiskConclusion:['no','yes','exception','review'],annexISection:['A','B','review'],art25Conclusion:['provider','not_applicable','review'],transparencyConclusion:['none','provider','deployer','multiple','exception','review'],
+    gObjectType:['model','system','integrating','review'],gpaiOrganizationRole:['none','provider','downstream','integrator','unclear'],gpaiConclusion:['none','research_exception','relevant_no_provider','model','integration','systemic','review'],
+    craRole:['none',...craRoleFields.map(([,code])=>code),'multiple','review'],craProductClass:['other','class1','class2','critical','none','review'],craProductType:['software','hardware','remote','mixed','unclear'],craProductRelation:['standalone','component','unclear'],craConclusion:['no','product_only','yes','special','review'],
+    legalRegimeFulfilment:['clarified','unresolved','review'],planStatus:['complete','partial','blocked'],statutoryRetentionStatus:['determined','review'],approvalStatus:['pending','rejected','conditional','approved']
+  });
+  ['highRisk','art25','transparency','gpai'].forEach(prefix=>{rules[`${prefix}TemporalStatus`]=temporalStatusOptions.map(([value])=>value);});
+  return Object.freeze(rules);
+})();
+
+function allowedValueIssue(label,value,allowed){
+  if(!isFilled(value))return'';
+  if(typeof value!=='string')return`${label} muss einen einzelnen textuellen Antwortcode enthalten.`;
+  return allowed.includes(value)?'':`${label} enthält den unbekannten Antwortcode „${value}“.`;
+}
+function scalarTextIssue(label,value){return isFilled(value)&&typeof value!=='string'?`${label} muss als Text gespeichert sein.`:'';}
+function isIsoDateValue(value){
+  if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value))return false;
+  const[year,month,day]=value.split('-').map(Number),date=new Date(Date.UTC(year,month-1,day));
+  return date.getUTCFullYear()===year&&date.getUTCMonth()===month-1&&date.getUTCDate()===day;
+}
+
+/** Prüft kataloggebundene Formular-, Risiko-, Organisations- und Registerwerte. */
+function semanticValueValidation(saved,{strictAnswers=true}={}){
+  const issues=[];
+  if((strictAnswers||saved?.step!==undefined)&&(!Number.isInteger(saved?.step)||saved.step<0||saved.step>7))issues.push('Der Navigationsschritt muss eine ganze Zahl zwischen 0 und 7 sein.');
+  if(saved?.reportVisible!==undefined&&typeof saved.reportVisible!=='boolean')issues.push('Die Berichtsansicht muss als Wahrheitswert gespeichert sein.');
+  if(!strictAnswers)return issues;
+  Object.entries(FORM_ALLOWED_VALUES).forEach(([key,allowed])=>{const issue=allowedValueIssue(`Formularfeld ${key}`,saved.form?.[key],allowed);if(issue)issues.push(issue);});
+  Object.entries(saved.form||{}).forEach(([key,value])=>{
+    if(key.startsWith('role_')){if(typeof value!=='boolean')issues.push(`Rollenfeld ${key} muss ein Wahrheitswert sein.`);return;}
+    const textIssue=scalarTextIssue(`Formularfeld ${key}`,value);if(textIssue)issues.push(textIssue);
+    if(isFilled(value)&&(/(?:Date|Due|Deadline)$/.test(key)||['assessmentDate','assessmentUpdate','intendedUseDate','firstMarketDate','firstOperationDate','transitionDate'].includes(key))&&!isIsoDateValue(value))issues.push(`Datumsfeld ${key} muss das Format JJJJ-MM-TT besitzen.`);
+  });
+  (Array.isArray(saved.risks)?saved.risks:[]).forEach((risk,index)=>{
+    const label=`Risiko ${index+1}`,rules={probability:['1','2','3'],impact:['1','2','3'],controlEffectiveness:['effective','partial','ineffective','unknown'],currentRisk:['low','medium','high','unknown'],uncertainty:['low','medium','high','unknown'],acceptance:['accepted','conditional','notAccepted','open'],treatmentNeeded:['yes','no','review'],decisionCriticality:['yes','no','review'],expertReview:['yes','no','review'],legalReview:['yes','no','review'],suitableTreatmentAvailability:['available','unavailable','review'],treatmentStrategy:['avoid','reduce','transfer','accept'],priority:['low','medium','high'],expectedResidual:['low','medium','high','unknown','pending'],verifiedResidual:['low','medium','high','unknown','pending'],treatmentStatus:['planned','inProgress','implemented','verified']};
+    Object.entries(rules).forEach(([key,allowed])=>{const issue=allowedValueIssue(`${label}, ${key}`,risk[key],allowed);if(issue)issues.push(issue);});
+    Object.entries(risk).forEach(([key,value])=>{if(['legacyOriginal','inactiveVerifiedResidual'].includes(key)||(key==='migratedFromMatrixV3'&&typeof value==='boolean'))return;const issue=scalarTextIssue(`${label}, ${key}`,value);if(issue)issues.push(issue);});
+    ['treatmentDue','effectivenessDate','reviewDue'].forEach(key=>{if(isFilled(risk[key])&&!isIsoDateValue(risk[key]))issues.push(`${label}, ${key} muss das Format JJJJ-MM-TT besitzen.`);});
+  });
+  Object.entries(saved.org&&typeof saved.org==='object'&&!Array.isArray(saved.org)?saved.org:{}).forEach(([area,item])=>{
+    if(!item||typeof item!=='object'||Array.isArray(item)){issues.push(`Organisationsbereich ${area} besitzt einen falschen Grundtyp.`);return;}
+    let issue=allowedValueIssue(`Organisationsbereich ${area}, status`,item?.status,orgCriterionOptions.map(([value])=>value));if(issue)issues.push(issue);
+    issue=allowedValueIssue(`Organisationsbereich ${area}, transfer`,item?.transfer,['yes','no']);if(issue)issues.push(issue);
+    issue=allowedValueIssue(`Organisationsbereich ${area}, decisionCritical`,item?.decisionCritical,['yes','no','notAssessable']);if(issue)issues.push(issue);
+    Object.entries(item).forEach(([key,value])=>{if(key==='criteria')return;const textIssue=scalarTextIssue(`Organisationsbereich ${area}, ${key}`,value);if(textIssue)issues.push(textIssue);});
+    if(!item.criteria||typeof item.criteria!=='object'||Array.isArray(item.criteria))issues.push(`Organisationsbereich ${area}: Kriterien besitzen einen falschen Typ.`);
+    else Object.entries(item.criteria).forEach(([key,criterion])=>{if(!criterion||typeof criterion!=='object'||Array.isArray(criterion)){issues.push(`Organisationskriterium ${key} besitzt einen falschen Grundtyp.`);return;}const criterionIssue=allowedValueIssue(`Organisationskriterium ${key}`,criterion.answer,orgCriterionOptions.map(([value])=>value));if(criterionIssue)issues.push(criterionIssue);const reasonIssue=scalarTextIssue(`Organisationskriterium ${key}, Begründung`,criterion.reason);if(reasonIssue)issues.push(reasonIssue);});
+  });
+  Object.entries(registerSchemas).forEach(([type,schema])=>(Array.isArray(saved.registers?.[type])?saved.registers[type]:[]).forEach((item,index)=>{
+    schema.fields.filter(([, ,fieldType])=>fieldType==='select').forEach(([key,label,,values])=>{const issue=allowedValueIssue(`${schema.title} ${index+1}, ${label}`,item[key],values.map(([value])=>value));if(issue)issues.push(issue);});
+    schema.fields.filter(([, ,fieldType])=>fieldType!=='select').forEach(([key,label,fieldType])=>{const textIssue=scalarTextIssue(`${schema.title} ${index+1}, ${label}`,item[key]);if(textIssue)issues.push(textIssue);if(fieldType==='date'&&isFilled(item[key])&&!isIsoDateValue(item[key]))issues.push(`${schema.title} ${index+1}, ${label} muss das Format JJJJ-MM-TT besitzen.`);});
+  }));
+  (Array.isArray(saved.triggers)?saved.triggers:[]).forEach((trigger,index)=>{const issue=allowedValueIssue(`Neubewertungsauslöser ${index+1}`,trigger.required,['yes','no']);if(issue)issues.push(issue);['id','reason','steps','owner','due'].forEach(key=>{const textIssue=scalarTextIssue(`Neubewertungsauslöser ${index+1}, ${key}`,trigger[key]);if(textIssue)issues.push(textIssue);});if(isFilled(trigger.due)&&!isIsoDateValue(trigger.due))issues.push(`Neubewertungsauslöser ${index+1}, Frist muss das Format JJJJ-MM-TT besitzen.`);});
+  if(saved.guideAnswers!==undefined&&(!saved.guideAnswers||typeof saved.guideAnswers!=='object'||Array.isArray(saved.guideAnswers)))issues.push('Leitfadenantworten besitzen einen falschen Typ.');
+  else{
+    const fieldByGuideId=Object.fromEntries(Object.entries(QUESTION_IDS).map(([field,id])=>[id,field]));
+    Object.entries(saved.guideAnswers||{}).forEach(([id,entry])=>{
+      if(!entry||typeof entry!=='object'||Array.isArray(entry)){issues.push(`${id}: Die Leitfadenantwort muss ein Objekt mit einem skalaren Wert sein.`);return;}
+      const answer=entry,field=fieldByGuideId[id];
+      ['value','displayValue','sourceField','reason'].forEach(key=>{const textIssue=scalarTextIssue(`${id}, ${key}`,answer[key]);if(textIssue)issues.push(textIssue);});
+      if(answer.sourceFields!==undefined&&(!Array.isArray(answer.sourceFields)||answer.sourceFields.some(value=>typeof value!=='string')))issues.push(`${id}: Die Quellenliste muss ausschließlich Textwerte enthalten.`);
+      if(!field)return;
+      if(answer.sourceField&&answer.sourceField!==field)issues.push(`${id}: Die gespeicherte Quelle ${answer.sourceField} stimmt nicht mit dem maßgeblichen Formularfeld ${field} überein.`);
+      const allowed=FORM_ALLOWED_VALUES[field],invalid=allowed&&allowedValueIssue(`${id}`,answer.value,allowed);if(invalid)issues.push(invalid);
+      if(isFilled(saved.form?.[field])&&isFilled(answer.value)&&saved.form[field]!==answer.value)issues.push(`${id}: Formularfeld ${field} und Leitfadenantwort widersprechen sich.`);
+    });
+  }
+  return issues;
+}
+
 /**
  * Prüft die tragenden Datentypen eines Speicherstands vor Normalisierung oder Migration.
  * @returns {{valid:boolean,issues:string[]}} Semantisches Prüfergebnis ohne Datenänderung.
  */
-function storedStateValidation(saved,expectedVersion){
+function storedStateValidation(saved,expectedVersion,{strictAnswers=expectedVersion===SCHEMA_VERSION}={}){
   const issues=[];
   if(!saved||typeof saved!=='object'||Array.isArray(saved))issues.push('Wurzelobjekt fehlt.');
   if(Number(saved?.schemaVersion)!==expectedVersion)issues.push('Datenmodellversion stimmt nicht mit dem Speicherplatz überein.');
@@ -702,10 +958,21 @@ function storedStateValidation(saved,expectedVersion){
   else if(registerKeys.some(key=>saved.registers[key].some(item=>!item||typeof item!=='object'||Array.isArray(item))))issues.push('Mindestens ein Registereintrag besitzt einen falschen Grundtyp.');
   if(!Array.isArray(saved?.triggers))issues.push('Neubewertungsauslöser sind kein Array.');
   else if(saved.triggers.some(item=>!item||typeof item!=='object'||Array.isArray(item)))issues.push('Mindestens ein Neubewertungsauslöser besitzt einen falschen Grundtyp.');
+  if(saved&&typeof saved==='object'&&!Array.isArray(saved))issues.push(...semanticValueValidation(saved,{strictAnswers}));
   return{valid:issues.length===0,issues};
 }
 
 /* 6. Persistenz, Import und Export */
+
+/** Bewahrt einen nicht lesbaren Rohstand getrennt auf, bevor ein gültiger Altstand übernommen wird. */
+function preserveRecoveryRaw(key,raw,reason){
+  try{
+    let backup={format:'ki-risikobewertung-recovery',capturedAt:new Date().toISOString(),items:[]};
+    const previous=localStorage.getItem(RECOVERY_BACKUP_KEY);if(previous){try{const parsed=JSON.parse(previous);if(parsed&&Array.isArray(parsed.items))backup=parsed;}catch{}}
+    if(!backup.items.some(item=>item.key===key&&item.raw===raw))backup.items.push({key,reason,capturedAt:new Date().toISOString(),raw});
+    localStorage.setItem(RECOVERY_BACKUP_KEY,JSON.stringify(backup));return true;
+  }catch{return false;}
+}
 
 /**
  * Lädt den jüngsten gültigen lokalen Stand, migriert ältere Versionen und hält
@@ -713,30 +980,47 @@ function storedStateValidation(saved,expectedVersion){
  * @returns {object} Normalisierter Bewertungszustand oder ein neuer Ausgangszustand.
  */
 function loadState(){
-  const slots=[[STORAGE_KEY,14],[LEGACY_V13_KEY,13],[LEGACY_V12_KEY,12],[LEGACY_V11_KEY,11],[LEGACY_V10_KEY,10],[LEGACY_V9_KEY,9],[LEGACY_V8_KEY,8],[LEGACY_V7_KEY,7],[LEGACY_V6_KEY,6],[LEGACY_V5_KEY,5],[LEGACY_V4_KEY,4],[LEGACY_V3_KEY,3],[LEGACY_V2_KEY,2],[LEGACY_V1_KEY,1]];
+  const slots=[[STORAGE_KEY,16],[LEGACY_V15_KEY,15],[LEGACY_V14_KEY,14],[LEGACY_V13_KEY,13],[LEGACY_V12_KEY,12],[LEGACY_V11_KEY,11],[LEGACY_V10_KEY,10],[LEGACY_V9_KEY,9],[LEGACY_V8_KEY,8],[LEGACY_V7_KEY,7],[LEGACY_V6_KEY,6],[LEGACY_V5_KEY,5],[LEGACY_V4_KEY,4],[LEGACY_V3_KEY,3],[LEGACY_V2_KEY,2],[LEGACY_V1_KEY,1]];
   const recovery=[];
   for(const [key,version] of slots){
     const raw=localStorage.getItem(key);if(raw===null)continue;
-    let saved;try{saved=JSON.parse(raw);}catch(error){recovery.push(`${key}: syntaktisch beschädigt und übersprungen.`);continue;}
-    const semantic=storedStateValidation(saved,version);if(!semantic.valid){recovery.push(`${key}: semantisch ungültiger Bewertungsstand (${semantic.issues.join(' ')}).`);continue;}
+    let saved;try{saved=JSON.parse(raw);}catch(error){const reason=`${key}: syntaktisch beschädigt und übersprungen.`;preserveRecoveryRaw(key,raw,reason);recovery.push(reason);continue;}
+    const semantic=storedStateValidation(saved,version);if(!semantic.valid){const reason=`${key}: semantisch ungültiger Bewertungsstand (${semantic.issues.join(' ')}).`;preserveRecoveryRaw(key,raw,reason);recovery.push(reason);continue;}
     try{
       const migrated=version===SCHEMA_VERSION?normalizeState(saved):migrateToCurrent(saved,version);
+      const currentValidation=storedStateValidation(migrated,SCHEMA_VERSION,{strictAnswers:true});
+      if(!currentValidation.valid)throw new Error(currentValidation.issues.join(' '));
       if(recovery.length){const at=new Date().toISOString();migrated.migration={...(migrated.migration||{}),reviewRequired:true,at,issues:[...new Set([...(migrated.migration?.issues||[]),`Speicher-Recovery: ${recovery.join(' ')}`])],auditTrail:[...(migrated.migration?.auditTrail||[]),{from:version,to:SCHEMA_VERSION,at,notes:recovery,recovery:true}]};migrated.evaluated=Array(8).fill(false);}
       if(version!==SCHEMA_VERSION||recovery.length)localStorage.setItem(STORAGE_KEY,JSON.stringify(migrated));
       return migrated;
-    }catch(error){recovery.push(`${key}: Migration oder Validierung fehlgeschlagen.`);}
+    }catch(error){const reason=`${key}: Migration oder Validierung fehlgeschlagen (${error.message}).`;preserveRecoveryRaw(key,raw,reason);recovery.push(reason);}
   }
-  if(recovery.length)console.warn('Gespeicherte Stände konnten nicht vollständig gelesen werden.',recovery.join(' '));
+  if(recovery.length){const fresh=freshState();fresh.storageRecovery={blocked:true,issues:recovery,backupKey:RECOVERY_BACKUP_KEY};fresh.migration={...fresh.migration,reviewRequired:true,issues:[`Speicher-Recovery erforderlich: ${recovery.join(' ')}`]};return fresh;}
   return freshState();
+}
+
+let lastPersistenceError='';
+
+/** Erzeugt und validiert den exakten Zustand, der gespeichert oder exportiert werden darf. */
+function preparePersistableState(sourceState){
+  if(sourceState?.storageRecovery?.blocked)throw new Error('Ein nicht lesbarer Altstand ist gesichert. Bitte zuerst die Rohsicherung herunterladen, eine gültige Datei importieren oder bewusst neu beginnen.');
+  const candidate=normalizeState(structuredClone(sourceState));applyCraRoleDerivation(candidate);synchronizeDerivedRegistersInto(candidate,liveEvaluationReferences());
+  const validation=storedStateValidation(candidate,SCHEMA_VERSION,{strictAnswers:true});
+  if(!validation.valid)throw new Error(`Der aktuelle Stand wurde nicht gespeichert: ${validation.issues.join(' ')}`);
+  return candidate;
 }
 
 /**
  * Synchronisiert interaktive Registerableitungen und speichert den vollständigen Live-Zustand lokal.
  * @param {string} [message='Stand gespeichert.'] Rückmeldung für die Speicheranzeige.
- * @returns {void}
+ * @returns {boolean} Wahr, wenn der validierte Zustand vollständig gespeichert wurde.
  * @description Datenquelle ist ausschließlich der aktuelle Live-Zustand. Die Funktion verändert Register, lokalen Speicher und Anzeige; sie wird nicht für die nebenwirkungsfreie Berichtserfassung verwendet.
  */
-function saveState(message='Stand gespeichert.') { syncDerivedRegisters();localStorage.setItem(STORAGE_KEY,JSON.stringify(state)); const label=document.querySelector('#saveState'); if(label)label.textContent=message; }
+function saveState(message='Stand gespeichert.') {
+  const label=document.querySelector('#saveState');
+  try{const candidate=preparePersistableState(state),serialized=JSON.stringify(candidate);localStorage.setItem(STORAGE_KEY,serialized);state=candidate;lastPersistenceError='';if(label)label.textContent=message;return true;}
+  catch(error){lastPersistenceError=error.message||'Der aktuelle Stand konnte nicht gespeichert werden.';if(label)label.textContent=lastPersistenceError;return false;}
+}
 
 /**
  * Erstellt eine unabhängige, versionierte Exportkopie des aktuellen Bewertungsstands.
@@ -744,7 +1028,7 @@ function saveState(message='Stand gespeichert.') { syncDerivedRegisters();localS
  * @description Datenquelle ist derselbe fixierte Stand wie für beide Berichtsarten. Eingaben, manuelle Angaben und historische Register verbleiben unter `assessment`; regelbasierte Ergebnisse werden getrennt ausgewiesen.
  */
 function assessmentExportObject(){
-  syncDerivedRegisters();
+  state=preparePersistableState(state);
   const reportData=buildReportData();
   return{
     format:'ki-risikobewertung',schemaVersion:SCHEMA_VERSION,exportedAt:new Date().toISOString(),
@@ -760,18 +1044,42 @@ function assessmentExportObject(){
  */
 function assessmentExportJson(){return JSON.stringify(assessmentExportObject(),null,2);}
 
-/**
- * Validiert und importiert einen Bewertungsstand; ältere unterstützte Versionen
- * durchlaufen dieselbe nachvollziehbare Migrationskette wie lokale Speicherstände.
- * @param {string} text Inhalt einer JSON-Importdatei.
- * @returns {object} Unabhängige Kopie des normalisierten, gespeicherten Zustands.
- * @description Ersetzt den Live-Zustand, speichert ihn und aktualisiert die Oberfläche. Nicht unterstützte oder beschädigte Daten werden vor der Übernahme abgewiesen.
- */
-function importAssessmentJson(text){
+/** Erstellt einen vollständig geprüften Importkandidaten ohne Änderung des Live-Zustands. */
+function prepareAssessmentImport(text){
   const parsed=JSON.parse(text),candidate=parsed?.assessment||parsed,version=Number(candidate?.schemaVersion||parsed?.schemaVersion);
   if(!Number.isInteger(version)||version<1||version>SCHEMA_VERSION)throw new Error('Die Datenmodellversion der Importdatei wird nicht unterstützt.');
-  const validation=storedStateValidation(candidate,version);if(!validation.valid)throw new Error(`Die Importdatei ist unvollständig oder beschädigt: ${validation.issues.join(' ')}`);
-  state=version===SCHEMA_VERSION?normalizeState(candidate):migrateToCurrent(candidate,version);saveState('Bewertung importiert.');renderNavigation();renderStep();return structuredClone(state);
+  const rawValidation=storedStateValidation(candidate,version,{strictAnswers:version===SCHEMA_VERSION});
+  if(!rawValidation.valid)throw new Error(`Die Importdatei ist unvollständig oder beschädigt: ${rawValidation.issues.join(' ')}`);
+  const prepared=version===SCHEMA_VERSION?normalizeState(candidate):migrateToCurrent(candidate,version);
+  prepared.reportVisible=false;
+  const currentValidation=storedStateValidation(prepared,SCHEMA_VERSION,{strictAnswers:true});
+  if(!currentValidation.valid)throw new Error(`Die Importdatei konnte nicht sicher in das aktuelle Datenmodell überführt werden: ${currentValidation.issues.join(' ')}`);
+  if(parsed?.derivedResults&&typeof parsed.derivedResults==='object'){
+    const recalculated=buildReportData(prepared),importedDecision=parsed.derivedResults.decision?.code||'',recalculatedDecision=recalculated.decision.code,importedSignature=parsed.derivedResults.resultSignature||'';
+    const differs=Boolean((importedDecision&&importedDecision!==recalculatedDecision)||(importedSignature&&importedSignature!==recalculated.resultSignature));
+    const note=differs?'Importierte Berechnungsergebnisse wurden nicht übernommen; der Eingabestand wurde mit dem aktuellen Regelwerk neu berechnet und weist einen abweichenden Ergebnisstand auf.':'Importierte Berechnungsergebnisse wurden nicht als Tatsachen übernommen; die Neuberechnung mit dem aktuellen Regelwerk ergab denselben dokumentierten Ergebnisstand.';
+    prepared.migration={...(prepared.migration||{}),issues:[...new Set([...(prepared.migration?.issues||[]),note])],importedDerivedComparison:{sourceExportedAt:parsed.exportedAt||'',sourceVersions:structuredClone(parsed.versions||{}),sourceResultSignature:importedSignature,sourceDecisionCode:importedDecision,recalculatedWith:structuredClone(KNOWLEDGE_BASE),recalculatedResultSignature:recalculated.resultSignature,recalculatedDecisionCode:recalculatedDecision,differs,comparisonBasis:'Neuberechnung des geprüften Importkandidaten vor dessen Übernahme'}};
+  }
+  return prepared;
+}
+
+/**
+ * Validiert und importiert einen Bewertungsstand transaktional. Erst nach
+ * erfolgreicher Migration, Katalogprüfung und Neuberechnung wird der gültige
+ * Live-Zustand ersetzt; ein vorhandener Berichtssnapshot wird geschlossen.
+ */
+function importAssessmentJson(text){
+  const prepared=prepareAssessmentImport(text),previousState=state,previousReportType=activeReportType,previousReportData=activeReportData,previousTitle=document.title,previousStorage=localStorage.getItem(STORAGE_KEY);
+  try{
+    state=prepared;activeReportType='compact';activeReportData=null;document.title=APPLICATION_TITLE;
+    if(!saveState('Bewertung importiert. Bericht bei Bedarf neu erzeugen.'))throw new Error(lastPersistenceError);renderNavigation();renderStep();
+    return structuredClone(state);
+  }catch(error){
+    state=previousState;activeReportType=previousReportType;activeReportData=previousReportData;document.title=previousTitle;
+    if(previousStorage===null)localStorage.removeItem(STORAGE_KEY);else localStorage.setItem(STORAGE_KEY,previousStorage);
+    try{renderNavigation();renderStep();}catch{}
+    throw error;
+  }
 }
 /**
  * Stellt den aktuellen Bewertungsstand als benannte JSON-Datei zum Herunterladen bereit.
@@ -780,12 +1088,24 @@ function importAssessmentJson(text){
  */
 function downloadAssessment(){const blob=new Blob([assessmentExportJson()],{type:'application/json;charset=utf-8'}),url=URL.createObjectURL(blob),anchor=document.createElement('a');anchor.href=url;anchor.download=`ki-risikobewertung-${state.form.internalToolId||state.form.assessmentId||'bewertung'}.json`;anchor.click();URL.revokeObjectURL(url);}
 
+/** Stellt die getrennt bewahrten, nicht interpretierten Rohdaten zur manuellen Sicherung bereit. */
+function downloadRecoveryBackup(){
+  const raw=localStorage.getItem(RECOVERY_BACKUP_KEY);if(!raw){const label=document.querySelector('#saveState');if(label)label.textContent='Es liegt kein gesicherter Rohstand vor.';return;}
+  const blob=new Blob([raw],{type:'application/json;charset=utf-8'}),url=URL.createObjectURL(blob),anchor=document.createElement('a');anchor.href=url;anchor.download='ki-risikobewertung-rohstand-wiederherstellung.json';anchor.click();URL.revokeObjectURL(url);
+}
+
+/** Ersetzt einen Fall und verwirft dabei stets den Snapshot, Titel und Sichtbarkeitsstatus des vorherigen Falls. */
+function replaceActiveAssessment(next,message){
+  state=normalizeState(next);state.reportVisible=false;activeReportType='compact';activeReportData=null;document.title=APPLICATION_TITLE;
+  if(!saveState(message))throw new Error(lastPersistenceError);renderNavigation();renderStep();return structuredClone(state);
+}
+
 /**
  * Entfernt alle unterstützten lokalen Speicherstände und startet eine neue Bewertung.
  * @returns {void}
  * @description Verändert den Live-Zustand, den lokalen Speicher, den Dokumenttitel und die sichtbare Oberfläche; vorhandene Exportdateien bleiben unberührt.
  */
-function resetAssessment(){localStorage.removeItem(STORAGE_KEY);localStorage.removeItem(LEGACY_V13_KEY);localStorage.removeItem(LEGACY_V12_KEY);localStorage.removeItem(LEGACY_V11_KEY);localStorage.removeItem(LEGACY_V10_KEY);localStorage.removeItem(LEGACY_V9_KEY);localStorage.removeItem(LEGACY_V8_KEY);localStorage.removeItem(LEGACY_V7_KEY);localStorage.removeItem(LEGACY_V6_KEY);localStorage.removeItem(LEGACY_V5_KEY);localStorage.removeItem(LEGACY_V4_KEY);localStorage.removeItem(LEGACY_V3_KEY);localStorage.removeItem(LEGACY_V2_KEY);localStorage.removeItem(LEGACY_V1_KEY);state=freshState();activeReportType='compact';activeReportData=null;document.title=APPLICATION_TITLE;saveState('Neue Bewertung gestartet.');renderNavigation();renderStep();}
+function resetAssessment(){[STORAGE_KEY,LEGACY_V15_KEY,LEGACY_V14_KEY,LEGACY_V13_KEY,LEGACY_V12_KEY,LEGACY_V11_KEY,LEGACY_V10_KEY,LEGACY_V9_KEY,LEGACY_V8_KEY,LEGACY_V7_KEY,LEGACY_V6_KEY,LEGACY_V5_KEY,LEGACY_V4_KEY,LEGACY_V3_KEY,LEGACY_V2_KEY,LEGACY_V1_KEY,RECOVERY_BACKUP_KEY].forEach(key=>localStorage.removeItem(key));return replaceActiveAssessment(freshState(),'Neue Bewertung gestartet.');}
 
 /* 7. Allgemeine Darstellungs- und Feldhilfen */
 
@@ -801,7 +1121,7 @@ const labelFor = value => ({
   pending:'Ausstehend',approved:'Genehmigt',rejected:'Nicht genehmigt','':'Nicht beantwortet'
   ,available:'Geeignete Behandlung verfügbar',unavailable:'Keine geeignete Behandlung bestimmbar',applicable:'Pflicht anwendbar',exception:'Ausnahme dokumentiert',product_only:'Auf das Produkt anwendbar; keine eigene Wirtschaftsakteursrolle',
   clarified:'Ja – eindeutig geklärt',unresolved:'Nein – ungeklärte oder widersprüchliche Pflichterfüllung',
-  fulfillable:'Erfüllbar beziehungsweise Umsetzung geplant',unfulfillable:'Nachweislich nicht erfüllbar',blocking:'Blockierend',non_blocking:'Nicht blockierend',
+  fulfillable:'Grundsätzlich erfüllbar (Umsetzungsstatus getrennt)',unfulfillable:'Nachweislich nicht erfüllbar',blocking:'Blockierend',non_blocking:'Nicht blockierend',
   sufficient:'Ausreichend',partly_sufficient:'Teilweise ausreichend',insufficient:'Unzureichend',not_conclusive:'Nicht abschließend beurteilbar',
   determined:'Frist und Rechtsgrundlage bestimmt',research_exception:'Forschung, Entwicklung oder Prototyping vor Inverkehrbringen',other:'Sonstiges Produkt',none:'Keine einschlägige Rolle oder Pflicht',class1:'Klasse I',class2:'Klasse II',critical:'Kritisches Produkt',
   provider:'Anbieterpflicht',deployer:'Betreiberpflicht',multiple:'Mehrere Pflichten oder Rollen',not_continued:'Prüfung aufgrund einer festgestellten verbotenen Praxis nicht fortgeführt',not_required:'Nach dem vorangehenden Prüfergebnis nicht erforderlich',
@@ -1569,6 +1889,13 @@ function renderNavigation(){
   nav.querySelectorAll('[data-step]').forEach(button=>button.addEventListener('click',()=>navigateTo(Number(button.dataset.step))));
   const percent=completionPercent();document.querySelector('#progressValue').textContent=`${percent} %`;document.querySelector('#progressBar').style.width=`${percent}%`;
   const evaluatedCount=state.evaluated.filter(Boolean).length;document.querySelector('#evaluatedCount').textContent=`${evaluatedCount} von 8 Prüfschritten bewertet`;
+  refreshPersistenceNotice();
+}
+
+/** Zeigt einen nicht überschreibbaren Recovery-Zustand und dessen Sicherungsaktion sichtbar an. */
+function refreshPersistenceNotice(){
+  const recoveryButton=document.querySelector('#recoveryExportButton'),hasBackup=Boolean(localStorage.getItem(RECOVERY_BACKUP_KEY));if(recoveryButton)recoveryButton.hidden=!hasBackup;
+  if(state.storageRecovery?.blocked){const label=document.querySelector('#saveState');if(label)label.textContent='Nicht lesbarer Altstand erkannt: Rohstand sichern, gültige Datei importieren oder bewusst neu beginnen.';}
 }
 
 function renderStatusSummary(){
@@ -1584,13 +1911,13 @@ function renderStep(){
   document.querySelector('#stepContent').innerHTML=renderers[state.step]();
   document.querySelector('#previousButton').disabled=state.step===0;
   document.querySelector('#nextButton').textContent=state.step===7?'Prüfschritt abschließen & Bericht':'Weiter →';
-  renderStatusSummary();bindStepEvents();
+  renderStatusSummary();bindStepEvents();refreshPersistenceNotice();
 }
 
 function refreshChrome(){renderNavigation();renderStatusSummary();const caseName=document.querySelector('#caseName');caseName.textContent=state.form.toolName||'';caseName.hidden=!state.form.toolName;}
 function navigateTo(next){if(next===state.step)return;state.evaluated[state.step]=true;state.step=Math.max(0,Math.min(7,next));state.reportVisible=false;activeReportData=null;document.title=APPLICATION_TITLE;saveState();renderNavigation();renderStep();window.scrollTo({top:0,behavior:'smooth'});}
 
-function updateFormElement(element,rerender=false){const key=element.dataset.field;state.form[key]=element.value;if(craRoleFields.some(([field])=>field===key)){const answers=craRoleFields.map(([field,,label])=>({field,label,value:state.form[field]})),selected=answers.filter(item=>item.value==='yes');state.form.craRole=answers.some(item=>!isFilled(item.value)||item.value==='review')?'review':selected.length>1?'multiple':selected.length===1?craRoleFields.find(([field])=>field===selected[0].field)[1]:'none';state.guideAnswers['CRA-08']={value:selected.map(item=>item.label).join(', ')||state.form.craRole,sourceField:'craRoleManufacturer/craRoleRepresentative/craRoleImporter/craRoleDistributor/craRoleSteward'};}if(element.dataset.guideId)state.guideAnswers[element.dataset.guideId]={value:element.value,sourceField:key};saveState();if(rerender)renderStep();refreshChrome();}
+function updateFormElement(element,rerender=false){const key=element.dataset.field;state.form[key]=element.value;if(craRoleFields.some(([field])=>field===key))applyCraRoleDerivation(state);else if(element.dataset.guideId)state.guideAnswers[element.dataset.guideId]={value:element.value,sourceField:key};saveState();if(rerender)renderStep();refreshChrome();}
 function updateRiskElement(element,rerender=false){const risk=state.risks[Number(element.dataset.riskIndex)];if(!risk)return;const field=element.dataset.riskField,previous=risk[field];risk[field]=element.value;if(['probability','impact'].includes(field))risk.currentRisk=effectiveCurrentRisk(risk);if(field==='treatmentStatus'&&previous==='verified'&&element.value!=='verified'&&isFilled(risk.verifiedResidual)){risk.inactiveVerifiedResidual={value:risk.verifiedResidual,formerStatus:previous,deactivatedAt:new Date().toISOString()};}saveState();if(rerender)renderStep();refreshChrome();}
 function updateOrgElement(element,rerender=false){state.org[element.dataset.orgArea][element.dataset.orgField]=element.value;saveState();if(rerender)renderStep();refreshChrome();}
 function updateOrgCriterionElement(element,rerender=false){const area=state.org[element.dataset.orgArea];area.criteria??={};area.criteria[element.dataset.orgCriterion]??={answer:'',reason:''};area.criteria[element.dataset.orgCriterion][element.dataset.orgCriterionField]=element.value;const guideId=element.closest?.('[data-guide-id]')?.dataset.guideId;if(guideId)state.guideAnswers[guideId]={value:area.criteria[element.dataset.orgCriterion].answer||'',reason:area.criteria[element.dataset.orgCriterion].reason||'',sourceField:`org.${element.dataset.orgArea}.${element.dataset.orgCriterion}`};saveState();if(rerender)renderStep();refreshChrome();}
@@ -1858,6 +2185,7 @@ function evaluateGPAI(context=null){
   ['gpaiOrganizationRole','gpaiBasis','gpaiEvidence'].forEach(key=>{if(!isFilled(f[key]))missing.push(key);});
   let role='Keine';if(f.gpaiOrganizationRole==='provider')role='GPAI-Anbieter';else if(['downstream','integrator'].includes(f.gpaiOrganizationRole))role='Nachgelagerter Anbieter / Integrator';else if(f.gpaiOrganizationRole==='unclear')reviewNeeds.push('Rolle der Organisation ist ungeklärt.');
   if(f.gObjectType==='integrating'&&f.gModel!=='yes')contradictions.push('Ein integrierendes System setzt eine dokumentierte relevante GPAI-Modellkomponente voraus.');
+  if(f.gObjectType==='model'&&f.gModel!=='yes')contradictions.push('Die aktive Objektklassifikation „GPAI-Modell“ widerspricht der Angabe, dass kein GPAI-Modell vorliegt. GPAI-04 ist nur als Modellklassifikation auswertbar, wenn GPAI-01 bejaht ist.');
   if(f.gSystemicRisk==='yes'&&f.gModel!=='yes')contradictions.push('Systemisches GPAI-Risiko wurde bejaht, obwohl kein GPAI-Modell vorliegt.');
   if(f.gCommissionDesignation==='yes'&&f.gModel!=='yes')contradictions.push('Eine Kommissionsbenennung zum systemischen Risiko wurde dokumentiert, obwohl kein GPAI-Modell belegt ist.');
   if(f.gSelfProvision==='yes'&&f.gModel!=='yes')contradictions.push('Eigene Bereitstellung setzt ein GPAI-Modell voraus.');
@@ -1893,19 +2221,42 @@ function craApplicabilityGate(context=null){
   return{status:'continue',missing:[],review:[],reason:'Der CRA-Pfad ist anwendbar oder als Sonderfall weiter zu prüfen.'};
 }
 
+/** Gruppiert ausschließlich offene, aktive CRA-Prüfpunkte nach ihrer strukturierten Teilentscheidung. */
+function openCraDependencyGroups(context=null){
+  const groups={product_applicability:[],organizational_role:[],individual_duty:[],temporal_applicability:[],operational_condition:[],review:[]};
+  activeRegisterItems('legal',context).filter(item=>item.status!=='resolved').forEach(item=>{
+    const classification=classifyCraRegisterItem(item);
+    if(classification.area==='not_applicable')return;
+    groups[classification.area].push({...item,craDependencySource:classification.source,craDependencyReason:classification.reason});
+  });
+  return groups;
+}
+
+function craDependencyResultFields(groups){
+  return{
+    openPrerequisiteReviewIds:groups.product_applicability.map(item=>item.id),
+    openRoleReviewIds:groups.organizational_role.map(item=>item.id),
+    openDutyReviewIds:groups.individual_duty.map(item=>item.id),
+    openTemporalReviewIds:groups.temporal_applicability.map(item=>item.id),
+    openOperationalReviewIds:groups.operational_condition.map(item=>item.id),
+    ambiguousCraDependencyIds:groups.review.map(item=>item.id)
+  };
+}
+
 /** Bewertet CRA-Anwendbarkeit, Produktklasse, Mehrfachrollen und wesentliche Änderungen eigenständig. */
 function evaluateCRA(context=null){
-  const state=evaluationState(context),references=evaluationReferences(context),QUESTION_IDS=references.questionIds,craRoleFields=references.craRoleFields,f=state.form,missing=[],reviewNeeds=[],triggers=[],contradictions=[],gate=craApplicabilityGate(context);
-  const openCraPrerequisites=activeRegisterItems('legal',context).filter(item=>item.status!=='resolved'&&/CRA|Cyber Resilience|Produkt mit digitalen Elementen/i.test([item.id,item.question,item.reason,item.legalBasis,item.linkedResult,item.sourceQuestionId].filter(Boolean).join(' '))&&/Produkt.*digital|Produktanwendbarkeit|Anwendbarkeit/i.test([item.question,item.reason,item.linkedResult].filter(Boolean).join(' ')));
-  openCraPrerequisites.forEach(item=>reviewNeeds.push(`${item.id}: Die offene Produkt- oder Anwendbarkeitsfrage ist Voraussetzung des ausgegebenen CRA-Ergebnisses.`));
+  const state=evaluationState(context),references=evaluationReferences(context),QUESTION_IDS=references.questionIds,craRoleFields=references.craRoleFields,f=state.form,missing=[],reviewNeeds=[],triggers=[],contradictions=[],gate=craApplicabilityGate(context),dependencyGroups=openCraDependencyGroups(context),dependencyFields=craDependencyResultFields(dependencyGroups);
+  dependencyGroups.product_applicability.forEach(item=>reviewNeeds.push(`${item.id}: Die offene Frage zur CRA-Produktanwendbarkeit ist Voraussetzung des ausgegebenen CRA-Ergebnisses.`));
+  dependencyGroups.review.forEach(item=>reviewNeeds.push(`${item.id}: Der CRA-Prüfpunkt ist noch keiner Teilentscheidung eindeutig zugeordnet; die Zuordnung ist zu bestätigen.`));
   gate.missing.forEach(key=>missing.push(guideLabel(QUESTION_IDS[key],context)));gate.review.forEach(key=>reviewNeeds.push(guideLabel(QUESTION_IDS[key],context)));
   ['craDigitalProduct','craRemoteProcessing','craDataConnection','craCommercial','craPrototype','craOpenSource','craExclusion'].forEach(key=>{if(f[key]==='yes')triggers.push(guideLabel(QUESTION_IDS[key],context));});
   if(gate.status==='no'){
-    const labels={no:'CRA auf das Produkt nicht anwendbar',review:'Nicht eindeutig beurteilbar / weiterer Prüfbedarf'},autoCode=openCraPrerequisites.length?'review':'no';
+    const labels={no:'CRA auf das Produkt nicht anwendbar',review:'Nicht eindeutig beurteilbar / weiterer Prüfbedarf'},autoCode=dependencyGroups.product_applicability.length||dependencyGroups.review.length?'review':'no';
     contradictions.push(...conclusionCheck(autoCode,f.craConclusion,[autoCode],labels,'CRA'));
     const effective=contradictions.length?'review':autoCode;
-    return evaluationResult(effective,labels[effective],{triggers,missing,contradictions,reviewNeeds,critical:effective==='review',basis:'Cyber Resilience Act',manual:f.craConclusion,manualLabel:labels[f.craConclusion]||'Nicht ausgewählt',roles:[],possibleRoles:[],roleCodes:[],category:'Nicht erforderlich',duties:[],productApplicable:false,ownObligations:false,roleOutcome:'not_required',specialCase:'',steward:false,overlap:'',openSource:f.craOpenSource==='yes',pathStatus:effective==='review'?'review':'not_required',pathReason:gate.reason,openPrerequisiteReviewIds:openCraPrerequisites.map(item=>item.id)});
+    return evaluationResult(effective,labels[effective],{triggers,missing,contradictions,reviewNeeds,critical:effective==='review',basis:'Cyber Resilience Act',manual:f.craConclusion,manualLabel:labels[f.craConclusion]||'Nicht ausgewählt',roles:[],possibleRoles:[],roleCodes:[],category:'Nicht erforderlich',duties:[],productApplicable:false,ownObligations:false,roleOutcome:'not_required',specialCase:'',steward:false,overlap:'',openSource:f.craOpenSource==='yes',pathStatus:effective==='review'?'review':'not_required',pathReason:gate.reason,...dependencyFields});
   }
+  dependencyGroups.organizational_role.forEach(item=>reviewNeeds.push(`${item.id}: Die offene CRA-Rollenfrage verhindert eine abschließende Ableitung eigener Organisationspflichten.`));
   ['craSubstantialChange','craManufacturerTakeover','craProductClass','craAiActOverlap'].forEach(key=>{const label=guideLabel(QUESTION_IDS[key],context);if(!isFilled(f[key]))missing.push(label);if(['review','na'].includes(f[key]))reviewNeeds.push(label);if(f[key]==='yes')triggers.push(label);});
   const roleCodes=craRoleFields.filter(([field])=>f[field]==='yes').map(([,code])=>code),craRoles=craRoleFields.filter(([field])=>f[field]==='yes').map(([, ,label])=>label);
   const possibleRoles=craRoleFields.filter(([field])=>!isFilled(f[field])||f[field]==='review').map(([, ,label])=>label),rolesUnclear=possibleRoles.length>0||f.craRole==='review';
@@ -1934,7 +2285,7 @@ function evaluateCRA(context=null){
   contradictions.push(...conclusionCheck(autoCode,f.craConclusion,[autoCode],labels,'CRA'));const effective=contradictions.length?'review':autoCode;
   const steward=roleCodes.includes('steward'),ownObligations=effective==='yes'||(steward&&effective==='special'&&f.craExclusion!=='yes'&&f.craPrototype!=='yes');
   const duties=ownObligations?[...(roleCodes.includes('manufacturer')?['Cybersecurity-Anforderungen über den Lebenszyklus','Konformitätsbewertung und technische Dokumentation','Schwachstellenbehandlung','Meldepflichten','Übergangs- und Anwendungszeitpunkte beachten']:[]),...(steward?['Steward-Pflichten nach Art. 24 CRA','Meldung nach Art. 24 Abs. 3 CRA in Verbindung mit Art. 14 CRA']:[]),...(roleCodes.some(code=>['representative','importer','distributor'].includes(code))?['Rollenspezifische Pflichten nach Art. 18 bis 20 CRA']:[])]:[];
-  return evaluationResult(effective,labels[effective],{triggers,missing,contradictions,reviewNeeds,critical:effective==='review',basis:'Cyber Resilience Act',manual:f.craConclusion,manualLabel:labels[f.craConclusion]||'Nicht ausgewählt',roles:craRoles,possibleRoles,roleCodes,category:category||'Nicht bestimmt',duties,productApplicable:['yes','product_only','special'].includes(effective),ownObligations,roleOutcome:rolesUnclear?'review':roleCodes.length>1?'multiple':roleCodes[0]||'none',specialCase,steward,overlap:f.craAiActOverlapNotes||'',openSource:f.craOpenSource==='yes',pathStatus:effective==='review'?'review':'active',pathReason:gate.reason,openPrerequisiteReviewIds:openCraPrerequisites.map(item=>item.id)});
+  return evaluationResult(effective,labels[effective],{triggers,missing,contradictions,reviewNeeds,critical:effective==='review',basis:'Cyber Resilience Act',manual:f.craConclusion,manualLabel:labels[f.craConclusion]||'Nicht ausgewählt',roles:craRoles,possibleRoles,roleCodes,category:category||'Nicht bestimmt',duties,productApplicable:['yes','product_only','special'].includes(effective),ownObligations,roleOutcome:rolesUnclear?'review':roleCodes.length>1?'multiple':roleCodes[0]||'none',specialCase,steward,overlap:f.craAiActOverlapNotes||'',openSource:f.craOpenSource==='yes',pathStatus:effective==='review'?'review':'active',pathReason:gate.reason,...dependencyFields});
 }
 
 /** Fasst die beiden Hochrisikopfade zusammen, ohne deren Einzelbegründungen zu verlieren. */
@@ -2141,6 +2492,13 @@ function evaluateDutyOperationalResult(id,context=null){
 /** Liefert alle operationalisierten DUTY-Ergebnisse in stabiler Leitfadenreihenfolge. */
 function dutyOperationalResults(context=null){return evaluationReferences(context).dutyImplementationIds.map(id=>evaluateDutyOperationalResult(id,context));}
 
+const REQUIRED_VERSION_DOCUMENTATION_FIELDS=Object.freeze(['assessmentVersion','guideVersion','version','assessmentDate']);
+/** Liefert die gemeinsame Pflichtgrundlage für REVIEW-14 und den Dokumentationsabschluss. */
+function versionDocumentationStatus(context=null){
+  const f=evaluationState(context).form,missing=REQUIRED_VERSION_DOCUMENTATION_FIELDS.filter(key=>!isFilled(f[key]));
+  return{missing,complete:missing.length===0,reason:missing.length?`Erforderliche Versions- oder Stichtagsangaben fehlen: ${missing.map(key=>displayFieldName(key,context)).join(', ')}.`:`Bewertung ${f.assessmentVersion} · Leitfaden ${f.guideVersion} · Tool ${f.version} · Bewertungsstichtag ${fmtDate(f.assessmentDate)} · Rechtsstand ${evaluationReferences(context).knowledgeBase.legalStatus}.`};
+}
+
 /**
  * Bewertet genau eine operationalisierte REVIEW-Kennung und erhält Begründung, Quellen und Entscheidungsauswirkung.
  * @param {string} id REVIEW-01 bis REVIEW-42.
@@ -2169,7 +2527,7 @@ function reviewOperationalResult(id,decision=null,context=null){
   }
   if(n===12){const open=allStatusRelevantRegisterItems(context).filter(registerItemOpen),futureArt5=regs.prohibition.code==='future_prohibition';return result(open.length||futureArt5?'yes':'no',`${open.length} offene einschlägige Registereinträge${futureArt5?' · ein künftig wirksamer Art.-5-Tatbestand':''}. Nicht anwendbare Pflichten bleiben dokumentiert, werden aber nicht als offen gezählt.`,[...open.map(item=>item.id),...(futureArt5?['ART5-03 / ART5-04']:[])]);}
   if(n===13){const keys=['assessmentId','internalToolId','toolName','provider','version','purpose','intendedUse','process','department','reviewer','assessmentDate','legalSources','changeHistory'],missing=keys.filter(key=>!isFilled(f[key]));return result(missing.length?'review':'yes',missing.length?`Mindestidentifikation der Abschlussprüfung unvollständig: ${missing.map(key=>displayFieldName(key,context)).join(', ')}.`:`Bewertungs-ID ${f.assessmentId} · eigenständige interne Tool-Kennung ${f.internalToolId} · ${f.toolName} von ${f.provider}, Version ${f.version} · vorgesehener Verwendungszweck: ${f.purpose} · Nutzungskontext: ${f.intendedUse}; ${f.process} · bewertende Stelle: ${f.department}, Durchführung/Prüfung: ${f.reviewer} · Bewertungsstichtag ${fmtDate(f.assessmentDate)} · Rechts- und Regelwerksstand: ${KNOWLEDGE_BASE.legalStatus}; ${f.legalSources} · frühere Bewertung beziehungsweise dokumentierter Erststand: ${f.changeHistory}.`,keys);}
-  if(n===14)return result(isFilled(f.assessmentVersion)&&isFilled(f.version)&&isFilled(f.assessmentDate)?'yes':'review',`Bewertung ${f.assessmentVersion||'offen'} · Tool ${f.version||'offen'} · Rechtsstand ${KNOWLEDGE_BASE.legalStatus}.`,['TOOL-03','assessmentVersion','assessmentDate']);
+  if(n===14){const versionStatus=versionDocumentationStatus(context);return result(versionStatus.complete?'yes':'review',versionStatus.reason,['TOOL-03','assessmentVersion','guideVersion','assessmentDate']);}
   if(n===15)return result(state.evaluated.every(Boolean)?'yes':'review',steps.map((_,i)=>`${i+1}: ${stepSubstantiveResult(i,decision,context)}`).join(' | '),['Prüfschritte 1–8']);
   if(n===16){const counts=Object.keys(state.registers).map(key=>`${key}: ${activeRegisterItems(key,context).length} aktiv`);return result(allActiveRegisterItems(context).length?'yes':'review',`${counts.join(' · ')} · historisch: ${inactiveRegisterItems(context).length}.`,['Prüfschritt 7']);}
   if(n===17){const unlinked=registerValidation(context).missingLinks;return result(unlinked.length?'review':'yes',unlinked.length?unlinked.join(' '):'Registereinträge sind über Quell-ID und verknüpftes Ergebnis nachvollziehbar.',['sourceQuestionId','linkedResult']);}
@@ -2320,24 +2678,24 @@ function synchronizeDerivedRegistersInto(targetState,references){
       const legal=['DUTY-42','DUTY-43','DUTY-45','DUTY-47'].includes(item.id),type=legal?'legal':'expert',short=item.id.replace('DUTY-','');
       const sourceQuestionId=item.id==='DUTY-45'?'CTX-02 / DUTY-45':item.id;
       const sourceStep=item.id==='DUTY-44'||item.id==='DUTY-46'?'5':item.id==='DUTY-45'?'3':item.id==='DUTY-47'?'7':'4';
-      const block=pbBlockingDecision(item,targetState),common={id:`PB-${item.id}`,sourceQuestionId,question:item.label,reason:item.reason,linkedResult:item.sources.join(' · '),owner:'',sourceStep,assessmentImpact:block.value==='yes'?'Ohne Klärung ist keine belastbare Entscheidung möglich.':block.value==='no'?'Offener Prüfpunkt beziehungsweise offene Maßnahme ohne automatische Abschlussblockierung.':'Auswirkung auf die Abschlussentscheidung ist noch zu klären.',priority:block.value==='no'?'medium':'high',due:'',status:'open',result:'',ruleBlocking:block.value,ruleBlockingReason:block.reason,blocking:block.value,blockingReason:block.reason};
+      const block=pbBlockingDecision(item,targetState),common={id:`PB-${item.id}`,sourceQuestionId,question:item.label,reason:item.reason,linkedResult:item.sources.join(' · '),owner:'',sourceStep,assessmentImpact:block.value==='yes'?'Ohne Klärung ist keine belastbare Entscheidung möglich.':block.value==='no'?'Offener Prüfpunkt beziehungsweise offene Maßnahme ohne automatische Abschlussblockierung.':'Auswirkung auf die Abschlussentscheidung ist noch zu klären.',craDecisionArea:'not_applicable',priority:block.value==='no'?'medium':'high',due:'',status:'open',result:'',ruleBlocking:block.value,ruleBlockingReason:block.reason,blocking:block.value,blockingReason:block.reason};
       if(legal)push(type,common.sourceStep,`duty-${short}`,{...common,legalBasis:item.id==='DUTY-47'?'EU AI Act / Cyber Resilience Act / Datenschutzrecht / sektorales und weiteres dokumentiertes Recht':'EU AI Act und anwendbare Spezialregelungen'});
       else push(type,common.sourceStep,`duty-${short}`,{...common,expertise:'Fachliche Prüfung anhand der dokumentierten System- und Risikoinformationen'});
     });
     const repeatedRiskIds=new Set(duplicateRiskIds(context));
     targetState.risks.filter(r=>r.treatmentNeeded==='yes').forEach((risk,index)=>{const base=risk.riskId||`risk-${index+1}`,suffix=repeatedRiskIds.has(risk.riskId)?`-DUP-${index+1}`:'';push('risk','5',`${base}${suffix}`,{id:`RM-${base}${suffix}`,sourceQuestionId:risk.sourceGuideId||'RISK-24 bis RISK-31',riskId:risk.riskId||'',basis:'Kapitel 3 – 3×3-Risikomatrix',measure:risk.proposedTreatment||'',target:`Erwartetes Restrisiko ${labelFor(risk.expectedResidual)}`,linkedResult:`${risk.riskId||`Risiko ${index+1}`}: ${labelFor(effectiveCurrentRisk(risk))}`,strategy:risk.treatmentStrategy||'',priority:risk.priority||'',beforeRelease:effectiveCurrentRisk(risk)==='high'?'yes':'no',owner:risk.owner||'',due:risk.treatmentDue||'',status:risk.treatmentStatus||'planned',effectivenessCriterion:risk.effectivenessCriterion||'',effectivenessReview:risk.effectivenessDate||'',reviewer:risk.effectivenessReviewer||'',evidence:risk.treatmentStatus==='verified'?(risk.effectivenessEvidence||''):'',residual:risk.treatmentStatus==='verified'?(risk.verifiedResidual||'unknown'):'unknown'});});
-    orgAreas.forEach(([id,label])=>{const item=targetState.org[id]||{};(orgCriteria[id]||[]).forEach(([key,criterionLabel,,guideId])=>{const criterion=item.criteria?.[key]||{},regulatory=regulatoryOrgCriterionContext(guideId,context);if(regulatory.defined&&!regulatory.relevant)return;const mandatoryGap=['partial','notFulfilled'].includes(criterion.answer)||(regulatory.relevant&&criterion.answer==='notAssessable'),optionalUnknown=criterion.answer==='notAssessable'&&item.transfer==='yes';if(!mandatoryGap&&!optionalUnknown)return;const number=guideId.replace('ORG-',''),regulatoryBasis=regulatory.relevant?`${regulatory.rule.basis}; ${regulatory.rule.reason}`:'';push('organizational','6',guideId,{id:`OM-${guideId}`,organizationalGapId:`O-${number}`,sourceQuestionId:guideId,area:label,measure:item.measure||criterion.reason||'Organisatorische Lücke fachlich schließen und Wirksamkeit nachweisen.',impact:[criterionLabel,criterion.reason,item.gap,item.impact,regulatoryBasis].filter(isFilled).join(' · '),linkedResult:`${guideId}: ${orgStatusLabel(criterion.answer)}`,basis:regulatoryBasis||item.rationale||'Organisatorische Bewertung nach Kapitel 3',priority:regulatory.relevant||item.decisionCritical==='yes'?'high':'medium',beforeRelease:regulatory.relevant||item.decisionCritical==='yes'?'yes':'no',decisionCritical:regulatory.relevant?'yes':item.decisionCritical||'no',blocking:regulatory.relevant?'review':'no',blockingReason:regulatory.relevant?'Die regulatorisch verknüpfte Organisationsanforderung ist nicht vollständig erfüllt oder nicht abschließend beurteilbar.':'',owner:item.owner||'',due:item.deadline||'',status:'planned',evidence:item.evidence||'',automaticTransfer:mandatoryGap?'Ja – verpflichtende Übernahme unabhängig von der manuellen Übertragungseinstellung':'Übernahme aufgrund der manuellen Einstellung'});});});
-    if(e.prohibition.code==='possible'||(e.prohibition.code==='review'&&(targetState.evaluated[3]||prohibitedQuestions.some(([key])=>['possible','review','exception_review'].includes(targetState.form[key])))))push('legal','4','prohibition',{id:'JP-ART5',question:'Liegt ein Verbotstatbestand nach Art. 5 vor?',reason:e.prohibition.label,owner:'',sourceStep:'4',legalBasis:'EU AI Act Art. 5',assessmentImpact:'Entscheidungskritisch; keine abschließbare Bewertung.',priority:'high',due:'',status:'open',result:'',ruleBlocking:'yes',ruleBlockingReason:'Ein möglicher Verbotstatbestand muss vor einer belastbaren Entscheidung geklärt werden.',blocking:'yes',blockingReason:'Ein möglicher Verbotstatbestand muss vor einer belastbaren Entscheidung geklärt werden.'});
+    orgAreas.forEach(([id,label])=>{const item=targetState.org[id]||{};(orgCriteria[id]||[]).forEach(([key,criterionLabel,,guideId])=>{const criterion=item.criteria?.[key]||{},regulatory=regulatoryOrgCriterionContext(guideId,context);if(regulatory.defined&&!regulatory.relevant)return;const mandatoryGap=['partial','notFulfilled'].includes(criterion.answer)||(regulatory.relevant&&criterion.answer==='notAssessable'),optionalUnknown=criterion.answer==='notAssessable'&&item.transfer==='yes';if(!mandatoryGap&&!optionalUnknown)return;const number=guideId.replace('ORG-',''),regulatoryBasis=regulatory.relevant?`${regulatory.rule.basis}; ${regulatory.rule.reason}`:'',areaCritical=item.decisionCritical==='notAssessable'?'review':['yes','no'].includes(item.decisionCritical)?item.decisionCritical:'no',decisionCritical=regulatory.relevant?'yes':areaCritical,beforeRelease=regulatory.relevant||decisionCritical==='yes'?'yes':decisionCritical==='review'?'review':'no',blocking=regulatory.relevant||decisionCritical==='review'?'review':'no';push('organizational','6',guideId,{id:`OM-${guideId}`,organizationalGapId:`O-${number}`,sourceQuestionId:guideId,area:label,measure:item.measure||criterion.reason||'Organisatorische Lücke fachlich schließen und Wirksamkeit nachweisen.',impact:[criterionLabel,criterion.reason,item.gap,item.impact,regulatoryBasis].filter(isFilled).join(' · '),linkedResult:`${guideId}: ${orgStatusLabel(criterion.answer)}`,basis:regulatoryBasis||item.rationale||'Organisatorische Bewertung nach Kapitel 3',priority:regulatory.relevant||decisionCritical==='yes'?'high':'medium',beforeRelease,decisionCritical,blocking,blockingReason:blocking==='review'?'Die Blockierungswirkung der nicht vollständig erfüllten oder nicht abschließend beurteilbaren Organisationsanforderung ist fachlich zu bestätigen.':'',owner:item.owner||'',due:item.deadline||'',status:'planned',evidence:item.evidence||'',automaticTransfer:mandatoryGap?'Ja – verpflichtende Übernahme unabhängig von der manuellen Übertragungseinstellung':'Übernahme aufgrund der manuellen Einstellung'});});});
+    if(e.prohibition.code==='possible'||(e.prohibition.code==='review'&&(targetState.evaluated[3]||prohibitedQuestions.some(([key])=>['possible','review','exception_review'].includes(targetState.form[key])))))push('legal','4','prohibition',{id:'JP-ART5',question:'Liegt ein Verbotstatbestand nach Art. 5 vor?',reason:e.prohibition.label,owner:'',sourceStep:'4',legalBasis:'EU AI Act Art. 5',assessmentImpact:'Entscheidungskritisch; keine abschließbare Bewertung.',craDecisionArea:'not_applicable',priority:'high',due:'',status:'open',result:'',ruleBlocking:'yes',ruleBlockingReason:'Ein möglicher Verbotstatbestand muss vor einer belastbaren Entscheidung geklärt werden.',blocking:'yes',blockingReason:'Ein möglicher Verbotstatbestand muss vor einer belastbaren Entscheidung geklärt werden.'});
     const aiPath=aiActPathStatus(context);
-    if(aiPath.scope?.annexIBLimitation)push('legal','2','scope-08-limitation',{id:'PB-SCOPE-08',sourceQuestionId:'SCOPE-08',question:'Welche Hochrisiko-Anforderungen verbleiben im begrenzten Anwendungsbereich des Art. 2 Abs. 2?',reason:'Der konkrete Umfang der für das Produkt nach Anhang I Abschnitt B verbleibenden Anforderungen ist fallbezogen zu bestimmen.',linkedResult:aiPath.scope.label,owner:targetState.form.scopeLimitationOwner||'',sourceStep:'2',legalBasis:'EU AI Act Art. 2 Abs. 2',assessmentImpact:'Betroffene Pflichten bleiben nicht abschließend beurteilbar; nicht betroffene Pflichten werden regulär ausgewertet.',priority:'high',due:targetState.form.scopeLimitationDue||'',status:'open',result:'',ruleBlocking:'review',ruleBlockingReason:'Ohne Klärung des Pflichtenumfangs ist keine abschließende Gesamtbewertung möglich.',blocking:'review',blockingReason:'Pflichtenumfang nach SCOPE-08 noch nicht abschließend bestimmt.'});
-    if(aiPath.scope?.annexIAEquivalentLimitation)push('legal','2','scope-18-limitation',{id:'PB-SCOPE-18',sourceQuestionId:'SCOPE-18',question:'Welche Anforderungen werden durch gleichwertiges oder strengeres Harmonisierungsrecht nach Anhang I Abschnitt A abgedeckt?',reason:'Die mögliche Begrenzung einzelner Anforderungen ist noch nicht durch eine konkrete Zuordnung und einen Gleichwertigkeitsnachweis belegt.',linkedResult:aiPath.scope.label,owner:targetState.form.scopeLimitationOwner||'',sourceStep:'2',legalBasis:'EU AI Act Art. 2 Abs. 13',assessmentImpact:'Betroffene Pflichten bleiben nicht abschließend beurteilbar; nicht betroffene Pflichten werden regulär ausgewertet.',priority:'high',due:targetState.form.scopeLimitationDue||'',status:'open',result:'',ruleBlocking:'review',ruleBlockingReason:'Ohne konkrete Zuordnung und Gleichwertigkeitsnachweis ist keine abschließende Bewertung der betroffenen Pflichten möglich.',blocking:'review',blockingReason:'Pflichtenumfang nach SCOPE-18 noch nicht abschließend bestimmt.'});
-    if(aiPath.required&&aiPath.provisional)push('legal','2','scope-special',{id:'PB-SCOPE-SONDERREGEL',sourceQuestionId:'SCOPE-01 bis SCOPE-18',question:'Ist der Anwendungsbereich nach Art. 2 eindeutig bestimmt?',reason:aiPath.reason,linkedResult:aiPath.scope.label,owner:'',sourceStep:'2',legalBasis:'EU AI Act Art. 2 und Übergangsbestimmungen',assessmentImpact:'Reguläre Pflichten werden nicht automatisch abgeleitet; die verbleibende Reichweite ist fallbezogen zu klären.',priority:'high',due:'',status:'open',result:'',ruleBlocking:'review',ruleBlockingReason:'Die Blockierungswirkung hängt von der fallbezogenen Reichweite der Sonderregel ab.',blocking:'review',blockingReason:'Noch nicht abschließend beurteilt.'});
-    if(targetState.form.manualBlockerActive==='yes')push('legal','8','manual-review',{id:'PB-MANUELLER-PRUEFBEDARF',sourceQuestionId:'REVIEW-11',question:'Ist der zusätzlich dokumentierte Sachverhalt entscheidungsblockierend?',reason:targetState.form.manualBlockerReason||'Zusätzlicher Sachverhalt ohne Begründung.',linkedResult:'Zusätzlicher entscheidungsbezogener Prüfbedarf',owner:'',sourceStep:'8',legalBasis:'Fallbezogene fachliche oder juristische Prüfung',assessmentImpact:'Die Blockierungswirkung ist ausdrücklich festzulegen.',priority:'high',due:'',status:'open',result:'',ruleBlocking:'review',ruleBlockingReason:'Ein freier Hinweis ist kein Hindernis; die Blockierungswirkung muss gesondert bestätigt werden.',blocking:'review',blockingReason:'Noch nicht bestätigt.'});
+    if(aiPath.scope?.annexIBLimitation)push('legal','2','scope-08-limitation',{id:'PB-SCOPE-08',sourceQuestionId:'SCOPE-08',question:'Welche Hochrisiko-Anforderungen verbleiben im begrenzten Anwendungsbereich des Art. 2 Abs. 2?',reason:'Der konkrete Umfang der für das Produkt nach Anhang I Abschnitt B verbleibenden Anforderungen ist fallbezogen zu bestimmen.',linkedResult:aiPath.scope.label,owner:targetState.form.scopeLimitationOwner||'',sourceStep:'2',legalBasis:'EU AI Act Art. 2 Abs. 2',assessmentImpact:'Betroffene Pflichten bleiben nicht abschließend beurteilbar; nicht betroffene Pflichten werden regulär ausgewertet.',craDecisionArea:'not_applicable',priority:'high',due:targetState.form.scopeLimitationDue||'',status:'open',result:'',ruleBlocking:'review',ruleBlockingReason:'Ohne Klärung des Pflichtenumfangs ist keine abschließende Gesamtbewertung möglich.',blocking:'review',blockingReason:'Pflichtenumfang nach SCOPE-08 noch nicht abschließend bestimmt.'});
+    if(aiPath.scope?.annexIAEquivalentLimitation)push('legal','2','scope-18-limitation',{id:'PB-SCOPE-18',sourceQuestionId:'SCOPE-18',question:'Welche Anforderungen werden durch gleichwertiges oder strengeres Harmonisierungsrecht nach Anhang I Abschnitt A abgedeckt?',reason:'Die mögliche Begrenzung einzelner Anforderungen ist noch nicht durch eine konkrete Zuordnung und einen Gleichwertigkeitsnachweis belegt.',linkedResult:aiPath.scope.label,owner:targetState.form.scopeLimitationOwner||'',sourceStep:'2',legalBasis:'EU AI Act Art. 2 Abs. 13',assessmentImpact:'Betroffene Pflichten bleiben nicht abschließend beurteilbar; nicht betroffene Pflichten werden regulär ausgewertet.',craDecisionArea:'not_applicable',priority:'high',due:targetState.form.scopeLimitationDue||'',status:'open',result:'',ruleBlocking:'review',ruleBlockingReason:'Ohne konkrete Zuordnung und Gleichwertigkeitsnachweis ist keine abschließende Bewertung der betroffenen Pflichten möglich.',blocking:'review',blockingReason:'Pflichtenumfang nach SCOPE-18 noch nicht abschließend bestimmt.'});
+    if(aiPath.required&&aiPath.provisional)push('legal','2','scope-special',{id:'PB-SCOPE-SONDERREGEL',sourceQuestionId:'SCOPE-01 bis SCOPE-18',question:'Ist der Anwendungsbereich nach Art. 2 eindeutig bestimmt?',reason:aiPath.reason,linkedResult:aiPath.scope.label,owner:'',sourceStep:'2',legalBasis:'EU AI Act Art. 2 und Übergangsbestimmungen',assessmentImpact:'Reguläre Pflichten werden nicht automatisch abgeleitet; die verbleibende Reichweite ist fallbezogen zu klären.',craDecisionArea:'not_applicable',priority:'high',due:'',status:'open',result:'',ruleBlocking:'review',ruleBlockingReason:'Die Blockierungswirkung hängt von der fallbezogenen Reichweite der Sonderregel ab.',blocking:'review',blockingReason:'Noch nicht abschließend beurteilt.'});
+    if(targetState.form.manualBlockerActive==='yes')push('legal','8','manual-review',{id:'PB-MANUELLER-PRUEFBEDARF',sourceQuestionId:'REVIEW-11',question:'Ist der zusätzlich dokumentierte Sachverhalt entscheidungsblockierend?',reason:targetState.form.manualBlockerReason||'Zusätzlicher Sachverhalt ohne Begründung.',linkedResult:'Zusätzlicher entscheidungsbezogener Prüfbedarf',owner:'',sourceStep:'8',legalBasis:'Fallbezogene fachliche oder juristische Prüfung',assessmentImpact:'Die Blockierungswirkung ist ausdrücklich festzulegen.',craDecisionArea:'not_applicable',priority:'high',due:'',status:'open',result:'',ruleBlocking:'review',ruleBlockingReason:'Ein freier Hinweis ist kein Hindernis; die Blockierungswirkung muss gesondert bestätigt werden.',blocking:'review',blockingReason:'Noch nicht bestätigt.'});
     const active=new Set(desired.map(d=>`${d.type}:${d.sourceStep}:${d.sourceId}`)),identityFields=new Set(['dutyCode','riskId']),conflictFields=new Set(['sourceQuestionId','basis','legalBasis','requirement','measure','question','obligatedRole','riskId','dutyCode']);
     desired.forEach(({type,sourceStep,sourceId,item})=>{
       const list=targetState.registers[type],byTarget=list.filter(entry=>isActiveRegisterItem(entry)&&entry.id===item.id);let existing=byTarget.find(entry=>!entry.derived)||byTarget.find(entry=>String(entry.sourceStep)===sourceStep&&entry.sourceId===sourceId)||byTarget[0];
       if(existing)byTarget.filter(entry=>entry!==existing).forEach(entry=>mergeDuplicateRegisterEntry(type,existing,entry,targetState,context));
-      if(!existing)existing=list.find(entry=>isActiveRegisterItem(entry)&&entry.derived&&String(entry.sourceStep)===sourceStep&&entry.sourceId===sourceId);
+      if(!existing)existing=list.find(entry=>entry.derived&&String(entry.sourceStep)===sourceStep&&entry.sourceId===sourceId);
       if(!existing){list.push({...item,derived:true,sourceStep,sourceId,sourceActive:true,sourceSnapshot:{...item}});return;}
       if(!existing.derived){
         const conflicts=[];Object.entries(item).forEach(([key,value])=>{if(!isFilled(existing[key]))existing[key]=structuredClone(value);else if(isFilled(value)&&JSON.stringify(existing[key])!==JSON.stringify(value)&&conflictFields.has(key))conflicts.push(`Quelle ${sourceStep}/${sourceId}, ${displayFieldName(key,context)}: manueller Wert „${String(existing[key])}“ bleibt erhalten; Quellwert „${String(value)}“`);});
@@ -2519,15 +2877,50 @@ function getStepValidation(index,{skipApproval=false,decision=null,context=null}
 function reportCompletionStatus(decision=null,context=null){
   const state=evaluationState(context),steps=evaluationReferences(context).steps;
   decision??=overallDecision(false,true,{synchronize:false,context});const validations=steps.map((_,index)=>getStepValidation(index,{decision,context})),items=validations.flatMap(item=>item.items).filter(item=>item.status!=='resolved'&&item.type!=='warning');
-  const criticalOpen=[...items.filter(item=>item.critical),...decision.blockers.map(item=>validationItem(item.text,item.source,'blocker',true)),...decision.uncertainties.map(item=>validationItem(item.text,item.source,'review',true))];
+  const documentationCritical=items.filter(item=>item.critical),decisionCritical=[...decision.blockers.map(item=>validationItem(item.text,item.source,'blocker',true)),...decision.uncertainties.map(item=>validationItem(item.text,item.source,'review',true))],criticalOpen=[...documentationCritical,...decisionCritical];
   state.risks.forEach(risk=>{if(effectiveCurrentRisk(risk)==='unknown'&&risk.decisionCriticality==='yes')criticalOpen.push(validationItem(`${risk.riskId||'Risiko'}: entscheidungskritisches Risiko nicht bestimmbar.`,'Prüfschritt 5','review',true,risk.owner,risk.treatmentDue));if(risk.treatmentNeeded==='yes'&&['implemented','verified'].includes(risk.treatmentStatus)&&review10RiskState(risk).level==='unknown')criticalOpen.push(validationItem(`${risk.riskId||'Risiko'}: maßgebliches Restrisiko nicht bestimmt oder noch nicht verifiziert.`,'Prüfschritt 5','review',true,risk.owner,risk.treatmentDue));});
   const nonCriticalOpen=[...items.filter(item=>!item.critical),...decision.conditions.map(item=>validationItem(item.text,item.source,'condition',false))];
   const unevaluated=state.evaluated.map((value,index)=>!value?`Prüfschritt ${index+1} wurde noch nicht bewertet.`:'').filter(Boolean),reasons=[...unevaluated,...criticalOpen.map(item=>item.text)];
   const uniqueCritical=criticalOpen.filter((item,index,list)=>list.findIndex(other=>other.text===item.text&&other.source===item.source)===index),uniqueNonCritical=nonCriticalOpen.filter((item,index,list)=>list.findIndex(other=>other.text===item.text&&other.source===item.source)===index);
-  const status=decision.code==='ASSESSMENT_NOT_CONCLUDABLE'?'draft':decision.code==='ASSESSMENT_COMPLETE_WITH_OPEN_MEASURES'?'conditional':'final';
-  return{status,draft:status==='draft',reasons:[...new Set(reasons)],criticalOpen:uniqueCritical,nonCriticalOpen:uniqueNonCritical,decision};
+  const documentationIncomplete=documentationCritical.length>0||unevaluated.length>0,documentationStatus=documentationIncomplete?'incomplete':items.some(item=>!item.critical)?'complete_with_open_points':'complete',editingStatus=unevaluated.length?'in_progress':'all_steps_assessed';
+  const status=documentationIncomplete||decision.code==='ASSESSMENT_NOT_CONCLUDABLE'?'draft':decision.code==='ASSESSMENT_COMPLETE_WITH_OPEN_MEASURES'?'conditional':'final';
+  return{status,draft:status==='draft',editingStatus,documentationStatus,domainDecisionStatus:decision.code,unevaluated,reasons:[...new Set(reasons)],documentationCriticalOpen:documentationCritical,decisionCriticalOpen:decisionCritical,criticalOpen:uniqueCritical,nonCriticalOpen:uniqueNonCritical,decision};
 }
 function isDraftReport(){return reportCompletionStatus().draft;}
+
+/** Liefert die getrennten sichtbaren Bezeichnungen für Bearbeitung, Dokumentation und Bericht. */
+function reportStatusLabels(completion){
+  return{
+    editing:completion.editingStatus==='all_steps_assessed'?'Alle acht Prüfschritte bewertet':'Bearbeitung noch nicht abgeschlossen',
+    documentation:completion.documentationStatus==='complete'?'Dokumentation vollständig':completion.documentationStatus==='complete_with_open_points'?'Dokumentation vollständig; nichtkritische offene Punkte vorhanden':'Dokumentation unvollständig',
+    report:completion.status==='final'?'Abschließender Bericht':completion.status==='conditional'?'Abgeschlossener Bericht mit offenen Maßnahmen':'Entwurf'
+  };
+}
+
+/** Rendert die vier getrennten Statusebenen eines eingefrorenen Berichtsdatenstands. */
+function reportStatusFacts(completion,reportFact){
+  const labels=reportStatusLabels(completion);
+  return`${reportFact('Bearbeitungsstand',labels.editing)}${reportFact('Dokumentationsstatus',labels.documentation)}${reportFact('Fachlicher Bewertungsstatus',completion.decision.label)}${reportFact('Berichtsstatus',labels.report)}`;
+}
+
+/** Erklärt einen Entwurfsstatus, ohne einen fachlichen Hinderungsgrund zu verdecken. */
+function reportStatusBanner(completion){
+  if(completion.status==='final')return'';
+  if(completion.status==='conditional')return'<div class="draft-banner conditional-banner">Bewertung abgeschlossen mit offenen Maßnahmen – Nachverfolgung ist dokumentiert</div>';
+  const documentationOpen=completion.documentationStatus==='incomplete'||completion.editingStatus==='in_progress';
+  const reason=documentationOpen?'Bearbeitungs- oder Dokumentationsstand nicht abgeschlossen':'fachliche Bewertung nicht abschließbar';
+  return`<div class="draft-banner">Entwurf – ${escapeHtml(reason)} · Fachlicher Bewertungsstatus: ${escapeHtml(completion.decision.label)}</div>`;
+}
+
+/** Ordnet den verwendeten Rechtsstand zeitlich zum Bewertungsstichtag ein. */
+function reportTemporalContext(form,knowledgeBase){
+  const legalMatch=String(knowledgeBase.legalStatus||'').match(/^(\d{2})\.(\d{2})\.(\d{4})$/),assessment=form.assessmentDate||'';
+  if(!assessment)return'Der Bewertungsstichtag ist nicht dokumentiert; eine zeitliche Einordnung des verwendeten Rechtsstands ist daher noch offen.';
+  if(!legalMatch)return'Der verwendete Rechtsstand und der Bewertungsstichtag werden getrennt ausgewiesen; der Rechtsstand ist nicht als maschinenlesbares Datum hinterlegt.';
+  const legalIso=`${legalMatch[3]}-${legalMatch[2]}-${legalMatch[1]}`;
+  if(legalIso>assessment)return`Rückblickende Einordnung: Der verwendete Rechtsstand vom ${knowledgeBase.legalStatus} liegt nach dem Bewertungsstichtag ${fmtDate(assessment)}. Dies ist nicht automatisch unzulässig; im Bericht wird transparent zwischen Bewertungsstichtag, späterer Aktualisierung und Quellenstand unterschieden.`;
+  return`Der verwendete Rechtsstand vom ${knowledgeBase.legalStatus} liegt am oder vor dem Bewertungsstichtag ${fmtDate(assessment)}. Bearbeitungs-, Entscheidungs- und Berichtserzeugungsdatum werden davon getrennt ausgewiesen.`;
+}
 
 /* 16. Berichtsdatenstand und Berichtsausgabe */
 
@@ -2658,8 +3051,10 @@ function buildReportBase(reportData){
     ['CRA-Meldepflichten',reportKnowledgeBase.verifiedDates.craReporting,'11. September 2026'],
     ['Allgemeine CRA-Pflichten',reportKnowledgeBase.verifiedDates.craGeneral,'11. Dezember 2027; Altprodukte nur nach Maßgabe der wesentlichen Änderung']
   ];
+  const craDependencyLabels={product_applicability:'Produktanwendbarkeit',organizational_role:'Organisationsrolle',individual_duty:'Einzelne Pflicht',temporal_applicability:'Zeitliche Anwendbarkeit',operational_condition:'Bedingung für Pilot- oder Regelbetrieb',review:'Zuordnung noch zu bestätigen'};
+  const craDependencyRows=Object.entries(reportData.craDependencies||{}).map(([area,items])=>[craDependencyLabels[area]||area,items.map(item=>item.id).join(', ')||'Keine offenen Einträge',items.map(item=>item.craDependencyReason||item.question||item.reason||'').filter(isFilled).join(' · ')||'–']);
   const report=[];
-  report.push(reportPage(1,total,'Bewertungsstatus',`<div class="report-cover"><span>Nachvollziehbare Erstbewertung</span><h2>${escapeHtml(f.toolName||'Bewertungsgegenstand noch nicht bezeichnet')}</h2><p>EU AI Act · ergänzende CRA-Prüfung · technische und organisatorische Bewertung</p></div><div class="report-decision ${decision.tone}"><span>Regelbasiert abgeleiteter Bewertungsstatus</span><h2>${escapeHtml(decision.label)}</h2></div><div class="validation-alert"><strong>Wichtiger Hinweis</strong><p>Der Bewertungsstatus dient der Entscheidungsunterstützung und ist keine fachliche, juristische oder organisatorische Genehmigung. Die menschliche Entscheidung wird getrennt dokumentiert.</p></div><div class="report-facts">${reportFact('Bewertungs-ID',f.assessmentId)}${reportFact('Interne Tool-Kennung',f.internalToolId)}${reportFact('Bewertungsversion',f.assessmentVersion)}${reportFact('Leitfadenversion',f.guideVersion)}${reportFact('Prototypversion',reportKnowledgeBase.prototypeVersion)}${reportFact('Datenmodellversion',reportKnowledgeBase.dataModelVersion)}${reportFact('Regelwerksversion',reportKnowledgeBase.ruleSetVersion)}${reportFact('Methodikversion',reportKnowledgeBase.methodologyVersion)}${reportFact('Bewertungsstichtag',fmtDate(f.assessmentDate))}${reportFact('Letzte inhaltliche Aktualisierung',fmtDate(f.assessmentUpdate))}${reportFact('Erläuterung der Aktualisierung',f.assessmentUpdateReason||'Keine abweichende Aktualisierung dokumentiert')}${reportFact('Geprüfter Rechtsstand',reportKnowledgeBase.legalStatus)}${reportFact('Vollständige Quellenprüfung',fmtDate(reportKnowledgeBase.fullSourceReview))}${reportFact('Letzte Aktualitätsprüfung',fmtDate(reportKnowledgeBase.lastCurrentnessReview))}${reportFact('Menschliche / organisatorische Entscheidung',labelFor(f.approvalStatus))}${reportFact('Entscheidungsdatum',fmtDate(f.approvalDate))}</div><div class="report-section"><h3>Quellen und Rechtsgrundlagen</h3>${reportList(reportKnowledgeBase.sources)}</div><div class="report-section"><h3>Regelbasiert abgeleitete Gründe</h3>${reportList(decisionReasons)}</div>`,'cover-page'));
+  report.push(reportPage(1,total,'Bewertungsstatus',`<div class="report-cover"><span>Nachvollziehbare Erstbewertung</span><h2>${escapeHtml(f.toolName||'Bewertungsgegenstand noch nicht bezeichnet')}</h2><p>EU AI Act · ergänzende CRA-Prüfung · technische und organisatorische Bewertung</p></div><div class="report-decision ${decision.tone}"><span>Regelbasiert abgeleiteter fachlicher Bewertungsstatus</span><h2>${escapeHtml(decision.label)}</h2></div><div class="report-facts">${reportStatusFacts(reportData.completion,reportFact)}</div><div class="validation-alert"><strong>Wichtiger Hinweis</strong><p>Der fachliche Bewertungsstatus, der Bearbeitungsstand, der Dokumentationsstatus und die gesonderte menschliche Entscheidung sind unterschiedliche Ebenen. Keine davon ersetzt eine fachliche, juristische oder organisatorische Genehmigung.</p></div><div class="report-facts">${reportFact('Bewertungs-ID',f.assessmentId)}${reportFact('Interne Tool-Kennung',f.internalToolId)}${reportFact('Bewertungsversion',f.assessmentVersion)}${reportFact('Leitfadenversion',f.guideVersion)}${reportFact('Prototypversion',reportKnowledgeBase.prototypeVersion)}${reportFact('Datenmodellversion',reportKnowledgeBase.dataModelVersion)}${reportFact('Regelwerksversion',reportKnowledgeBase.ruleSetVersion)}${reportFact('Methodikversion',reportKnowledgeBase.methodologyVersion)}${reportFact('Bewertungsstichtag',fmtDate(f.assessmentDate))}${reportFact('Letzte inhaltliche Aktualisierung',fmtDate(f.assessmentUpdate))}${reportFact('Erläuterung der Aktualisierung',f.assessmentUpdateReason||'Keine abweichende Aktualisierung dokumentiert')}${reportFact('Geprüfter Rechtsstand',reportKnowledgeBase.legalStatus)}${reportFact('Bericht erzeugt am',fmtDate(reportData.generatedAt))}${reportFact('Vollständige Quellenprüfung',fmtDate(reportKnowledgeBase.fullSourceReview))}${reportFact('Letzte Aktualitätsprüfung',fmtDate(reportKnowledgeBase.lastCurrentnessReview))}${reportFact('Menschliche / organisatorische Entscheidung',labelFor(f.approvalStatus))}${reportFact('Entscheidungsdatum',fmtDate(f.approvalDate))}</div><div class="report-section"><h3>Zeitlicher Kontext</h3><p>${escapeHtml(reportData.temporalContext)}</p></div><div class="report-section"><h3>Quellen und Rechtsgrundlagen</h3>${reportList(reportKnowledgeBase.sources)}</div><div class="report-section"><h3>Regelbasiert abgeleitete Gründe</h3>${reportList(decisionReasons)}</div>`,'cover-page'));
   report.push(reportPage(2,total,'Prüfstatus und Nachvollziehbarkeit',`<h2 class="report-page-title">Acht Prüfschritte im Überblick</h2><p class="report-lead">Bearbeitungsstand, fachliches Ergebnis und menschliche Entscheidung bleiben getrennt. Eine grüne Vollständigkeitsanzeige ist keine Genehmigung.</p>${reportTable(['Nr.','Prüfschritt','Bearbeitungsstand','Fachliches Ergebnis'],stepRows)}<div class="report-section guide-reference-report"><h3>Vollständige Leitfadenreferenz</h3><p>Die reservierten Kennungen RISK-07 bis RISK-09 werden nicht als Fragen oder Datenfelder verwendet.</p>${reportTable(['ID','Prüfschritt','Wortlaut','Dokumentationsstand'],questionRows)}</div><div class="report-section"><h3>Offene Punkte und Hindernisse</h3><div class="report-facts">${reportFact('Bedingungen',f.conditions)}${reportFact('Hindernisse',f.blockers)}${reportFact('Offene Anforderungen',f.openRequirements)}${reportFact('Offene Maßnahmen',f.openMeasures)}</div></div>`));
   report.push(reportPage(3,total,'Toolprofil',`<h2 class="report-page-title">Toolprofil und Informationsstand</h2><div class="report-facts">${reportFact('Interne Tool-Kennung',f.internalToolId)}${reportFact('Bezeichnung',f.toolName)}${reportFact('Anbieter',f.provider)}${reportFact('Version',f.version)}${reportFact('Organisationseinheit',f.department)}${reportFact('Verantwortlich',f.owner)}${reportFact('Informationsstand',labelFor(f.infoStatus))}</div><div class="report-section"><h3>Zweck und Systemgrenze</h3><p><strong>Zweck:</strong> ${escapeHtml(f.purpose||'Nicht dokumentiert')}</p><p><strong>Aufgaben:</strong> ${escapeHtml(f.tasks||'Nicht dokumentiert')}</p><p><strong>Systemgrenze:</strong> ${escapeHtml(f.systemBoundary||'Nicht dokumentiert')}</p></div><div class="report-section"><h3>Daten, Ausgaben und Technik</h3><p><strong>Eingaben:</strong> ${escapeHtml(f.inputs||'Nicht dokumentiert')}</p><p><strong>Datenquellen:</strong> ${escapeHtml(f.dataSources||'Nicht dokumentiert')}</p><p><strong>Ausgaben:</strong> ${escapeHtml(f.outputsDescription||'Nicht dokumentiert')}</p><p><strong>Komponenten:</strong> ${escapeHtml(f.techComponents||'Nicht dokumentiert')}</p><p><strong>Schnittstellen:</strong> ${escapeHtml(f.interfaces||'Nicht dokumentiert')}</p></div><div class="report-section"><h3>Offener Informationsbedarf</h3><p>${escapeHtml(f.missingInfo||'Kein offener Informationsbedarf dokumentiert.')}</p><p><strong>Auswirkung:</strong> ${escapeHtml(f.missingImpact||'–')} · <strong>Verantwortlich:</strong> ${escapeHtml(f.infoRequestOwner||'–')}</p></div>`));
   report.push(reportPage(4,total,'KI-System, Anwendungsbereich und Rolle',`<h2 class="report-page-title">Definitions-, Anwendungs- und Rollenprofil</h2><div class="report-decision"><span>KI-System-Definition nach Art. 3 Nr. 1</span><h2>${escapeHtml(aiSystemResult())}</h2><p>${escapeHtml(f.definitionBasis||'Begründung fehlt.')}</p></div><div class="report-decision ${evaluateScope().code==='review'?'warning':''}"><span>Anwendungsbereich nach Art. 2</span><h2>${escapeHtml(scopeResult())}</h2><p>${escapeHtml(f.scopeBasis||'Begründung fehlt.')}</p></div><div class="report-section"><h3>Einsatzkontext und Akteursrolle</h3><div class="report-facts">${reportFact('Vorgesehene Nutzung',f.intendedUse)}${reportFact('Tatsächliche Nutzung',f.actualUse)}${reportFact('Ort / Bereich',`${f.useLocation||'–'} · ${f.businessArea||'–'}`)}${reportFact('Prozess',f.process)}${reportFact('Betroffene',f.affected)}</div>${reportList(roleLabels(),'Keine Rolle bestimmt.')}<p><strong>Art.-25-Ergebnis:</strong> ${escapeHtml(allRegulatoryEvaluations().art25.label)} · ${escapeHtml(f.art25Basis||allRegulatoryEvaluations().art25.reason||'Keine zusätzliche Begründung erforderlich.')}</p></div>`));
@@ -2681,7 +3076,7 @@ function buildReportBase(reportData){
   const art5Labels={not_applicable:'Nicht einschlägig',not_met:'Tatbestand nicht festgestellt',temporally_not_applicable:'Inhaltlich festgestellt, am Stichtag noch nicht anwendbar',future_confirmed:'Inhaltlich festgestellt, künftig anwendbar',confirmed:'Festgestelltes Hindernis',exception_confirmed:'Ausnahme oder Rechtfertigung nachgewiesen',review:'Weiterer Prüfbedarf',possible:'Weiterer Prüfbedarf'};
   const art5Items=evals.prohibition.items||[];
   report.push(reportPage(11,total,'Vertiefung Artikel 5',`<h2 class="report-page-title">Getrennte Prüfung verbotener Praktiken</h2><p class="report-lead">Inhaltlicher Tatbestand und zeitliche Wirksamkeit werden getrennt ausgewiesen. Anbieter- und Betreiberkonstellation, vorgesehener Zweck, technische Schutzmaßnahmen, Einwilligung oder Rechtfertigung bleiben nachvollziehbar.</p><div class="report-section"><h3>Inhaltliche Tatbestandsprüfung</h3>${reportTable(['ID','Tatbestand','Inhaltliches Ergebnis','Zuständige Prüfstelle','Nachweis'],art5Items.map(item=>[questionIdFor(item.key),item.label,art5Labels[item.code]||item.code,f[`${item.key}LegalOwner`]||'',f[`${item.key}Evidence`]||'']))}</div><div class="report-section"><h3>Zeitliche Wirksamkeit</h3>${reportTable(['ID','Zeitstatus','Wirksam ab','Zeitbegründung'],art5Items.map(item=>[questionIdFor(item.key),item.temporal?labelFor(item.temporal.applicability):'Allgemeiner Art.-5-Pfad',item.temporal?.applicableDate?fmtDate(item.temporal.applicableDate):'',item.temporal?.applicabilityReason||'']))}</div><div class="report-section"><h3>Besonders ausdifferenzierte Tatbestände</h3>${reportTable(['ID','Tatbestand','Anbieterbereitstellung','Betreiberverwendung','Vorgesehener Zweck','Schutzmaßnahmen','Einwilligung / Rechtfertigung'],['pNonConsensualIntimate','pCsam'].map(key=>[questionIdFor(key),prohibitedQuestions.find(([candidate])=>candidate===key)?.[1]||key,labelFor(f[`${key}ProviderProvision`]),labelFor(f[`${key}OperatorUse`]),labelFor(f[`${key}IntendedPurpose`]),labelFor(f[`${key}Safeguards`]),labelFor(f[key==='pNonConsensualIntimate'?`${key}Consent`:`${key}LegalJustification`])]))}</div>`));
-  report.push(reportPage(12,total,'Akteursbezogene Pflichten',`<h2 class="report-page-title">Akteursrollen und abgeleitete Pflichten</h2><p class="report-lead">Pflichten werden nur aus dokumentierten Rollen und den jeweiligen gesetzlichen Voraussetzungen abgeleitet.</p>${reportTable(['Pflicht','Rolle','Rechtsgrundlage','Inhalt'],requiredHighRiskDuties().map(item=>[item.code,item.role,item.basis,item.code==='DUTY-15'?`${item.label} · Anbieter-/Zuliefererzuordnung: ${item.supplierRelationship||'nicht dokumentiert'} · Nachweis: ${item.supplierEvidence||'nicht dokumentiert'}`:item.label]))}<div class="report-section"><h3>Transparenzpflichten nach Art. 50</h3>${reportTable(['ID','Tatbestand','Gesetzliche Rolle','Regelbasierte Auswertung','Manuelles Ergebnis'],(evals.transparency.items||[]).map(item=>[questionIdFor(item.key),item.label,item.actor==='provider'?'Anbieter':item.actor==='deployer'?'Betreiber':'–',item.code==='applicable'?'Pflicht anwendbar':item.code==='exception'?'Ausnahme dokumentiert':item.code==='not_applicable'?'Nicht anwendbar':'Weiterer Prüfbedarf',labelFor(f[`${item.key}Result`])]))}</div><div class="report-section"><h3>Cyber Resilience Act</h3><div class="report-facts">${reportFact('Produktanwendbarkeit',evals.cra.productApplicable?'Ja':evals.cra.code==='no'?'Nein':'Nicht abschließend')}${reportFact('Eigene Pflichten der Organisation',evals.cra.ownObligations?'Ja':'Keine festgestellt')}${reportFact('Bestätigte Rolle(n)',(evals.cra.roles||[]).join(', ')||'Keine Wirtschaftsakteursrolle festgestellt')}${reportFact('Ungeklärte mögliche Rolle(n)',(evals.cra.possibleRoles||[]).join(', ')||'Keine')}</div></div>`));
+  report.push(reportPage(12,total,'Akteursbezogene Pflichten',`<h2 class="report-page-title">Akteursrollen und abgeleitete Pflichten</h2><p class="report-lead">Pflichten werden nur aus dokumentierten Rollen und den jeweiligen gesetzlichen Voraussetzungen abgeleitet.</p>${reportTable(['Pflicht','Rolle','Rechtsgrundlage','Inhalt'],requiredHighRiskDuties().map(item=>[item.code,item.role,item.basis,item.code==='DUTY-15'?`${item.label} · Anbieter-/Zuliefererzuordnung: ${item.supplierRelationship||'nicht dokumentiert'} · Nachweis: ${item.supplierEvidence||'nicht dokumentiert'}`:item.label]))}<div class="report-section"><h3>Transparenzpflichten nach Art. 50</h3>${reportTable(['ID','Tatbestand','Gesetzliche Rolle','Regelbasierte Auswertung','Manuelles Ergebnis'],(evals.transparency.items||[]).map(item=>[questionIdFor(item.key),item.label,item.actor==='provider'?'Anbieter':item.actor==='deployer'?'Betreiber':'–',item.code==='applicable'?'Pflicht anwendbar':item.code==='exception'?'Ausnahme dokumentiert':item.code==='not_applicable'?'Nicht anwendbar':'Weiterer Prüfbedarf',labelFor(f[`${item.key}Result`])]))}</div><div class="report-section"><h3>Cyber Resilience Act</h3><div class="report-facts">${reportFact('Produktanwendbarkeit',evals.cra.productApplicable?'Ja':evals.cra.code==='no'?'Nein':'Nicht abschließend')}${reportFact('Eigene Pflichten der Organisation',evals.cra.ownObligations?'Ja':'Keine festgestellt')}${reportFact('Bestätigte Rolle(n)',(evals.cra.roles||[]).join(', ')||'Keine Wirtschaftsakteursrolle festgestellt')}${reportFact('Ungeklärte mögliche Rolle(n)',(evals.cra.possibleRoles||[]).join(', ')||'Keine')}</div><h4>Strukturierte offene CRA-Abhängigkeiten</h4>${reportTable(['Teilentscheidung','Offene Kennungen','Zuordnungsgrund'],craDependencyRows)}</div>`));
   return `<div class="report-area evidence-report"><div class="report-toolbar"><div><strong>Vollständiger Nachweisbericht</strong><span>15 Kapitel · vollständige Herleitung, Register, Nachweise und Historie</span></div><div><button type="button" class="secondary-button" id="hideReportButton">Bericht ausblenden</button><button type="button" class="primary-button" id="printButton">Vollständigen Nachweisbericht als PDF speichern</button></div></div>${report.join('')}</div>`;
 }
 
@@ -2760,8 +3155,8 @@ function captureReportReferenceData(){
  * @returns {object} Unveränderlicher, in sich konsistenter Berichtsdatenstand.
  * @description Datenquellen sind genau eine Vollkopie des Live-Zustands und eine private Kopie aller sichtbaren Referenztabellen. Seiteneffekte beschränken sich auf die Synchronisierung dieser privaten Zustandskopie; Live-Zustand, Speicherung und Oberfläche bleiben unverändert. Der Snapshot ist eine Dokumentationsgrundlage und keine Genehmigung.
  */
-function buildReportData(){
-  const reportState = structuredClone(state);
+function buildReportData(sourceState=state){
+  const reportState = structuredClone(sourceState);
   const reportReference=captureReportReferenceData(),reportContext=createEvaluationContext(reportState,reportReference),reportKnowledgeBase=reportReference.knowledgeBase,reportLabels={guide:reportReference.guideLabels,regulatoryPaths:reportReference.regulatoryPathLabels};
   deriveSynchronizedReportState(reportState,reportReference);
   const decision=overallDecision(true,false,{synchronize:false,context:reportContext}),completion=reportCompletionStatus(decision,reportContext),regulatory=allRegulatoryEvaluations(reportContext),duties=dutyOperationalResults(reportContext),reviews=reviewOperationalResults(decision,reportContext);
@@ -2773,8 +3168,8 @@ function buildReportData(){
   const derivedSnapshot={decision,completion,regulatory,regulatoryLabels:regulatoryResults(reportContext),highRisk:evaluateHighRiskSummary(reportContext),definition:evaluateAISystemDefinition(reportContext),scope:evaluateScope(reportContext),art25:evaluateArt25(reportContext),roles:roleLabels(reportContext),duties,reviews,review10:evaluateReview10(reportContext),stepStatuses:reportReference.steps.map((_,index)=>stepStatus(index,reportContext)),stepResults:reportReference.steps.map((_,index)=>stepSubstantiveResult(index,decision,reportContext)),validations:reportReference.steps.map((_,index)=>getStepValidation(index,{decision,context:reportContext})),riskContradictions:reportState.risks.map((risk,index)=>riskContradictions(risk,index,reportContext)),organizationalOverall:organizationalOverall(reportContext),orgSummary,orgExceptions,orgRegulatoryContexts,guideReferenceStatuses,highRiskDuties:requiredHighRiskDuties(reportContext),approvalConsistency:approvalConsistency(decision,reportContext),versions:reportKnowledgeBase};
   const snapshotState=reportState,registers=Object.fromEntries(Object.keys(reportReference.registerSchemas).map(type=>[type,(reportState.registers[type]||[]).filter(isActiveRegisterItem)])),historicalRegisters=Object.fromEntries(Object.keys(reportReference.registerSchemas).map(type=>[type,(reportState.registers[type]||[]).filter(item=>!isActiveRegisterItem(item))]));
   const applicableDuties=registers.regulatory.filter(item=>item.applicability!=='not_applicable'),openMeasures=[...registers.risk,...registers.organizational].filter(registerItemOpen),openReviews=[...registers.expert,...registers.legal].filter(registerItemOpen),risks=reportState.risks,riskLevels=risks.map(effectiveCurrentRisk),riskCounts=['low','medium','high','unknown'].reduce((counts,level)=>({...counts,[level]:riskLevels.filter(value=>value===level).length}),{});
-  const data={snapshotState,reference:reportReference,knowledgeBase:reportKnowledgeBase,labels:reportLabels,form:reportState.form,...derivedSnapshot,risks,riskLevels,riskCounts,highestRisk:highestRiskLabel(riskLevels),registers,historicalRegisters,applicableDuties,openMeasures,openReviews,blockingReviews:openReviews.filter(item=>item.blocking==='yes'||item.blocking==='review'),triggers:reportState.triggers};
-  const{snapshotState:fullSnapshot,...visibleReportData}=data,signaturePayload={snapshotState:reportRelevantState(fullSnapshot),...visibleReportData};
+  const generatedAt=new Date().toISOString(),data={snapshotState,reference:reportReference,knowledgeBase:reportKnowledgeBase,labels:reportLabels,form:reportState.form,generatedAt,temporalContext:reportTemporalContext(reportState.form,reportKnowledgeBase),craDependencies:openCraDependencyGroups(reportContext),...derivedSnapshot,risks,riskLevels,riskCounts,highestRisk:highestRiskLabel(riskLevels),registers,historicalRegisters,applicableDuties,openMeasures,openReviews,blockingReviews:openReviews.filter(item=>item.blocking==='yes'||item.blocking==='review'),triggers:reportState.triggers};
+  const{snapshotState:fullSnapshot,generatedAt:ignoredGeneratedAt,...visibleReportData}=data,signaturePayload={snapshotState:reportRelevantState(fullSnapshot),...visibleReportData};
   data.resultSignature=deterministicReportSignature(signaturePayload);
   return freezeReportSnapshot(data);
 }
@@ -2799,7 +3194,7 @@ function compactEvaluationReason(result,sanitizeReportText,fallback='Keine zusä
 /** Erstellt Maßnahmenzeilen aus fixierten Berichtsdaten; die abschließende Textbereinigung übernimmt die snapshotgebundene Berichtstabelle. */
 function compactMeasureRows(data){return data.openMeasures.map(item=>[item.id,item.sourceQuestionId||item.riskId||item.area||'',item.measure||item.requirement||'',labelFor(item.status),item.owner||'',item.due?fmtDate(item.due):'Nicht festgelegt']);}
 /** Erstellt Reviewzeilen aus fixierten Berichtsdaten; die abschließende Textbereinigung übernimmt die snapshotgebundene Berichtstabelle. */
-function compactReviewRows(data){return data.openReviews.map(item=>[item.id,item.sourceQuestionId||item.sourceId||item.question||'',item.reason||item.question||'',item.assessmentImpact||item.linkedResult||'',item.blocking==='yes'?'Ja':item.blocking==='no'?'Nein':'Weiterer Prüfbedarf',item.owner||'',item.due?fmtDate(item.due):'Nicht festgelegt']);}
+function compactReviewRows(data){return data.openReviews.map(item=>[`${item.id} · Quelle: ${item.sourceQuestionId||item.sourceId||'nicht dokumentiert'}`,[item.question,item.reason].filter(isFilled).join(' · ')||'Nicht dokumentiert',item.assessmentImpact||item.linkedResult||'',`Blockierungswirkung: ${item.blocking==='yes'?'Ja':item.blocking==='no'?'Nein':'Weiterer Prüfbedarf'} · Verantwortlich: ${item.owner||'nicht festgelegt'}`,item.due?fmtDate(item.due):'Nicht festgelegt']);}
 /**
  * Rendert den kompakten 10-Kapitel-Bericht ausschließlich aus einem expliziten Snapshot.
  * @param {object} reportData Rekursiv eingefrorener Berichtsdatenstand mit Referenzen und Signatur.
@@ -2823,17 +3218,18 @@ function buildCompactReportFromSnapshot(reportData){
   const decisionReasons=d.decision.reasons.map(reason=>`${reason.source}: ${reason.text}`);
   const requiredTriggers=d.triggers.filter(trigger=>trigger.required==='yes');
   const profileRows=[['Regulatorische Einordnung',`${d.definition.label}; ${d.scope.label}; ${d.highRisk.label}`],['Technische Risikobewertung',`${countLabel(d.risks.length,'Risiko','Risiken')}; höchstes aktuelles Einzelrisiko: ${d.highestRisk}`],['Organisatorische Bewertung',d.organizationalOverall]];
-  report.push(reportPage(1,total,'Dokumentinformationen und Bewertungsstatus',`<div class="report-cover"><span>Kompakter Bewertungsbericht</span><h2>${escapeHtml(f.toolName||'Bewertungsgegenstand noch nicht bezeichnet')}</h2><p>Entscheidungsorientierte KI-Risikobewertung nach EU AI Act und ergänzender Prüfung des Cyber Resilience Act</p></div><div class="report-decision ${d.decision.tone}"><span>Regelbasiert abgeleiteter Bewertungsstatus</span><h2>${escapeHtml(d.decision.label)}</h2></div><div class="validation-alert"><strong>Wichtiger Hinweis</strong><p>Der Status ersetzt keine fachliche, juristische oder organisatorische Genehmigung. Die gesonderte menschliche beziehungsweise organisatorische Entscheidung bleibt erforderlich.</p></div><div class="report-facts">${reportFact('Toolbezeichnung',f.toolName)}${reportFact('Anbieter',f.provider)}${reportFact('Toolversion',f.version)}${reportFact('Bewertungs-ID',f.assessmentId)}${reportFact('Interne Tool-Kennung',f.internalToolId)}${reportFact('Bewertungsversion',f.assessmentVersion)}${reportFact('Leitfadenversion',f.guideVersion)}${reportFact('Bewertungsstichtag',fmtDate(f.assessmentDate))}${reportFact('Letzte inhaltliche Aktualisierung',fmtDate(f.assessmentUpdate))}${reportFact('Entscheidungsdatum',fmtDate(f.approvalDate))}${reportFact('Geprüfter Rechtsstand',reportKnowledgeBase.legalStatus)}${reportFact('Prototypversion',reportKnowledgeBase.prototypeVersion)}${reportFact('Datenmodellversion',reportKnowledgeBase.dataModelVersion)}${reportFact('Regelwerksversion',reportKnowledgeBase.ruleSetVersion)}${reportFact('Methodikversion',reportKnowledgeBase.methodologyVersion)}</div>`,'cover-page compact-cover','compact'));
+  const craDependencyLabels={product_applicability:'Produktanwendbarkeit',organizational_role:'Organisationsrolle',individual_duty:'Einzelne Pflicht',temporal_applicability:'Zeitliche Anwendbarkeit',operational_condition:'Bedingung für Pilot- oder Regelbetrieb',review:'Zuordnung noch zu bestätigen'},craDependencyRows=Object.entries(d.craDependencies||{}).map(([area,items])=>[craDependencyLabels[area]||area,items.map(item=>item.id).join(', ')||'Keine offenen Einträge']);
+  report.push(reportPage(1,total,'Dokumentinformationen und Bewertungsstatus',`<div class="report-cover"><span>Kompakter Bewertungsbericht</span><h2>${escapeHtml(f.toolName||'Bewertungsgegenstand noch nicht bezeichnet')}</h2><p>Entscheidungsorientierte KI-Risikobewertung nach EU AI Act und ergänzender Prüfung des Cyber Resilience Act</p></div><div class="report-decision ${d.decision.tone}"><span>Regelbasiert abgeleiteter fachlicher Bewertungsstatus</span><h2>${escapeHtml(d.decision.label)}</h2></div><div class="report-facts">${reportStatusFacts(d.completion,reportFact)}</div><div class="validation-alert"><strong>Wichtiger Hinweis</strong><p>Fachlicher Bewertungsstatus, Bearbeitungsstand und Dokumentationsstatus werden getrennt ausgewiesen. Die gesonderte menschliche beziehungsweise organisatorische Entscheidung bleibt erforderlich.</p></div><div class="report-facts">${reportFact('Toolbezeichnung',f.toolName)}${reportFact('Anbieter',f.provider)}${reportFact('Toolversion',f.version)}${reportFact('Bewertungs-ID',f.assessmentId)}${reportFact('Interne Tool-Kennung',f.internalToolId)}${reportFact('Bewertungsversion',f.assessmentVersion)}${reportFact('Leitfadenversion',f.guideVersion)}${reportFact('Bewertungsstichtag',fmtDate(f.assessmentDate))}${reportFact('Letzte inhaltliche Aktualisierung',fmtDate(f.assessmentUpdate))}${reportFact('Entscheidungsdatum',fmtDate(f.approvalDate))}${reportFact('Geprüfter Rechtsstand',reportKnowledgeBase.legalStatus)}${reportFact('Bericht erzeugt am',fmtDate(d.generatedAt))}${reportFact('Prototypversion',reportKnowledgeBase.prototypeVersion)}${reportFact('Datenmodellversion',reportKnowledgeBase.dataModelVersion)}${reportFact('Regelwerksversion',reportKnowledgeBase.ruleSetVersion)}${reportFact('Methodikversion',reportKnowledgeBase.methodologyVersion)}</div><div class="report-section"><h3>Zeitlicher Kontext</h3><p>${escapeHtml(d.temporalContext)}</p></div>`,'cover-page compact-cover','compact'));
   report.push(reportPage(2,total,'Zusammenfassung der Bewertung',`<h2 class="report-page-title">Zusammenfassung der Bewertung</h2><p class="report-lead">Regulatorische, technische und organisatorische Ergebnisse bleiben getrennt; ein gemeinsamer numerischer Gesamtscore wird nicht gebildet.</p>${reportTable(['Ergebnisprofil','Kernaussage'],profileRows)}<div class="report-section"><h3>Regulatorische Kernergebnisse</h3><div class="report-facts">${reportFact('KI-System-Eigenschaft',d.definition.label)}${reportFact('EU-AI-Act-Anwendungsbereich',d.scope.label)}${reportFact('Sonderregelungen',specialRows.length?specialRows.map(row=>row[0]).join(', '):'Keine einschlägige Sonderregel festgestellt')}${reportFact('Akteursrolle(n)',d.roles.join(', ')||'Keine Rolle festgestellt')}${reportFact('Art.-5-Prüfung',reg.prohibition.label)}${reportFact('Hochrisiko-Einstufung',d.highRisk.label)}${reportFact('Art.-25-Ergebnis',d.art25.label)}${reportFact('Transparenzpflichten',reg.transparency.label)}${reportFact('GPAI-Relevanz',reg.gpai.label)}${reportFact('CRA-Anwendbarkeit und Rolle',(reg.cra.roles||[]).length?`${reg.cra.label}; bestätigte Rolle(n): ${reg.cra.roles.join(', ')}`:reg.cra.label)}${reportFact('Zeitliche Anwendbarkeit',temporalCounts)}</div></div><div class="report-section"><h3>Steuerungskennzahlen</h3><div class="report-facts">${reportFact('Höchstes technisches Einzelrisiko',d.highestRisk)}${reportFact('Organisatorisches Gesamtergebnis',d.organizationalOverall)}${reportFact('Offene Pflichten',String(d.applicableDuties.filter(registerItemOpen).length))}${reportFact('Offene Maßnahmen',String(d.openMeasures.length))}${reportFact('Offene Prüfbedarfe',String(d.openReviews.length))}${reportFact('Entscheidungsblockierende Prüfbedarfe',String(d.blockingReviews.length))}${reportFact('Nächster Reviewtermin',fmtDate(f.nextReviewDate))}</div></div>`,'','compact'));
   report.push(reportPage(3,total,'Bewertungsgegenstand und Einsatzkontext',`<h2 class="report-page-title">Bewertungsgegenstand und Einsatzkontext</h2><div class="report-facts">${reportFact('Tool, Anbieter und Version',`${f.toolName||'–'} · ${f.provider||'–'} · ${f.version||'–'}`)}${reportFact('Interne Tool-Kennung',f.internalToolId)}${reportFact('Organisationseinheit',f.department)}${reportFact('Verantwortliche Stelle',f.owner)}${reportFact('Informationsstand',labelFor(f.infoStatus))}</div><div class="report-section"><h3>Zweck, Nutzung und Systemgrenze</h3><p><strong>Zweckbestimmung:</strong> ${escapeHtml(sanitizeVisibleText(f.purpose||'Nicht dokumentiert'))}</p><p><strong>Tatsächlicher beziehungsweise vorgesehener Einsatz:</strong> ${escapeHtml(sanitizeVisibleText([f.intendedUse,f.actualUse].filter(isFilled).join(' · ')||'Nicht dokumentiert'))}</p><p><strong>Systemgrenze:</strong> ${escapeHtml(sanitizeVisibleText(f.systemBoundary||'Nicht dokumentiert'))}</p></div><div class="report-section"><h3>Technik, Daten und Beteiligte</h3><div class="report-facts">${reportFact('Wesentliche technische Komponenten',f.techComponents)}${reportFact('Eingaben',f.inputs)}${reportFact('Ausgaben',f.outputsDescription)}${reportFact('Nutzergruppen',f.users||f.usersContext)}${reportFact('Betroffene Personen',f.affected)}${reportFact('Menschliche Aufsicht',`${labelFor(f.humanReview)}; Korrektur: ${labelFor(f.humanCorrection)}`)}</div></div><div class="report-section"><h3>Entscheidungsrelevante fehlende Informationen</h3><p>${escapeHtml(sanitizeVisibleText(f.missingInfo||'Keine entscheidungsrelevanten fehlenden Informationen dokumentiert.'))}</p><p><strong>Grundlage:</strong> TOOL-01 bis TOOL-12, CTX-01 bis CTX-14</p></div>`,'','compact'));
-  report.push(reportPage(4,total,'Regulatorische Einordnung',`<h2 class="report-page-title">Regulatorische Einordnung</h2>${reportTable(['Prüfpfad','Ergebnis','Kurze Begründung','Maßgebliche IDs','Offene Punkte'],regulatoryRows)}<div class="report-section"><h3>Einschlägige Sonderregeln</h3>${reportTable(['ID','Sonderregel','Fallbezogene Wirkung'],specialRows)}</div><div class="report-section"><h3>Akteursrollen und Zeitstatus</h3><p><strong>Festgestellte Rolle(n):</strong> ${escapeHtml(d.roles.join(', ')||'Keine Rolle festgestellt')}.</p><p><strong>Zeitlicher Status aktiver Pflichten:</strong> ${escapeHtml(temporalCounts)}. Die besondere 2030-Übergangsregel für bestimmte bestehende Hochrisiko-Systeme öffentlicher Stellen ist kein allgemeiner Geltungsbeginn.</p></div>`,'','compact'));
+  report.push(reportPage(4,total,'Regulatorische Einordnung',`<h2 class="report-page-title">Regulatorische Einordnung</h2>${reportTable(['Prüfpfad','Ergebnis','Kurze Begründung','Maßgebliche IDs','Offene Punkte'],regulatoryRows)}<div class="report-section"><h3>Einschlägige Sonderregeln</h3>${reportTable(['ID','Sonderregel','Fallbezogene Wirkung'],specialRows)}</div><div class="report-section"><h3>Strukturierte offene CRA-Abhängigkeiten</h3>${reportTable(['Teilentscheidung','Offene Kennungen'],craDependencyRows)}</div><div class="report-section"><h3>Akteursrollen und Zeitstatus</h3><p><strong>Festgestellte Rolle(n):</strong> ${escapeHtml(d.roles.join(', ')||'Keine Rolle festgestellt')}.</p><p><strong>Zeitlicher Status aktiver Pflichten:</strong> ${escapeHtml(temporalCounts)}. Die besondere 2030-Übergangsregel für bestimmte bestehende Hochrisiko-Systeme öffentlicher Stellen ist kein allgemeiner Geltungsbeginn.</p></div>`,'','compact'));
   report.push(reportPage(5,total,'Technische Risikobewertung',`<h2 class="report-page-title">Technische Risikobewertung</h2><p class="report-lead">Die 3×3-Risikomatrix verwendet ${reportKnowledgeBase.matrix.formula}. Niedrig: ${reportKnowledgeBase.matrix.levels.low}, Mittel: ${reportKnowledgeBase.matrix.levels.medium}, Hoch: ${reportKnowledgeBase.matrix.levels.high}. Erwartetes und verifiziertes Restrisiko bleiben getrennte Zustände. Ein Wirksamkeitskriterium ist ein Sollkriterium; Nachweisverweise werden nicht automatisch inhaltlich geprüft.</p>${renderMatrix()}<div class="report-facts">${reportFact('Niedrige Risiken',String(d.riskCounts.low))}${reportFact('Mittlere Risiken',String(d.riskCounts.medium))}${reportFact('Hohe Risiken',String(d.riskCounts.high))}${reportFact('Nicht beurteilbare Risiken',String(d.riskCounts.unknown))}${reportFact('Höchstes aktuelles Einzelrisiko',d.highestRisk)}</div><div class="report-section"><h3>Tatsächlich erfasste Risikoszenarien</h3>${reportTable(['Risiko-ID','Risikoszenario','Eintrittswahrscheinlichkeit','Auswirkung','aktueller Risikowert','Risikostufe','Behandlungsbedarf','erwartetes / verifiziertes Restrisiko','Status der Behandlung'],riskRows)}</div><p>Ursachen, Nachweisverweise, Wirksamkeitskriterien und Verantwortlichkeiten sind im vollständigen Nachweisbericht dokumentiert.</p>`,'compact-risk-page','compact'));
   report.push(reportPage(6,total,'Organisatorische Bewertung',`<h2 class="report-page-title">Organisatorische Bewertung</h2><div class="report-decision ${d.organizationalOverall.includes('unzureichend')?'danger':'warning'}"><span>Organisatorisches Gesamtergebnis</span><h2>${escapeHtml(d.organizationalOverall)}</h2></div>${reportTable(['Themenbereich','Ergebnis','Teilweise','Nicht erfüllt','Nicht beurteilbar','Offene Nachweise / Widersprüche'],d.orgSummary.map(area=>[area.label,area.result,String(area.partial),String(area.notFulfilled),String(area.notAssessable),[...area.missing,...area.contradictions].join('; ')||'Keine']))}<div class="report-section"><h3>Regulatorisch relevante Lücken und Ausnahmen</h3>${reportTable(['ID','Themenbereich','Kriterium','Status','Begründung / Auswirkung'],d.orgExceptions.map(item=>[item.id,item.area,item.label,item.status,item.reason||item.regulatoryContext.rule?.reason||'']))}</div><div class="report-section"><h3>Offene organisatorische Maßnahmen</h3>${reportTable(['ID','Herkunft','Maßnahme','Status','Verantwortlich','Frist'],compactMeasureRows({...d,openMeasures:d.registers.organizational.filter(registerItemOpen)}))}</div><p>Vollständig erfüllte Einzelkriterien werden hier nicht wiederholt; alle ORG-01 bis ORG-36 stehen im Nachweisbericht.</p>`,'','compact'));
   report.push(reportPage(7,total,'Einschlägige Pflichten und Maßnahmen',`<h2 class="report-page-title">Einschlägige Pflichten und Maßnahmen</h2>${reportTable(['Pflicht-ID','Rechtsgrundlage','verpflichtete Rolle','Kurzbeschreibung','zeitlicher Status','Erfüllungsstatus','erforderliche Maßnahme','verantwortliche Stelle','Frist'],dutyRows)}<p><strong>Zusammenfassung:</strong> ${inactiveDutyCount} der operationalisierten Pflichten wurden als nicht erforderlich oder nicht einschlägig eingestuft und werden hier nicht einzeln wiederholt. Registrierungs- und Dokumentationspflichten sind bereits in der vorstehenden Tabelle enthalten; die vollständige Herleitung befindet sich im Nachweisbericht.</p><div class="report-section"><h3>Noch offene Risiko- und Organisationsmaßnahmen</h3>${reportTable(['ID','Herkunft','Maßnahme','Status','Verantwortlich','Frist'],compactMeasureRows(d))}</div>`,'','compact'));
-  report.push(reportPage(8,total,'Offener Prüfbedarf',`<h2 class="report-page-title">Offener fachlicher und juristischer Prüfbedarf</h2>${reportTable(['ID','zugrunde liegende Frage','Grund des Prüfbedarfs','Auswirkung auf die Bewertung','entscheidungsblockierend','verantwortliche Stelle','Frist'],compactReviewRows(d))}<p>Inaktive oder erledigte Prüfbedarfe werden ausschließlich im vollständigen Nachweisbericht ausgewiesen.</p>`,'','compact'));
-  report.push(reportPage(9,total,'Bewertungsstatus und weitere Schritte',`<h2 class="report-page-title">Bewertungsstatus und weitere Schritte</h2><div class="report-decision ${d.decision.tone}"><span>Finaler regelbasierter Bewertungsstatus</span><h2>${escapeHtml(d.decision.label)}</h2></div><div class="report-section"><h3>Tragende Gründe</h3>${reportList(decisionReasons,'Keine zusätzlichen tragenden Gründe.')}</div><div class="report-section"><h3>Noch erforderliche Maßnahmen</h3>${reportList(d.openMeasures.map(item=>`${item.id}: ${item.measure||item.requirement||'Maßnahme'} – ${item.owner||'Verantwortung offen'}, ${item.due?fmtDate(item.due):'Frist offen'}`),'Keine offene Maßnahme.')}</div><div class="report-section"><h3>Noch erforderliche fachliche oder juristische Prüfungen</h3>${reportList(d.openReviews.map(item=>`${item.id}: ${item.question||item.reason||'Prüfbedarf'} – Blockierungswirkung: ${item.blocking==='yes'?'Ja':item.blocking==='no'?'Nein':'weiterer Prüfbedarf'}`),'Kein offener Prüfbedarf.')}</div><div class="report-section"><h3>Neubewertung und gesonderte Entscheidung</h3><div class="report-facts">${reportFact('Nächster Reviewtermin',fmtDate(f.nextReviewDate))}${reportFact('Reviewfrequenz',f.reviewFrequency)}${reportFact('Menschliche / organisatorische Entscheidung',labelFor(f.approvalStatus))}${reportFact('Entscheidungsdatum',fmtDate(f.approvalDate))}</div>${reportTable(['ID','Auslöser','Betroffene Schritte','Verantwortlich','Frist'],requiredTriggers.map(trigger=>[trigger.id,guideLabel(trigger.id),trigger.steps||'',trigger.owner||'',trigger.due?fmtDate(trigger.due):'Nicht festgelegt']))}<p>Es wird keine automatische Genehmigung und keine Freigabeempfehlung erzeugt.</p></div>`,'compact-status-page','compact'));
+  report.push(reportPage(8,total,'Offener Prüfbedarf',`<h2 class="report-page-title">Offener fachlicher und juristischer Prüfbedarf</h2>${reportTable(['ID und Quelle','Prüffrage und Grund','Auswirkung auf die Bewertung','Blockierungswirkung und Verantwortung','Frist'],compactReviewRows(d))}<p>Inaktive oder erledigte Prüfbedarfe werden ausschließlich im vollständigen Nachweisbericht ausgewiesen.</p>`,'','compact'));
+  report.push(reportPage(9,total,'Bewertungsstatus und weitere Schritte',`<h2 class="report-page-title">Bewertungsstatus und weitere Schritte</h2><div class="report-decision ${d.decision.tone}"><span>Regelbasierter fachlicher Bewertungsstatus</span><h2>${escapeHtml(d.decision.label)}</h2></div><div class="report-facts">${reportStatusFacts(d.completion,reportFact)}</div><div class="report-section"><h3>Tragende Gründe</h3>${reportList(decisionReasons,'Keine zusätzlichen tragenden Gründe.')}</div><div class="report-section"><h3>Noch erforderliche Maßnahmen</h3>${reportList(d.openMeasures.map(item=>`${item.id}: ${item.measure||item.requirement||'Maßnahme'} – ${item.owner||'Verantwortung offen'}, ${item.due?fmtDate(item.due):'Frist offen'}`),'Keine offene Maßnahme.')}</div><div class="report-section"><h3>Noch erforderliche fachliche oder juristische Prüfungen</h3>${reportList(d.openReviews.map(item=>`${item.id}: ${item.question||item.reason||'Prüfbedarf'} – Blockierungswirkung: ${item.blocking==='yes'?'Ja':item.blocking==='no'?'Nein':'weiterer Prüfbedarf'}`),'Kein offener Prüfbedarf.')}</div><div class="report-section"><h3>Neubewertung und gesonderte Entscheidung</h3><div class="report-facts">${reportFact('Nächster Reviewtermin',fmtDate(f.nextReviewDate))}${reportFact('Reviewfrequenz',f.reviewFrequency)}${reportFact('Menschliche / organisatorische Entscheidung',labelFor(f.approvalStatus))}${reportFact('Entscheidungsdatum',fmtDate(f.approvalDate))}</div>${reportTable(['ID','Auslöser','Betroffene Schritte','Verantwortlich','Frist'],requiredTriggers.map(trigger=>[trigger.id,guideLabel(trigger.id),trigger.steps||'',trigger.owner||'',trigger.due?fmtDate(trigger.due):'Nicht festgelegt']))}<p>Es wird keine automatische Genehmigung und keine Freigabeempfehlung erzeugt.</p></div>`,'compact-status-page','compact'));
   report.push(reportPage(10,total,'Quellen- und Versionsübersicht',`<h2 class="report-page-title">Quellen- und Versionsübersicht</h2><div class="report-section"><h3>Verwendete Rechts- und Methodengrundlagen</h3>${reportList(reportKnowledgeBase.sources)}</div><div class="report-facts">${reportFact('Leitfadenversion',f.guideVersion)}${reportFact('Methodikversion',reportKnowledgeBase.methodologyVersion)}${reportFact('Regelwerksversion',reportKnowledgeBase.ruleSetVersion)}${reportFact('Datenmodellversion',reportKnowledgeBase.dataModelVersion)}${reportFact('Prototypversion',reportKnowledgeBase.prototypeVersion)}${reportFact('Geprüfter Rechtsstand',reportKnowledgeBase.legalStatus)}${reportFact('Vollständige Quellenprüfung',fmtDate(reportKnowledgeBase.fullSourceReview))}${reportFact('Letzte Aktualitätsprüfung',fmtDate(reportKnowledgeBase.lastCurrentnessReview))}${reportFact('Bewertungsstichtag',fmtDate(f.assessmentDate))}${reportFact('Letzte inhaltliche Aktualisierung',fmtDate(f.assessmentUpdate))}${reportFact('Erläuterung der Aktualisierung',f.assessmentUpdateReason||'Keine abweichende Aktualisierung dokumentiert')}${reportFact('Entscheidungsdatum',fmtDate(f.approvalDate))}</div><div class="validation-alert"><strong>Vollständige Nachweise</strong><p>Alle Einzelfragen, Antworten, DUTY- und REVIEW-Ergebnisse, vollständigen Risikodetails, Organisationskriterien, aktiven und historischen Registereinträge, Nachweisverweise sowie die Versions- und Änderungshistorie befinden sich im vollständigen Nachweisbericht. Die Anwendung prüft die Inhalte externer Nachweise nicht automatisch.</p></div>`,'compact-final-page','compact'));
-  const banner=d.completion.status==='draft'?'<div class="draft-banner">Entwurf – Bewertung nicht abgeschlossen</div>':d.completion.status==='conditional'?'<div class="draft-banner conditional-banner">Bewertung abgeschlossen mit offenen Maßnahmen – Nachverfolgung ist dokumentiert</div>':'';
+  const banner=reportStatusBanner(d.completion);
   const reportHtml=report.join('').replace('<p>Es wird keine automatische Genehmigung und keine Freigabeempfehlung erzeugt.</p>','');
   return `<div class="report-area compact-report" data-result-signature="${escapeHtml(d.resultSignature)}">${banner}<div class="report-toolbar"><div><strong>Kompakter Bewertungsbericht</strong><span>10 Kapitel · entscheidungsorientierte Standardausgabe</span></div><div><button type="button" class="secondary-button" id="hideReportButton">Bericht ausblenden</button><button type="button" class="primary-button" id="printButton">Kompakten Bewertungsbericht als PDF speichern</button></div></div>${reportHtml}</div>`;
 }
@@ -2857,10 +3253,10 @@ function buildEvidenceReportFromSnapshot(reportData){
   const reportReference=requireReportReference(reportData),reportKnowledgeBase=reportReference.knowledgeBase,reportLabels=reportData.labels,reportText=createReportTextHelpers(reportReference),sanitizeVisibleText=reportText.sanitize,reportFact=reportText.fact,reportList=reportText.list,reportTable=reportText.table,reportState=reportData.snapshotState,completion=reportData.completion,decision=reportData.decision,validations=reportData.validations,reportPage=(...args)=>reportPageWithData(reportData,...args),riskContradictions=(risk,index)=>reportData.riskContradictions[index]||[],regulatoryResults=()=>reportData.regulatoryLabels,evaluateHighRiskSummary=()=>reportData.highRisk,stepSubstantiveResult=index=>reportData.stepResults[index],organizationalOverall=()=>reportData.organizationalOverall,evaluateReview10=()=>reportData.review10,approvalConsistency=()=>reportData.approvalConsistency,reviewOperationalResult=id=>reportData.reviews.find(item=>item.id===id),reviewOperationalResults=()=>reportData.reviews;
   let base=buildReportBase(reportData);const reg=reportData.regulatory;
   const regulatoryPathLabels=reportLabels.regulatoryPaths;
-  const groups=reportPage(13,15,'Entscheidungs- und Plausibilitätsanhang',`<h2 class="report-page-title">Vollständige Entscheidungsgründe</h2>${renderDecisionGroups(decision)}<div class="report-section"><h3>Berichtsstatus: ${escapeHtml(completion.status==='draft'?'Entwurf':completion.status==='conditional'?'Bericht mit offenen Maßnahmen':'Abschließend')}</h3>${reportList(completion.reasons,'Keine entscheidungskritischen offenen Punkte.')}</div><div class="report-section"><h3>Strukturierte Plausibilitätsinformationen</h3>${reportTable(['Quelle','Typ','kritisch','Text','Zuständig','Frist','Status'],validations.flatMap(v=>v.items).map(item=>[item.source,labelFor(item.type),item.critical?'Ja':'Nein',item.text,item.owner,item.due?fmtDate(item.due):'',labelFor(item.status)]))}</div><div class="report-section"><h3>Manuelle und regelbasiert abgeleitete regulatorische Ergebnisse</h3>${reportTable(['Pfad','Regelbasiert plausibilisiert','Manuell','Abweichungen'],Object.entries(reg).map(([key,value])=>[regulatoryPathLabels[key]||'Regulatorischer Prüfpfad',value.label,value.manualLabel,value.contradictions.join('; ')]))}</div>`,'report-appendix');
+  const groups=reportPage(13,15,'Entscheidungs- und Plausibilitätsanhang',`<h2 class="report-page-title">Vollständige Entscheidungsgründe</h2>${renderDecisionGroups(decision)}<div class="report-section"><h3>Getrennte Statusebenen</h3><div class="report-facts">${reportStatusFacts(completion,reportFact)}</div>${reportList(completion.reasons,'Keine entscheidungskritischen offenen Punkte.')}</div><div class="report-section"><h3>Strukturierte Plausibilitätsinformationen</h3>${reportTable(['Quelle','Typ','kritisch','Text','Zuständig','Frist','Status'],validations.flatMap(v=>v.items).map(item=>[item.source,labelFor(item.type),item.critical?'Ja':'Nein',item.text,item.owner,item.due?fmtDate(item.due):'',labelFor(item.status)]))}</div><div class="report-section"><h3>Manuelle und regelbasiert abgeleitete regulatorische Ergebnisse</h3>${reportTable(['Pfad','Regelbasiert plausibilisiert','Manuell','Abweichungen'],Object.entries(reg).map(([key,value])=>[regulatoryPathLabels[key]||'Regulatorischer Prüfpfad',value.label,value.manualLabel,value.contradictions.join('; ')]))}</div>`,'report-appendix');
   const riskAppendix=reportPage(14,15,'Risiko-, Register- und Entscheidungsanhang',`<h2 class="report-page-title">Akzeptanz, Restrisiko und Quellreferenzen</h2><p class="report-lead">Das Wirksamkeitskriterium ist ein dokumentiertes Sollkriterium. Der Nachweisverweis wird ausgegeben, aber nicht automatisch inhaltlich geprüft.</p>${reportTable(['Risiko','Akzeptanz','Risk Owner','Restrisikoprüfung','Behandlung bestimmbar','Geplante Behandlung','Eingetragener Wirksamkeitsnachweisverweis','Widersprüche'],reportState.risks.map((r,i)=>[r.riskId,labelFor(r.acceptance),r.riskOwner||r.owner,r.treatmentStatus==='verified'?labelFor(r.verifiedResidual):r.treatmentStatus==='implemented'?'Umgesetzt, aber noch nicht verifiziert':labelFor(r.expectedResidual),labelFor(r.suitableTreatmentAvailability),r.proposedTreatment||'Nicht dokumentiert',r.treatmentStatus==='verified'?(r.effectivenessEvidence||'Nicht dokumentiert'):'Noch kein verifizierter Wirksamkeitsnachweis',riskContradictions(r,i).join('; ')]))}<div class="report-section"><h3>Getrennte Ergebnisprofile</h3>${reportTable(['Ebene','Ergebnis'],[['Regulatorische Einordnung',regulatoryResults().prohibition+' · '+evaluateHighRiskSummary().label],['Technische Risikobewertung',stepSubstantiveResult(4)],['Organisatorische Bewertung',organizationalOverall()],['REVIEW-10',`${labelFor(evaluateReview10().value)} · ${evaluateReview10().reason}`]])}</div><div class="report-section"><h3>Gesonderte menschliche beziehungsweise organisatorische Entscheidung</h3><p>Gespeichert: <strong>${escapeHtml(labelFor(reportState.form.approvalStatus))}</strong> · Regelbasierter Bewertungsstatus: <strong>${escapeHtml(decision.label)}</strong></p><p>Die gesonderte Entscheidung verändert den regelbasierten Status nicht.</p>${reportList(approvalConsistency(decision).warnings,'Keine Abweichung zum regelbasierten Status dokumentiert.')}</div>`,'report-appendix');
   const documentationAppendix=reportPage(15,15,'Dokumentation, Rollen und Neubewertung',`<h2 class="report-page-title">Vollständige Dokumentations- und Reviewangaben</h2><div class="report-section"><h3>Aufbewahrung und Versionierung – REVIEW-21</h3><div class="report-facts">${reportFact('Ablageort',reportState.form.documentLocation)}${reportFact('Zugriffsrechte',reportState.form.accessRights)}${reportFact('Gesetzliche Frist / Rechtsgrundlage',reportState.form.statutoryRetentionBasis)}${reportFact('Interne Aufbewahrungsfrist',reportState.form.internalRetentionPeriod)}${reportFact('Version und Änderungshistorie',`${reportState.form.assessmentVersion||''} · ${reportState.form.changeHistory||''}`)}${reportFact('Frühere Bewertungsstände erhalten',labelFor(reportState.form.preservePreviousAssessments))}</div></div><div class="report-section"><h3>GPAI – Relevanz und Organisationsrolle getrennt</h3><p>${escapeHtml(reviewOperationalResult('REVIEW-35',decision).reason)}</p></div><div class="report-section"><h3>Konkrete Ergebniswerte REVIEW-31 bis REVIEW-40</h3>${reportTable(['ID','Ergebnis','Begründung'],reviewOperationalResults(decision).filter(item=>{const n=Number(item.id.slice(-2));return n>=31&&n<=40;}).map(item=>[item.id,labelFor(item.value),item.reason]))}</div><div class="report-section review-trigger-section"><h3>Neubewertungsauslöser REVIEW-22 bis REVIEW-28</h3><p>Die Auslöser steuern, wann und durch wen die Bewertung erneut durchzuführen ist. Sie werden zusammen mit dem regelmäßigen Reviewtermin und den vorgesehenen Nachweisen dokumentiert.</p><div class="report-facts review-trigger-facts">${reportFact('Nächster regelmäßiger Review',reportState.form.nextReviewDate?fmtDate(reportState.form.nextReviewDate):'Nicht dokumentiert')}${reportFact('Reviewfrequenz',reportState.form.reviewFrequency)}${reportFact('Verantwortliche Koordination',reportState.form.planCoordinator)}${reportFact('Reviewnachweise',reportState.form.reviewEvidence)}</div>${reportTable(['ID','Bewertung','Begründung bei Nichtanwendung','Betroffene Schritte','Verantwortlich','Frist'],reportState.triggers.map(trigger=>[trigger.id,labelFor(trigger.required),trigger.reason||'',trigger.steps||'',trigger.owner||'',trigger.due?fmtDate(trigger.due):'']))}</div>`,'report-appendix');
-  const banner=completion.status==='draft'?'<div class="draft-banner">Entwurf – Bewertung nicht abgeschlossen</div>':completion.status==='conditional'?'<div class="draft-banner conditional-banner">Bewertung abgeschlossen mit offenen Maßnahmen – Nachverfolgung ist dokumentiert</div>':'';
+  const banner=reportStatusBanner(completion);
   base=base.replace('Nachvollziehbare Erstbewertung','Vollständiger Nachweisbericht · nachvollziehbare Erstbewertung').replace('<div class="report-area evidence-report">',`<div class="report-area evidence-report" data-result-signature="${escapeHtml(reportData.resultSignature)}">${banner}`);return base.replace(/<\/div>$/,`${groups}${riskAppendix}${documentationAppendix}</div>`);
 }
 /**
@@ -2922,7 +3318,7 @@ function exampleState(){
   Object.assign(f,{
     internalToolId:'TOOL-DOK-001',toolName:'Assistenzsystem zur Dokumentenklassifikation',provider:'Beispiel Software GmbH',version:'3.2',assessmentDate:'2026-09-16',assessmentUpdate:'2026-09-16',department:'Dokumentenmanagement',owner:'Fachverantwortung Dokumentenmanagement',purpose:'Eingehende Geschäftsdokumente vorsortieren und Mitarbeitenden Klassifikationsvorschläge bereitstellen.',tasks:'Dokumenttyp erkennen, Metadaten vorschlagen und Fälle an zuständige Teams verteilen.',systemBoundary:'Cloud-Anwendung einschließlich Modell, Konnektoren und Administrationsoberfläche; die fachliche Entscheidung verbleibt bei Mitarbeitenden.',inputs:'Geschäftsdokumente und freigegebene Metadaten.',dataSources:'Dokumentenmanagementsystem und manuelle Uploads.',outputsDescription:'Klassifikations- und Routingvorschläge mit Konfidenzwert.',techComponents:'Vortrainiertes Klassifikationsmodell, Regelwerk und API-Konnektor.',interfaces:'Dokumentenmanagement, Identitätsverwaltung und Monitoring.',integration:'Vorschlag wird vor Übernahme von einer sachbearbeitenden Person geprüft.',users:'Geschulte Sachbearbeitung und Administration.',infoSources:'Produktdokumentation, Vertrag, technische Systembeschreibung und Pilotprotokoll.',shortDescription:'Assistenzsystem ohne automatische Letztentscheidung.',infoStatus:'complete',otherEvidence:'Pilotbericht und Berechtigungskonzept.',providerContact:'Produktmanagement des Anbieters',
     personalScope:'yes',materialScope:'yes',territorialScope:'yes',euOutputEffect:'yes',specialRules:'no',researchScientificOnly:'no',researchBeforeMarket:'no',realWorldTesting:'no',actualOperationalUse:'yes',militarySecurity:'no',personalUse:'no',openSource:'no',machineBased:'yes',autonomy:'yes',adaptivity:'no',systemGoals:'yes',inference:'yes',aiOutputs:'yes',environmentInfluence:'yes',deterministicOnly:'no',modelOnly:'no',definitionEvidence:'yes',scopeBasis:'Einsatz und Ergebnisse liegen in der EU; kein Ausschluss festgestellt.',scopeEvidence:'Vertrag, Einsatzkonzept und Niederlassungsangaben.',definitionBasis:'Das System leitet Klassifikationsvorschläge aus Dokumentinhalten ab.',definitionEvidenceSource:'Technische Produktbeschreibung und Pilotbeobachtung.',scopeNotes:'Erstbewertung für den Pilotbetrieb.',definitionNotes:'Anpassungsfähigkeit nach Bereitstellung ist deaktiviert.',transitionDate:'2026-12-31',
-    intendedUse:'Unterstützende Vorsortierung eingehender Dokumente.',actualUse:'Pilotbetrieb mit verpflichtender menschlicher Bestätigung.',useLocation:'Deutschland',businessArea:'Dokumentenmanagement',process:'Posteingang und Fallrouting',decisionInfluence:'Vorschläge beeinflussen die Reihenfolge, entscheiden aber nicht abschließend.',usersContext:'Geschulte interne Mitarbeitende.',affected:'Beschäftigte, Kunden und Vertragspartner in den Dokumenten.',spatialTemporal:'Deutscher Pilotbetrieb, werktägliche Nutzung.',rightsImpact:'Mittelbare Verzögerungen oder Fehlzuordnungen möglich.',organizationalConsequences:'Fehlrouting kann Bearbeitungszeiten verlängern.',societalConsequences:'Keine wesentliche kollektive Wirkung erwartet.',humanCorrection:'yes',personalData:'yes',individualImpact:'yes',organizationalImpact:'yes',societalImpact:'no',ownBrand:'no',substantialModification:'no',purposeChange:'no',role_provider:true,role_deployer:true,roleBasis:'Die Organisation stellt die konkrete Assistenzoberfläche bereit und betreibt sie im eigenen Prozess; die zugrunde liegende Modellkomponente stammt von einem Dritten.',roleEvidence:'Vertrag, technische Systemabgrenzung und Einsatzkonzept.',roleReviewDate:'2027-03-31',roleNotes:'Rollen bei wesentlichen Änderungen erneut prüfen.',
+    intendedUse:'Unterstützende Vorsortierung eingehender Dokumente.',actualUse:'Pilotbetrieb mit verpflichtender menschlicher Bestätigung.',useLocation:'Deutschland',businessArea:'Dokumentenmanagement',process:'Posteingang und Fallrouting',decisionInfluence:'support',usersContext:'Geschulte interne Mitarbeitende.',affected:'Beschäftigte, Kunden und Vertragspartner in den Dokumenten.',spatialTemporal:'Deutscher Pilotbetrieb, werktägliche Nutzung.',rightsImpact:'Mittelbare Verzögerungen oder Fehlzuordnungen möglich.',organizationalConsequences:'Fehlrouting kann Bearbeitungszeiten verlängern.',societalConsequences:'Keine wesentliche kollektive Wirkung erwartet.',humanCorrection:'yes',personalData:'yes',individualImpact:'yes',organizationalImpact:'yes',societalImpact:'no',ownBrand:'no',substantialModification:'no',purposeChange:'no',role_provider:true,role_deployer:true,roleBasis:'Die Organisation stellt die konkrete Assistenzoberfläche bereit und betreibt sie im eigenen Prozess; die zugrunde liegende Modellkomponente stammt von einem Dritten.',roleEvidence:'Vertrag, technische Systemabgrenzung und Einsatzkonzept.',roleReviewDate:'2027-03-31',roleNotes:'Rollen bei wesentlichen Änderungen erneut prüfen.',
     prohibitionConclusion:'none',prohibitionBasis:'Keine der geprüften Praktiken ist Bestandteil des vorgesehenen Einsatzes.',prohibitionEvidence:'Zweckbestimmung, Funktionsbeschreibung und Testfälle.',productOrSafetyComponent:'no',annexILaw:'no',thirdPartyConformity:'no',transitionRule:'yes',productTransitionEffect:'none',productHighRiskConclusion:'no',productHighRiskBasis:'Kein Produkt oder Sicherheitsbauteil nach Anhang I.',productHighRiskEvidence:'Produktbeschreibung.',annexHighRiskConclusion:'no',annexBasis:'Kein Verwendungsfall der acht Annex-III-Bereiche.',annexEvidence:'Prozessbeschreibung.',tInteraction:'yes',tInteractionUse:'Vorsortierung mit sichtbarem Klassifikationsvorschlag.',tInteractionActor:'provider',tInteractionDuty:'Anbieter stellt eine verständliche Information über die unmittelbare Interaktion mit dem KI-System sicher.',tInteractionException:'no',tInteractionReason:'Direkte Interaktion ist in der Oberfläche erkennbar.',tInteractionEvidence:'Abnahmetest und Oberflächenkonzept.',tInteractionResult:'applicable',transparencyConclusion:'provider',transparencyBasis:'Die direkte Interaktion löst nach Art. 50 Abs. 1 eine Anbieterpflicht aus.',transparencyEvidence:'Kennzeichnung in der Oberfläche vorgesehen.',transparencyTemporalStatus:'current',transparencyTemporalReason:'Die Informationspflicht ist für die dokumentierte Interaktion am Bewertungsstichtag umzusetzen.',gpaiOrganizationRole:'none',gpaiThreshold:'not_met',gpaiCommissionStatus:'no',gpaiConclusion:'none',gpaiBasis:'Kein GPAI-Modell wird durch die Organisation bereitgestellt oder integriert.',gpaiEvidence:'Anbieterangaben.',craDigitalProduct:'yes',craCommercial:'yes',craUseOnly:'yes',craOpenSource:'no',craManufacturerTakeover:'no',craExclusion:'no',craAiActOverlap:'yes',craProductType:'software',craProductRelation:'standalone',craRoleManufacturer:'no',craRoleImporter:'no',craRoleDistributor:'no',craRoleRepresentative:'no',craRoleSteward:'no',craProductClass:'other',craConformityProcedure:'Produktunterlagen des Herstellers werden als Nachweis geführt.',craVulnerabilityProcess:'Schwachstelleninformationen des Herstellers werden überwacht und intern bearbeitet.',craReportingProcess:'Interne Eskalation an den Hersteller ist dokumentiert; keine eigene Wirtschaftsakteursrolle festgestellt.',craTransitionDates:'Anwendungszeitpunkte werden im Rechtskataster überwacht.',craAiActOverlapNotes:'Cybersicherheitsanforderungen werden mit den AI-Act-Kontrollen abgestimmt.',craConclusion:'product_only',craBasis:'Das Produkt mit digitalen Elementen ist vom CRA erfasst; die betrachtete Organisation nutzt es ausschließlich und übernimmt keine CRA-Wirtschaftsakteursrolle.',craEvidence:'Vertrag, Herstellerangaben und technische Architektur.',regulatoryNotes:'Datenschutzprüfung wird separat durchgeführt.',legalSources:'EU AI Act Art. 3, 4, 22–27, 49 und 50; CRA.',transitionNotes:'Stichtage im Maßnahmenplan nachhalten.',
     planCoordinator:'Compliance-Koordination',planStatus:'complete',implementationNotes:'Monatliche Statusrunde bis Abschluss.',planEvidence:'Maßnahmenprotokoll.',crossReferences:'R-01 ↔ RM-R-01; REG-TR-01 ↔ Kennzeichnung.',newTechnicalFeature:'no',newTechnicalFeatureReason:'Die technische Systemgrenze und alle eingesetzten Komponenten sind im aktuellen Stand erfasst.',legalRegimeFulfilment:'clarified',legalRegimeFulfilmentEvidence:'EU AI Act, Cyber Resilience Act und Datenschutzrecht wurden für die vorgesehenen Maßnahmen abgegrenzt; Rechtskataster, Datenschutzprüfung und Herstellerunterlagen dokumentieren die Pflichterfüllung.',
     assessmentId:'KIR-2026-001',assessmentVersion:'1.0',guideVersion:'Version 2.0 – vorläufige Fassung',changeHistory:'1.0 – Erstbewertung des Pilotbetriebs; keine frühere Bewertung vorhanden.',documentationOwner:'Compliance-Koordination',reviewer:'Interne Revision',approver:'Bereichsleitung',overallReasoning:'Pilotbetrieb ist nur unter den dokumentierten Kontrollen und nach CRA-Klärung zulässig.',conditions:'Ergänzende Erläuterung: menschliche Bestätigung und Monitoring.',blockers:'Keine ergänzende Anmerkung.',openRequirements:'CRA-Abgrenzung als ergänzende Anmerkung.',openMeasures:'Monitoringindikator ergänzend beschrieben.',openReviews:'Nicht blockierende CRA-Rechtsprüfung.',manualBlockerActive:'no',manualBlockerReason:'',nextReviewDate:'2027-03-31',reviewFrequency:'Halbjährlich und anlassbezogen',reviewEvidence:'Reviewprotokoll, Monitoringbericht und Maßnahmenstatus.',approvalStatus:'conditional',approvalDate:'2026-09-16',documentLocation:'Zentrale Bewertungsakte / KIR-2026-001',accessRights:'Rollenbasierter Zugriff für Fachbereich, IT, Compliance, Datenschutz und Revision.',statutoryRetentionStatus:'determined',statutoryRetentionBasis:'Die einschlägige Frist und Rechtsgrundlage sind im Rechtskataster des Musterfalls dokumentiert.',internalRetentionPeriod:'Bis zum Abschluss des nächsten regulären Reviews, danach gemäß interner Aktenordnung.',preservePreviousAssessments:'yes',evidenceInventory:'Technische Dokumentation: Produktdokumentation und Systembeschreibung; Risikomanagement nach Art. 9: nicht einschlägig; Qualitätsmanagement: nicht einschlägig; Protokollierung: Pilotprotokoll; Konformitätserklärung: nicht einschlägig; Registrierung: nicht einschlägig; Post-Market-Monitoring: Monitoringbericht; Vorfälle: keine; Grundrechte-Folgenabschätzung: nicht einschlägig; Datenschutz-Folgenabschätzung: Datenschutzprüfung; GPAI-Dokumentation: nicht einschlägig; CRA-Risikobewertung und technische CRA-Dokumentation: Herstellerunterlagen.',evidenceInventoryVersion:'1.0',evidenceInventoryDate:'2026-09-16',evidenceInventoryLocation:'Zentrale Bewertungsakte / KIR-2026-001 / Nachweise',distribution:'Fachbereich, IT, Compliance, Datenschutz',additionalNotes:'Die Bewertung ersetzt keine Einzelfallrechtsberatung.'
@@ -2948,7 +3344,7 @@ function exampleState(){
   ];
   sample.registers.risk=[{id:'RM-R-01',sourceQuestionId:'RISK-24 bis RISK-31',riskId:'R-01',basis:'Kapitel 3 – 3×3-Risikomatrix',measure:'Konfidenzschwelle und Stichprobenmonitoring etablieren.',target:'Erwartetes Restrisiko Niedrig',linkedResult:'R-01: Hoch',strategy:'reduce',priority:'high',beforeRelease:'yes',blocking:'no',owner:'Fachverantwortung',due:'2026-10-15',status:'verified',effectivenessCriterion:'Fehlklassifikationsquote unter 2 Prozent.',effectivenessReview:'2026-09-15',reviewer:'Qualitätsmanagement',evidence:'Pilotmonitoring und Stichprobenprotokoll.',residual:'low'}];
   sample.registers.organizational=[{id:'ORG-MON',area:'Monitoring und Review',measure:'Monatliches Qualitätsmonitoring',impact:'Dauerhafte Wirksamkeit der Kontrollen.',basis:'Organisationsbewertung Schritt 6',priority:'medium',beforeRelease:'no',decisionCritical:'no',owner:'Fachverantwortung',due:'2026-10-15',status:'verified',evidence:'Monitoringbericht'}];
-  sample.registers.legal=[{id:'JP-CRA',question:'Ist die konkrete Cloud-Anwendung ein Produkt mit digitalen Elementen?',reason:'CRA-Abgrenzung für kommerziellen Cloud-Dienst.',owner:'Rechtsabteilung',sourceStep:'4',legalBasis:'Cyber Resilience Act',assessmentImpact:'Nicht entscheidungsblockierend; Auflage bis Regelbetrieb.',priority:'medium',due:'2026-10-31',status:'inReview',result:'Prüfung beauftragt.',ruleBlocking:'no',ruleBlockingReason:'Die Produktabgrenzung ist als Auflage nachverfolgbar und verhindert den dokumentierten Pilotbetrieb nicht.',blocking:'no',blockingReason:'Fachlich als nicht blockierend festgelegt; Klärung vor dem Regelbetrieb.'}];
+  sample.registers.legal=[{id:'JP-CRA',sourceQuestionId:'CRA-01',craDecisionArea:'product_applicability',question:'Ist die konkrete Cloud-Anwendung ein Produkt mit digitalen Elementen?',reason:'CRA-Abgrenzung für kommerziellen Cloud-Dienst.',linkedResult:'CRA-Produktanwendbarkeit',owner:'Rechtsabteilung',sourceStep:'4',legalBasis:'Cyber Resilience Act',assessmentImpact:'Nicht entscheidungsblockierend; Auflage bis Regelbetrieb.',priority:'medium',due:'2026-10-31',status:'inReview',result:'Prüfung beauftragt.',ruleBlocking:'no',ruleBlockingReason:'Die Produktabgrenzung ist als Auflage nachverfolgbar und verhindert den dokumentierten Pilotbetrieb nicht.',blocking:'no',blockingReason:'Fachlich als nicht blockierend festgelegt; Klärung vor dem Regelbetrieb.'}];
   sample.triggers.forEach(trigger=>Object.assign(trigger,{required:'yes',steps:triggerDefs.find(([id])=>id===trigger.id)?.[3]||'1–8 je nach Auswirkung',owner:'Compliance-Koordination',due:'2026-09-30'}));
   sample.risks.forEach(risk=>['controlEvidence','effectivenessEvidence'].forEach(key=>{if(isFilled(risk[key]))risk[key]=markFictitious(risk[key]);}));
   Object.values(sample.org).forEach(area=>{if(isFilled(area.evidence))area.evidence=markFictitious(area.evidence);});
@@ -2996,7 +3392,7 @@ function runSelfTests(){
   test('REVIEW-10: Verfügbare Behandlung mit niedrigem erwartetem Restrisiko erzeugt keinen Blocker',()=>{const s=fillRegulatoryNo(freshState());s.risks=[{riskId:'R-1',currentRisk:'high',acceptance:'notAccepted',treatmentNeeded:'yes',expectedResidual:'low',suitableTreatmentAvailability:'available',treatmentAvailabilityReason:'Maßnahme ist bestimmt.',treatmentStatus:'planned',proposedTreatment:'Kontrolle',owner:'Fachbereich',treatmentDue:'2027-01-01'}];return withTemporaryState(s,()=>overallDecision(false,true).code!=='USE_NOT_CONTINUABLE'&&evaluateReview10().value==='no');});
   test('REVIEW-10: Unklare Behandlungsmöglichkeit macht die Bewertung nicht abschließbar',()=>{const s=fillRegulatoryNo(freshState());s.risks=[{riskId:'R-1',currentRisk:'high',acceptance:'notAccepted',treatmentNeeded:'review',suitableTreatmentAvailability:'review',treatmentAvailabilityReason:'Fachprüfung offen.'}];return withTemporaryState(s,()=>overallDecision(false,true).code==='ASSESSMENT_NOT_CONCLUDABLE'&&evaluateReview10().value==='review');});
   test('Offene kritische Organisationsmaßnahme verhindert den Abschluss',()=>{const s=fillRegulatoryNo(freshState());s.registers.organizational=[{id:'ORG-1',decisionCritical:'yes',beforeRelease:'yes',status:'open'}];return withTemporaryState(s,()=>overallDecision(false,true).code==='ASSESSMENT_NOT_CONCLUDABLE');});
-  test('Vollständig nachverfolgter nichtkritischer Prüfbedarf ergibt offenen Maßnahmenstatus',()=>{const s=fillRegulatoryNo(freshState());s.risks=[{riskId:'R-STABIL',probability:'1',impact:'1',acceptance:'accepted',treatmentNeeded:'no',acceptanceReason:'Niedriges Risiko.',riskOwner:'Fachbereich',acceptanceApproval:'Dokumentierte Akzeptanz.'}];s.registers.legal=[{id:'JP-1',sourceQuestionId:'DUTY-47',linkedResult:'CRA-Ergebnis',status:'open',blocking:'no',owner:'Recht',due:'2027-01-01',result:'Prüfauftrag'}];return withTemporaryState(s,()=>overallDecision(false,true).code==='ASSESSMENT_COMPLETE_WITH_OPEN_MEASURES');});
+  test('Vollständig nachverfolgter nichtkritischer Prüfbedarf ergibt offenen Maßnahmenstatus',()=>{const s=fillRegulatoryNo(freshState());s.risks=[{riskId:'R-STABIL',probability:'1',impact:'1',acceptance:'accepted',treatmentNeeded:'no',acceptanceReason:'Niedriges Risiko.',riskOwner:'Fachbereich',acceptanceApproval:'Dokumentierte Akzeptanz.'}];s.registers.legal=[{id:'JP-1',sourceQuestionId:'DUTY-47',linkedResult:'CRA-Ergebnis',craDecisionArea:'not_applicable',status:'open',blocking:'no',owner:'Recht',due:'2027-01-01',result:'Prüfauftrag'}];return withTemporaryState(s,()=>overallDecision(false,true).code==='ASSESSMENT_COMPLETE_WITH_OPEN_MEASURES');});
   test('Gesonderte Entscheidung erzeugt nur einen Hinweis und verändert den Status nicht',()=>{const s=freshState();return withTemporaryState(s,()=>{const before=overallDecision(false,true).code;s.form.approvalStatus='approved';const after=overallDecision(true,true);return after.code===before&&approvalConsistency(after).warnings.length===1&&!after.reasons.some(item=>item.code==='APPROVAL-CONTRADICTION');});});
   test('Unvollständige Bewertung ist ein Entwurf',()=>withTemporaryState(freshState(),()=>isDraftReport()));
   test('Abgeleitete Register werden aktualisiert und nicht dupliziert',()=>{const s=fillRegulatoryNo(freshState());s.risks=[{riskId:'R-1',treatmentNeeded:'yes',proposedTreatment:'A',currentRisk:'medium'}];return withTemporaryState(s,()=>{syncDerivedRegisters();s.risks[0].proposedTreatment='B';syncDerivedRegisters();return s.registers.risk.length===1&&s.registers.risk[0].measure==='B';});});
@@ -3007,7 +3403,7 @@ function runSelfTests(){
   test('Musterfall bleibt vollständig ladbar',()=>{const s=exampleState();return withTemporaryState(s,()=>s.risks.length===1&&s.evaluated.every(Boolean));});
   test('Ursprünglich widersprüchlicher Musterfall markiert die betroffenen Prüfschritte rot',()=>{const s=exampleState();return withTemporaryState(s,()=>stepStatus(3)==='red'&&stepStatus(6)==='red');});
   test('Ursprünglich widersprüchlicher Musterfall bleibt bis zur fachlichen Klärung nicht abschließbar',()=>{const s=exampleState();return withTemporaryState(s,()=>overallDecision().code==='ASSESSMENT_NOT_CONCLUDABLE');});
-  test('Vollständiger Bericht enthält alle Pflichtkapitel und kennzeichnet den ungeklärten Musterfall als Entwurf',()=>{const s=exampleState();return withTemporaryState(s,()=>{const report=buildReport(buildReportData());const required=['Bewertungsstatus','Vollständige Leitfadenreferenz','KI-System, Anwendungsbereich und Rolle','Regulatorische Einordnung','Risikoregister und Bewertungsstufen','Organisatorisches Bewertungsprofil','Konsolidierter Anforderungs- und Maßnahmenplan','Operationalisierte Pflichten DUTY-01 bis DUTY-47','Operationalisierte Review-Ergebnisse REVIEW-01 bis REVIEW-42','Gesonderte menschliche beziehungsweise organisatorische Entscheidung','Entscheidungs- und Plausibilitätsanhang','Risiko-, Register- und Entscheidungsanhang'];return (report.match(/<section class="report-page(?:\s|")/g)||[]).length>=14&&required.every(title=>report.includes(title))&&report.includes('Entwurf – Bewertung nicht abgeschlossen');});});
+  test('Vollständiger Bericht enthält alle Pflichtkapitel und kennzeichnet den ungeklärten Musterfall als Entwurf',()=>{const s=exampleState();return withTemporaryState(s,()=>{const report=buildReport(buildReportData());const required=['Bewertungsstatus','Vollständige Leitfadenreferenz','KI-System, Anwendungsbereich und Rolle','Regulatorische Einordnung','Risikoregister und Bewertungsstufen','Organisatorisches Bewertungsprofil','Konsolidierter Anforderungs- und Maßnahmenplan','Operationalisierte Pflichten DUTY-01 bis DUTY-47','Operationalisierte Review-Ergebnisse REVIEW-01 bis REVIEW-42','Gesonderte menschliche beziehungsweise organisatorische Entscheidung','Entscheidungs- und Plausibilitätsanhang','Risiko-, Register- und Entscheidungsanhang'];return (report.match(/<section class="report-page(?:\s|")/g)||[]).length>=14&&required.every(title=>report.includes(title))&&report.includes('Entwurf –');});});
   test('Implementierungsprüfung erkennt absichtlich fehlende DUTY-ID',()=>!validateGuideImplementation({omit:['DUTY-47']}).valid&&validateGuideImplementation({omit:['DUTY-47']}).missing.includes('DUTY-47'));
   test('Implementierungsprüfung erkennt absichtlich fehlende REVIEW-ID',()=>!validateGuideImplementation({omit:['REVIEW-42']}).valid&&validateGuideImplementation({omit:['REVIEW-42']}).missing.includes('REVIEW-42'));
   test('Alle DUTY- und REVIEW-Kennungen liefern operationale Ergebnisse',()=>withTemporaryState(exampleState(),()=>dutyOperationalResults().length===47&&reviewOperationalResults().length===42&&dutyOperationalResults().every(item=>item.path&&item.reason)&&reviewOperationalResults().every(item=>item.path&&item.reason)));
@@ -3058,9 +3454,18 @@ window.__riskAppTest={
   migrateV11ToV12,
   migrateV12ToV13,
   migrateV13ToV14,
+  migrateV14ToV15,
+  migrateV15ToV16,
   migrateToCurrent,
+  deriveCraRoleSummary,
+  applyCraRoleDerivation,
+  classifyCraRegisterItem,
+  openCraDependencyGroups,
   storedStateValidation,
   loadState,
+  saveState,
+  preparePersistableState,
+  getPersistenceError:()=>lastPersistenceError,
   assessmentExportObject,
   assessmentExportJson,
   importAssessmentJson,
@@ -3074,8 +3479,9 @@ window.__riskAppTest={
   guideReferenceStatus,
   questionValueLabel,
   exampleState,
-  setStateForTest:(next)=>{state=normalizeState(next);activeReportData=null;saveState();renderNavigation();renderStep();},
-  setRawStateForTest:(next)=>{state=normalizeState(next);activeReportData=null;},
+  setStateForTest:(next)=>replaceActiveAssessment(next,'Teststand geladen.'),
+  setRawStateForTest:(next)=>{state=normalizeState(next);state.reportVisible=false;activeReportType='compact';activeReportData=null;document.title=APPLICATION_TITLE;},
+  getActiveReportInfo:()=>({type:activeReportType,visible:state.reportVisible,hasSnapshot:Boolean(activeReportData),title:document.title,toolName:activeReportData?.form?.toolName||'',internalToolId:activeReportData?.form?.internalToolId||''}),
   getReportReferencesForTest,
   setReportReferencesForTest,
   riskContradictions,
@@ -3106,6 +3512,8 @@ window.__riskAppTest={
   renderSelectedReport,
   reportFilename,
   reportBrowserTitle,
+  showReportForTest:(type)=>showReport(type,false),
+  printReportForTest:(type)=>printSelectedReport(type),
   setReportTypeForTest:(type)=>{activeReportType=type==='evidence'?'evidence':'compact';state.reportVisible=true;activeReportData=buildReportData();document.title=reportBrowserTitle(activeReportType,activeReportData.form,activeReportData.reference);renderStep();},
   buildReport,
   renderMatrix,
@@ -3118,7 +3526,7 @@ window.__riskAppTest={
   resetAssessment,
   setField:(key,value)=>{state.form[key]=value;saveState();renderNavigation();renderStep();},
   setStepEvaluated:(index,value=true)=>{state.evaluated[index]=value;saveState();renderNavigation();renderStep();},
-  loadExample:()=>{state=exampleState();saveState();renderNavigation();renderStep();},
+  loadExample:()=>replaceActiveAssessment(exampleState(),'Musterfall geladen.'),
   reset:resetAssessment
 };
 
@@ -3129,19 +3537,19 @@ if(new URLSearchParams(window.location.search).has('selftest')){
 /* 18. Ereignisbindung und Anwendungsstart */
 
 function bindStepEvents(){
-  document.querySelectorAll('[data-field]').forEach(element=>{element.addEventListener('input',()=>updateFormElement(element,false));element.addEventListener('change',()=>updateFormElement(element,element.tagName==='SELECT'));});
+  document.querySelectorAll('[data-field]').forEach(element=>element.addEventListener(element.tagName==='SELECT'?'change':'input',()=>updateFormElement(element,element.tagName==='SELECT')));
   document.querySelectorAll('[data-question]').forEach(block=>block.querySelectorAll('[data-answer]').forEach(button=>button.addEventListener('click',()=>{const key=block.dataset.question;state.form[key]=button.dataset.answer;if(block.dataset.guideId)state.guideAnswers[block.dataset.guideId]={value:button.dataset.answer,sourceField:key};if(roleFlagByQuestion[key])state.form[`role_${roleFlagByQuestion[key]}`]=button.dataset.answer==='yes';if(button.dataset.answer==='yes'&&transparencyActorByKey[key])state.form[`${key}Actor`]=transparencyActorByKey[key];saveState();renderStep();refreshChrome();})));
   document.querySelectorAll('[data-role]').forEach(element=>element.addEventListener('change',()=>{state.form[`role_${element.dataset.role}`]=element.checked;saveState();renderStep();refreshChrome();}));
-  document.querySelectorAll('[data-risk-field]').forEach(element=>{element.addEventListener('input',()=>updateRiskElement(element,false));element.addEventListener('change',()=>updateRiskElement(element,element.tagName==='SELECT'));});
+  document.querySelectorAll('[data-risk-field]').forEach(element=>element.addEventListener(element.tagName==='SELECT'?'change':'input',()=>updateRiskElement(element,element.tagName==='SELECT')));
   document.querySelector('#addRiskButton')?.addEventListener('click',()=>{const used=new Set(state.risks.map(risk=>risk.riskId).filter(isFilled));let number=1,id='';do{id=`R-${String(number++).padStart(2,'0')}`;}while(used.has(id));state.risks.push({riskId:id});saveState();renderStep();refreshChrome();});
   document.querySelectorAll('[data-remove-risk]').forEach(button=>button.addEventListener('click',()=>{state.risks.splice(Number(button.dataset.removeRisk),1);saveState();renderStep();refreshChrome();}));
-  document.querySelectorAll('[data-org-field]').forEach(element=>{element.addEventListener('input',()=>updateOrgElement(element,false));element.addEventListener('change',()=>updateOrgElement(element,element.tagName==='SELECT'));});
-  document.querySelectorAll('[data-org-criterion]').forEach(element=>{element.addEventListener('input',()=>updateOrgCriterionElement(element,false));element.addEventListener('change',()=>updateOrgCriterionElement(element,element.tagName==='SELECT'));});
-  document.querySelectorAll('[data-register-field]').forEach(element=>{element.addEventListener('input',()=>updateRegisterElement(element,false));element.addEventListener('change',()=>updateRegisterElement(element,element.tagName==='SELECT'));});
+  document.querySelectorAll('[data-org-field]').forEach(element=>element.addEventListener(element.tagName==='SELECT'?'change':'input',()=>updateOrgElement(element,element.tagName==='SELECT')));
+  document.querySelectorAll('[data-org-criterion]').forEach(element=>element.addEventListener(element.tagName==='SELECT'?'change':'input',()=>updateOrgCriterionElement(element,element.tagName==='SELECT')));
+  document.querySelectorAll('[data-register-field]').forEach(element=>element.addEventListener(element.tagName==='SELECT'?'change':'input',()=>updateRegisterElement(element,element.tagName==='SELECT')));
   document.querySelectorAll('[data-add-register]').forEach(button=>button.addEventListener('click',()=>{state.registers[button.dataset.addRegister].push({});saveState();renderStep();refreshChrome();}));
   document.querySelectorAll('[data-remove-register]').forEach(button=>button.addEventListener('click',()=>{state.registers[button.dataset.removeRegister].splice(Number(button.dataset.registerIndex),1);saveState();renderStep();refreshChrome();}));
   document.querySelector('#deriveRegistersButton')?.addEventListener('click',()=>{deriveRegisters();saveState('Befunde übernommen.');renderStep();refreshChrome();});
-  document.querySelectorAll('[data-trigger-field]').forEach(element=>{element.addEventListener('input',()=>{state.triggers[Number(element.dataset.triggerIndex)][element.dataset.triggerField]=element.value;saveState();refreshChrome();});element.addEventListener('change',()=>{state.triggers[Number(element.dataset.triggerIndex)][element.dataset.triggerField]=element.value;saveState();if(element.dataset.triggerField==='required')renderStep();refreshChrome();});});
+  document.querySelectorAll('[data-trigger-field]').forEach(element=>element.addEventListener(element.tagName==='SELECT'?'change':'input',()=>{state.triggers[Number(element.dataset.triggerIndex)][element.dataset.triggerField]=element.value;saveState();if(element.dataset.triggerField==='required')renderStep();refreshChrome();}));
   document.querySelector('#buildReportButton')?.addEventListener('click',finishAndReport);
   document.querySelector('#showCompactReportButton')?.addEventListener('click',()=>showReport('compact'));
   document.querySelector('#printCompactReportButton')?.addEventListener('click',()=>printSelectedReport('compact'));
@@ -3154,9 +3562,10 @@ function bindStepEvents(){
 document.querySelector('#previousButton').addEventListener('click',()=>{if(state.step>0)navigateTo(state.step-1);});
 document.querySelector('#nextButton').addEventListener('click',()=>{if(state.step<7)navigateTo(state.step+1);else finishAndReport();});
 document.querySelector('#resetButton').addEventListener('click',()=>{if(!confirm('Alle Eingaben, Risiken, Register, Bewertungen und Statusangaben löschen?'))return;resetAssessment();});
-document.querySelector('#exampleButton').addEventListener('click',()=>{if(!confirm('Den aktuellen Stand durch einen vollständig ausgefüllten Musterfall ersetzen?'))return;state=exampleState();saveState('Musterfall geladen.');renderNavigation();renderStep();});
+document.querySelector('#exampleButton').addEventListener('click',()=>{if(!confirm('Den aktuellen Stand durch einen vollständig ausgefüllten Musterfall ersetzen?'))return;replaceActiveAssessment(exampleState(),'Musterfall geladen.');});
 document.querySelector('#exportButton')?.addEventListener('click',downloadAssessment);
 document.querySelector('#importButton')?.addEventListener('click',()=>document.querySelector('#importFile')?.click());
+document.querySelector('#recoveryExportButton')?.addEventListener('click',downloadRecoveryBackup);
 document.querySelector('#importFile')?.addEventListener('change',async event=>{const file=event.target.files?.[0];if(!file)return;try{importAssessmentJson(await file.text());}catch(error){window.alert?.(error.message);}finally{event.target.value='';}});
 
 renderNavigation();renderStep();
