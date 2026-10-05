@@ -117,10 +117,11 @@ print(json.dumps(result))
   return{pages,size,audit};
 }
 
+let activeBrowser;
 (async()=>{
   fs.mkdirSync(outputDir,{recursive:true});fs.mkdirSync(tempRoot,{recursive:true});
   /* Lokaler Browserdruck und nachgelagerte Seitenanalyse prüfen reale PDFs statt nur HTML-Regeln. */
-  const browser=await chromium.launch({headless:true,...(fs.existsSync(chrome)?{executablePath:chrome}:{})});
+  const browser=activeBrowser=await chromium.launch({headless:true,...(fs.existsSync(chrome)?{executablePath:chrome}:{})});
   const summaries=[];
   for(const target of outputs){
     const page=await browser.newPage({viewport:{width:1440,height:1000}});
@@ -132,14 +133,14 @@ print(json.dumps(result))
         const original=s.risks[0];s.risks=Array.from({length:30},(_,index)=>({...original,riskId:'R-'+String(index+1).padStart(2,'0'),description:'Belastungsrisiko '+String(index+1).padStart(2,'0')+(index===29?' TAILRISK30X':''),event:'EVT'+String(index+1).padStart(2,'0')+'X – dokumentiertes Ereignis',consequence:'RISIKO-'+String(index+1).padStart(2,'0')+'-FOLGE – dokumentierte Folge',effectivenessEvidence:'EVD'+String(index+1).padStart(2,'0')+'X – Wirksamkeitsnachweis'}));
         s.registers.risk=s.risks.map((risk,index)=>({id:'MASSNAHME-'+String(index+1).padStart(2,'0'),sourceQuestionId:'RISK-12',riskId:risk.riskId,basis:'Kapitel 3 – 3×3-Risikomatrix',measure:'Kontrollmaßnahme '+(index+1),target:'Nachweisbare Risikominderung',linkedResult:risk.riskId+' · aktuelles Risiko Hoch',strategy:'reduce',priority:'medium',beforeRelease:'no',blocking:'no',owner:'Fachverantwortung',due:'2026-10-15',status:'verified',effectivenessCriterion:'Fehlerquote unter Grenzwert',effectivenessReview:'2026-09-15',reviewer:'Qualitätsmanagement',evidence:risk.effectivenessEvidence,residual:'low'}));
       }
-      if(mode==='complete'){s.form.assessmentId='KIR-STATUS-01';s.form.approvalStatus='approved';s.registers.legal.forEach(item=>{item.status='resolved';item.blocking='no';item.result='Rechtsfrage abschließend geklärt.';});s.registers.organizational.forEach(item=>item.status='verified');}
-      if(mode==='conditional'){s.form.assessmentId='KIR-STATUS-02';}
+      if(mode==='complete'){s.form.assessmentId='KIR-STATUS-01';s.form.approvalStatus='approved';s.form.tGeneralRequirements='yes';s.guideAnswers['TR-06']={value:'yes',sourceField:'tGeneralRequirements'};s.form.overallReasoning='Bewertung nach Auflösung der im Dokumentenklassifikations-Prüfstand bewusst erhaltenen Widersprüche abgeschlossen.';s.registers.legal.forEach(item=>{item.status='resolved';item.blocking='no';item.ruleBlocking='no';item.result='Rechtsfrage abschließend geklärt.';});s.registers.organizational.forEach(item=>item.status='verified');}
+      if(mode==='conditional'){s.form.assessmentId='KIR-STATUS-02';s.form.tGeneralRequirements='yes';s.guideAnswers['TR-06']={value:'yes',sourceField:'tGeneralRequirements'};s.form.overallReasoning='Bewertung nach Rechtsklärung mit einer nachverfolgten, nicht blockierenden Organisationsmaßnahme.';s.registers.legal.forEach(item=>{item.status='resolved';item.blocking='no';item.ruleBlocking='no';item.result='Rechtsfrage abschließend geklärt.';});s.registers.organizational.forEach(item=>{item.status='planned';item.blocking='no';item.decisionCritical='no';item.beforeRelease='no';});}
       if(mode==='not-concludable'){s.form.assessmentId='KIR-STATUS-03';s.form.manualBlockerActive='yes';s.form.manualBlockerReason='Zusätzliche Rechtsfrage mit noch nicht bestätigter Blockierungswirkung.';s.form.approvalStatus='pending';}
-      if(mode==='stopped'){s.form.assessmentId='KIR-STATUS-04';Object.assign(s.form,{pManipulation:'confirmed',pManipulationUse:'Dokumentiert',pManipulationElementsResult:'met',pManipulationElements:'Tatbestand erfüllt',pManipulationException:'none',pManipulationReason:'Tatbestand belegt',pManipulationEvidence:'Rechtsprüfung',pManipulationAffected:'Betroffene Personen',pManipulationLegalOwner:'Rechtsstelle',pManipulationCritical:'yes',prohibitionConclusion:'confirmed',approvalStatus:'rejected'});}
-      api.setStateForTest(s);
+      if(mode==='stopped'){s.form.assessmentId='KIR-STATUS-04';Object.assign(s.form,{pManipulation:'confirmed',pManipulationUse:'Dokumentiert',pManipulationElementsResult:'met',pManipulationElements:'Tatbestand erfüllt',pManipulationException:'none',pManipulationReason:'Tatbestand belegt',pManipulationEvidence:'Rechtsprüfung',pManipulationAffected:'Betroffene Personen',pManipulationLegalOwner:'Rechtsstelle',pManipulationCritical:'yes',prohibitionConclusion:'confirmed',approvalStatus:'rejected'});s.guideAnswers['ART5-01']={value:'confirmed',sourceField:'pManipulation'};}
+      api.setStateForTest(s);api.setReportTypeForTest('evidence');
     },target.mode);
     const decision=await page.evaluate(()=>window.__riskAppTest.overallDecision(false,true).code);
-    const expected={sample:'ASSESSMENT_COMPLETE_WITH_OPEN_MEASURES',stress:'ASSESSMENT_COMPLETE_WITH_OPEN_MEASURES',complete:'ASSESSMENT_COMPLETE',conditional:'ASSESSMENT_COMPLETE_WITH_OPEN_MEASURES','not-concludable':'ASSESSMENT_NOT_CONCLUDABLE',stopped:'USE_NOT_CONTINUABLE'}[target.mode];
+    const expected={sample:'ASSESSMENT_NOT_CONCLUDABLE',stress:'ASSESSMENT_NOT_CONCLUDABLE',complete:'ASSESSMENT_COMPLETE',conditional:'ASSESSMENT_COMPLETE_WITH_OPEN_MEASURES','not-concludable':'ASSESSMENT_NOT_CONCLUDABLE',stopped:'USE_NOT_CONTINUABLE'}[target.mode];
     if(decision!==expected)throw new Error(`${target.name}: Status ${decision} statt ${expected}.`);
     await page.emulateMedia({media:'print'});await page.evaluate(()=>document.body.classList.add('pdf-export'));
     const dom=await page.evaluate(()=>({chapters:document.querySelectorAll('.report-page').length,overflow:[...document.querySelectorAll('.report-page,.report-table-wrap,.report-table')].filter(el=>el.scrollWidth>el.clientWidth+2).length,text:document.querySelector('.report-area')?.innerText||''}));
@@ -149,8 +150,8 @@ print(json.dumps(result))
     await page.close();
     const stress=target.mode==='stress',result=inspectPdf(pdfPath,path.join(tempRoot,`${target.mode}-render`),stress);summaries.push({name:target.name,file:pdfPath,...result});
   }
-  await browser.close();
+  await browser.close();activeBrowser=null;
   if(summaries.find(item=>item.name==='Belastungstest').pages<=summaries.find(item=>item.name==='Musterbericht').pages)throw new Error('Der Belastungsbericht besitzt nicht mehr physische Seiten als der Musterbericht.');
   summaries.forEach(item=>{console.log(`✓ ${item.name}: ${item.pages} A4-Seiten vollständig gerendert, kleinste Schrift ${item.audit.minimum_font_size.toFixed(2)} pt`);console.log(`✓ ${item.name}: keine leeren Seiten, Randberührungen, alten Statusbegriffe, Erstellungsspuren oder fehlenden Pflichtinhalte`);console.log(item.file);});
   console.log('✓ Tabellenköpfe, Kopf-/Fußzeilen, acht Prüfschritte, 3×3-Matrix, Rollen, DUTY-47, REVIEW-30, historische Register, Metadaten und getrennte Ergebnisprofile geprüft');
-})().catch(error=>{console.error(`✗ PDF-Test fehlgeschlagen: ${error.message}`);process.exitCode=1;});
+})().catch(async error=>{if(activeBrowser)await activeBrowser.close().catch(()=>{});console.error(`✗ PDF-Test fehlgeschlagen: ${error.message}`);process.exitCode=1;});

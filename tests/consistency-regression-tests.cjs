@@ -129,18 +129,18 @@ test('gObjectType Modell bei verneintem GPAI-Modell wird als aktiver Widerspruch
   return result.code==='review'&&result.contradictions.some(item=>/Modell/i.test(item)&&/GPAI/i.test(item));
 });
 
-test('Kapitel-4-Prüfstand mit Datenmodell 14 wird auf Datenmodell 16 migriert',()=>{
+test('Kapitel-4-Prüfstand mit Datenmodell 14 wird auf Datenmodell 17 migriert',()=>{
   const file=path.join(root,'tests','fixtures','ki-risikobewertung-schema14-original.json');
   const parsed=JSON.parse(fs.readFileSync(file,'utf8')),source=parsed.assessment||parsed,expectedId=source.form.internalToolId;
   api.importAssessmentJson(JSON.stringify(parsed));const imported=api.getState();
-  return imported.schemaVersion===16&&imported.form.internalToolId===expectedId&&imported.migration.auditTrail.some(item=>item.from===14&&item.to===15)&&imported.migration.auditTrail.some(item=>item.from===15&&item.to===16);
+  return imported.schemaVersion===17&&imported.form.internalToolId===expectedId&&imported.migration.auditTrail.some(item=>item.from===14&&item.to===15)&&imported.migration.auditTrail.some(item=>item.from===15&&item.to===16)&&imported.migration.auditTrail.some(item=>item.from===16&&item.to===17);
 });
 
 test('Älterer Export mit Datenmodell 13 wird zusätzlich verlustwahrend migriert',()=>{
   const file=path.join(root,'tests','fixtures','ki-risikobewertung-schema13-original.json');
   const parsed=JSON.parse(fs.readFileSync(file,'utf8')),source=parsed.assessment||parsed,expectedId=source.form.internalToolId,expectedName=source.form.toolName;
   api.importAssessmentJson(JSON.stringify(parsed));const imported=api.getState();
-  return imported.schemaVersion===16&&imported.form.internalToolId===expectedId&&imported.form.toolName===expectedName&&imported.migration.auditTrail.some(item=>item.from===13&&item.to===14)&&imported.migration.auditTrail.some(item=>item.from===14&&item.to===15)&&imported.migration.auditTrail.some(item=>item.from===15&&item.to===16);
+  return imported.schemaVersion===17&&imported.form.internalToolId===expectedId&&imported.form.toolName===expectedName&&imported.migration.auditTrail.some(item=>item.from===13&&item.to===14)&&imported.migration.auditTrail.some(item=>item.from===14&&item.to===15)&&imported.migration.auditTrail.some(item=>item.from===15&&item.to===16)&&imported.migration.auditTrail.some(item=>item.from===16&&item.to===17);
 });
 
 test('Export und erneuter Import erhalten die fachlichen Eingaben und Register',()=>{

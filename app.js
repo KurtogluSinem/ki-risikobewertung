@@ -67,7 +67,8 @@
  */
 
 /* 1. Konfiguration und Versionen */
-const STORAGE_KEY = 'ki-risikobewertung-masterarbeit-v16';
+const STORAGE_KEY = 'ki-risikobewertung-masterarbeit-v17';
+const LEGACY_V16_KEY = 'ki-risikobewertung-masterarbeit-v16';
 const LEGACY_V15_KEY = 'ki-risikobewertung-masterarbeit-v15';
 const RECOVERY_BACKUP_KEY = 'ki-risikobewertung-masterarbeit-recovery-backup';
 const LEGACY_V14_KEY = 'ki-risikobewertung-masterarbeit-v14';
@@ -84,7 +85,7 @@ const LEGACY_V4_KEY = 'ki-risikobewertung-masterarbeit-v4';
 const LEGACY_V3_KEY = 'ki-risikobewertung-masterarbeit-v3';
 const LEGACY_V2_KEY = 'ki-risikobewertung-masterarbeit-v2';
 const LEGACY_V1_KEY = 'ki-risikobewertung-masterarbeit-v1';
-const SCHEMA_VERSION = 16;
+const SCHEMA_VERSION = 17;
 /** Friert eine Referenzstruktur einschließlich aller Unterobjekte rekursiv ein. */
 function deepFreezeReference(value){
   if(!value||typeof value!=='object'||Object.isFrozen(value))return value;
@@ -93,7 +94,7 @@ function deepFreezeReference(value){
 let GUIDE_REFERENCE=window.GUIDE_REFERENCE||[];
 let GUIDE_REFERENCE_IDS=window.GUIDE_REFERENCE_IDS||[];
 let GUIDE_REFERENCE_BY_ID=window.GUIDE_REFERENCE_BY_ID||{};
-let KNOWLEDGE_BASE=deepFreezeReference({prototypeVersion:'1.11',dataModelVersion:'16',ruleSetVersion:'2.10',methodologyVersion:'2.0 – Risikoanalyse- und Bewertungsansatz nach Kapitel 3',assessmentDateLabel:'Bewertungsstichtag der jeweiligen Bewertung',legalStatus:'30.09.2026',fullSourceReview:'2026-09-06',lastCurrentnessReview:'2026-09-30',sources:['Verordnung (EU) 2024/1689 – konsolidierte Fassung vom 27.07.2026','Verordnung (EU) 2026/1744 – gesonderter Änderungsrechtsakt','Verordnung (EU) 2024/2847 – Cyber Resilience Act','NIST AI RMF 1.0','ISO/IEC 23894:2023','ISO/IEC 42001:2023'],verifiedDates:{aiLiteracy:'2025-02-02',article5General:'2025-02-02',article5New:'2026-12-02',aiActGeneral:'2026-08-02',transparency:'2026-08-02',transparencyExisting:'2026-12-02',gpai:'2025-08-02',gpaiExisting:'2027-08-02',highRiskAnnexIII:'2027-12-02',highRiskAnnexI:'2028-08-02',publicExistingHighRisk:'2030-08-02',craReporting:'2026-09-11',craGeneral:'2027-12-11'},matrix:{formula:'R = E × A',levels:{low:'1–2',medium:'3–4',high:'6–9'}}});
+let KNOWLEDGE_BASE=deepFreezeReference({prototypeVersion:'1.12',dataModelVersion:'17',ruleSetVersion:'2.11',methodologyVersion:'2.0 – Risikoanalyse- und Bewertungsansatz nach Kapitel 3',assessmentDateLabel:'Bewertungsstichtag der jeweiligen Bewertung',legalStatus:'30.09.2026',fullSourceReview:'2026-09-06',lastCurrentnessReview:'2026-10-05',gitCommit:'lokaler Arbeitsstand nach 08e483e1657083639d1376c75920dc0660328bb0',sources:['Verordnung (EU) 2024/1689 – konsolidierte Fassung vom 27.07.2026','Verordnung (EU) 2026/1744 – gesonderter Änderungsrechtsakt','Verordnung (EU) 2024/2847 – Cyber Resilience Act','NIST AI RMF 1.0','ISO/IEC 23894:2023','ISO/IEC 42001:2023'],verifiedDates:{aiLiteracy:'2025-02-02',article5General:'2025-02-02',article5New:'2026-12-02',aiActGeneral:'2026-08-02',transparency:'2026-08-02',transparencyExisting:'2026-12-02',gpai:'2025-08-02',gpaiExisting:'2027-08-02',highRiskAnnexIII:'2027-12-02',highRiskAnnexI:'2028-08-02',publicExistingHighRisk:'2030-08-02',craManufacturerReporting:'2026-09-11',craStewardReporting:'2027-12-11',craReporting:'2026-09-11',craGeneral:'2027-12-11'},matrix:{formula:'R = E × A',levels:{low:'1–2',medium:'3–4',high:'6–9'}}});
 const APPLICATION_TITLE='KI-Risikobewertung nach EU AI Act und Cyber Resilience Act';
 let activeReportType='compact';
 let activeReportData=null;
@@ -214,7 +215,7 @@ function deriveCraRoleSummary(form={}){
   const answered=answers.filter(item=>isFilled(item.value)),selected=answers.filter(item=>item.value==='yes');
   const invalidOrOpen=answered.some(item=>typeof item.value!=='string'||!['yes','no','review'].includes(item.value))||answered.some(item=>item.value==='review')||(answered.length>0&&answered.length<answers.length);
   const code=answered.length===0?'':invalidOrOpen?'review':selected.length>1?'multiple':selected.length===1?selected[0].code:'none';
-  const displayValue=code==='review'?'Weiterer Prüfbedarf':code==='none'?'Keine der genannten Rollen':selected.map(item=>item.label).join(', ');
+  const displayValue=code==='review'?'Weiterer Prüfbedarf':code==='none'?(form.craUseOnly==='yes'?'Keine eigene Wirtschaftsakteursrolle nach dem CRA; Organisation ist ausschließlich Erwerberin beziehungsweise Nutzerin.':'Keine der genannten Rollen'):selected.map(item=>item.label).join(', ');
   return{code,displayValue,sourceFields:[...CRA_ROLE_SOURCE_FIELDS],selectedCodes:selected.map(item=>item.code)};
 }
 
@@ -313,7 +314,7 @@ let registerSchemas = {
   ]}
 };
 
-let regulatoryPathLabels={prohibition:'Verbotene KI-Praktiken nach Art. 5',productHighRisk:'Hochrisiko nach Art. 6 Abs. 1 und Anhang I',annexHighRisk:'Hochrisiko nach Art. 6 Abs. 2 und Anhang III',art25:'Anbieterrolle nach Art. 25',transparency:'Transparenzpflichten nach Art. 50',gpai:'Modelle mit allgemeinem Verwendungszweck',cra:'Cyber Resilience Act'};
+let regulatoryPathLabels={prohibition:'Verbotene KI-Praktiken nach Art. 5',productHighRisk:'Hochrisiko nach Art. 6 Abs. 1 und Anhang I',annexHighRisk:'Hochrisiko nach Art. 6 Abs. 2 und Anhang III',art25:'Anbieterrolle nach Art. 25',transparency:'Transparenzpflichten nach Art. 50',tr07:'Information betroffener Personen nach Art. 26 Abs. 11',gpai:'Modelle mit allgemeinem Verwendungszweck',cra:'Cyber Resilience Act'};
 
 /* 5. Zustandsmodell und Migrationen */
 
@@ -798,6 +799,39 @@ function migrateV15ToV16(saved,sourceVersion=15){
 }
 
 /**
+ * Migriert Version 16 auf 17. Neue entscheidungsrelevante Angaben werden nicht
+ * als verneint unterstellt. Ein inaktiver HR-03-Altwert wird nachvollziehbar
+ * gesichert, wirkt jedoch nicht weiter. Offene Art.-6-Abs.-3- oder CRA-Angaben
+ * erzwingen eine Neubewertung des regulatorischen Prüfschritts.
+ */
+function migrateV16ToV17(saved,sourceVersion=16){
+  const migrated=normalizeState(saved||{}),f=migrated.form,issues=[...(saved?.migration?.issues||[])];
+  let reviewRequired=Boolean(saved?.migration?.reviewRequired),needsReassessment=false;
+  const annexSelected=annexAreas.some(([key])=>f[key]==='yes');
+  const productPathActive=f.productCovered==='yes'||f.productSafetyComponent==='yes';
+  if(!productPathActive&&isFilled(f.annexISection)){
+    migrated.legacyV16InactiveValues={...(migrated.legacyV16InactiveValues||{}),annexISection:f.annexISection};
+    f.annexISection='';
+    issues.push('HR-03: Ein alter Wert aus dem inaktiven Produktpfad wurde gesichert und aus der aktuellen Bewertung entfernt.');
+  }
+  if(annexSelected&&!isFilled(f.significantRisk)){
+    f.significantRisk='review';reviewRequired=true;needsReassessment=true;migrated.evaluated[3]=false;
+    issues.push('Art. 6 Abs. 3: Der erhebliche Einfluss auf Gesundheit, Sicherheit oder Grundrechte war im Datenmodell 16 nicht eigenständig belegt und ist neu zu bewerten.');
+  }
+  for(const key of ['craSaasOnly','craSeparateSoftwareComponent','craUseOnly']){
+    if(!Object.prototype.hasOwnProperty.call(saved?.form||{},key))f[key]='';
+  }
+  if(f.craDigitalProduct==='yes'&&(!isFilled(f.craSaasOnly)||!isFilled(f.craSeparateSoftwareComponent)||!isFilled(f.craUseOnly))){
+    reviewRequired=true;needsReassessment=true;migrated.evaluated[3]=false;
+    issues.push('CRA: SaaS-Bereitstellung, separat bereitgestellte Softwarekomponente und ausschließliche Nutzerrolle sind für den Altbestand neu zu bestätigen.');
+  }
+  const at=new Date().toISOString(),notes=[...new Set(issues)];
+  migrated.schemaVersion=SCHEMA_VERSION;
+  migrated.migration={...(saved?.migration||{}),fromVersion:sourceVersion,at,issues:notes,reviewRequired,needsReassessment,auditTrail:[...(saved?.migration?.auditTrail||[]),{from:16,to:17,at,notes}]};
+  return migrated;
+}
+
+/**
  * Überführt Version 1 zunächst in die Version-3-Struktur. Ursprüngliche Risiken,
  * Organisations- und Triggerdaten werden zusätzlich vollständig unter legacyV1
  * gesichert; wegen der strukturellen Änderung werden alle Prüfschritte neu geöffnet.
@@ -851,6 +885,7 @@ function migrateToCurrent(saved,version){
   if(version===13)advance(13,14,migrateV13ToV14);
   if(version===14)advance(14,15,migrateV14ToV15);
   if(version===15)advance(15,16,migrateV15ToV16);
+  if(version===16)advance(16,17,migrateV16ToV17);
   migrated=normalizeState(migrated);
   if(preNormalizationLegacy.legacyPreV6){migrated.legacyPreV6=preNormalizationLegacy.legacyPreV6;migrated.migration.reviewRequired=true;migrated.evaluated[5]=false;migrated.evaluated[7]=false;migrated.migration.issues=[...new Set([...(migrated.migration.issues||[]),'Nicht eindeutig zuordenbare Organisationsbereiche und Neubewertungsauslöser aus Version 5 oder älter wurden vor der Normalisierung vollständig gesichert.'])];}
   migrated.migration={...(migrated.migration||{}),fromVersion:sourceVersion,auditTrail:[...auditTrail],reviewRequired:Boolean(migrated?.migration?.reviewRequired)};
@@ -860,7 +895,7 @@ function migrateToCurrent(saved,version){
 const FORM_ALLOWED_VALUES=(()=>{
   const rules={},assign=(keys,values)=>keys.forEach(key=>{rules[key]=values;});
   const yesNoReview=['yes','no','review'],yesNoNaReview=['yes','no','na','review'];
-  assign([...definitionQuestionKeys.filter(key=>key!=='objectType'),...scopeQuestionKeys,...roleQuestionKeys,...annexAreas.map(([key])=>key),...transparencyQuestions.map(([key])=>key),...gpaiQuestions.map(([key])=>key).filter(key=>key!=='gObjectType'),...['craDigitalProduct','craRemoteProcessing','craDataConnection','craCommercial','craPrototype','craOpenSource','craExclusion','craSubstantialChange','craManufacturerTakeover','craAiActOverlap','timeAssessmentBasis','timeDutyStatuses','timeTransition','timeLawChanged','publicAuthorityIntendedUse','substantialChangeStatus'],...riskDomainKeys,...riskEvaluationKeys],yesNoReview);
+  assign([...definitionQuestionKeys.filter(key=>key!=='objectType'),...scopeQuestionKeys,...roleQuestionKeys,...annexAreas.map(([key])=>key),...transparencyQuestions.map(([key])=>key),...gpaiQuestions.map(([key])=>key).filter(key=>key!=='gObjectType'),...['significantRisk','craDigitalProduct','craRemoteProcessing','craDataConnection','craCommercial','craPrototype','craOpenSource','craExclusion','craSaasOnly','craSeparateSoftwareComponent','craUseOnly','craSubstantialChange','craManufacturerTakeover','craAiActOverlap','timeAssessmentBasis','timeDutyStatuses','timeTransition','timeLawChanged','publicAuthorityIntendedUse','substantialChangeStatus'],...riskDomainKeys,...riskEvaluationKeys],yesNoReview);
   assign(['realWorldTesting','actualOperationalUse','foreseeableMisuse','sensitiveSituation','publicServiceEntity','unionAuthority','art25OwnBrand','art25SubstantialModification','art25PurposeChange','art25ProductIntegration','craRoleManufacturer','craRoleRepresentative','craRoleImporter','craRoleDistributor','craRoleSteward','craPrototypeLimitedTesting','craPrototypeMarked','manualBlockerActive','preservePreviousAssessments','newTechnicalFeature'],yesNoReview);
   assign(prohibitedQuestions.map(([key])=>key),['yes','no','na','review','not_met','possible','confirmed','exception_review','not_applicable']);
   prohibitedQuestions.forEach(([key])=>{
@@ -980,7 +1015,7 @@ function preserveRecoveryRaw(key,raw,reason){
  * @returns {object} Normalisierter Bewertungszustand oder ein neuer Ausgangszustand.
  */
 function loadState(){
-  const slots=[[STORAGE_KEY,16],[LEGACY_V15_KEY,15],[LEGACY_V14_KEY,14],[LEGACY_V13_KEY,13],[LEGACY_V12_KEY,12],[LEGACY_V11_KEY,11],[LEGACY_V10_KEY,10],[LEGACY_V9_KEY,9],[LEGACY_V8_KEY,8],[LEGACY_V7_KEY,7],[LEGACY_V6_KEY,6],[LEGACY_V5_KEY,5],[LEGACY_V4_KEY,4],[LEGACY_V3_KEY,3],[LEGACY_V2_KEY,2],[LEGACY_V1_KEY,1]];
+  const slots=[[STORAGE_KEY,17],[LEGACY_V16_KEY,16],[LEGACY_V15_KEY,15],[LEGACY_V14_KEY,14],[LEGACY_V13_KEY,13],[LEGACY_V12_KEY,12],[LEGACY_V11_KEY,11],[LEGACY_V10_KEY,10],[LEGACY_V9_KEY,9],[LEGACY_V8_KEY,8],[LEGACY_V7_KEY,7],[LEGACY_V6_KEY,6],[LEGACY_V5_KEY,5],[LEGACY_V4_KEY,4],[LEGACY_V3_KEY,3],[LEGACY_V2_KEY,2],[LEGACY_V1_KEY,1]];
   const recovery=[];
   for(const [key,version] of slots){
     const raw=localStorage.getItem(key);if(raw===null)continue;
@@ -1030,9 +1065,21 @@ function saveState(message='Stand gespeichert.') {
 function assessmentExportObject(){
   state=preparePersistableState(state);
   const reportData=buildReportData();
+  const f=reportData.form,annex=reportData.regulatory.annexHighRisk,tr07=reportData.regulatory.tr07;
+  const assessmentSummary={
+    assessmentId:f.assessmentId||null,assessmentDate:f.assessmentDate||null,toolId:f.internalToolId||null,toolName:f.toolName||null,scenarioVersion:f.assessmentVersion||null,
+    prototypeVersion:reportData.versions.prototypeVersion,dataModelVersion:reportData.versions.dataModelVersion,ruleSetVersion:reportData.versions.ruleSetVersion,methodologyVersion:reportData.versions.methodologyVersion,legalStatus:reportData.versions.legalStatus,gitCommit:reportData.versions.gitCommit||null,
+    aiSystemClassification:{code:reportData.definition.code,label:reportData.definition.label},scope:{code:reportData.scope.code,label:reportData.scope.label},roles:structuredClone(reportData.roles),deployer:reportData.roles.includes('Betreiber'),
+    article5:{code:reportData.regulatory.prohibition.code,label:reportData.regulatory.prohibition.label},article6Paragraph1:{code:reportData.regulatory.productHighRisk.code,label:reportData.regulatory.productHighRisk.label,annexISection:productHighRiskPathActive(createEvaluationContext(reportData.snapshotState,reportData.reference))?(f.annexISection||null):null,annexISectionStatus:productHighRiskPathActive(createEvaluationContext(reportData.snapshotState,reportData.reference))?'answered':'notApplicable'},
+    article6Paragraph2:{code:annex.code,label:annex.label,annexIIIReference:structuredClone(annex.annexIIIReference||[])},article6Paragraph3:{status:annex.art63Status,reason:annex.art63Reason,profilingOverride:Boolean(annex.profilingOverride),documentationRequired:Boolean(annex.documentationRequired),registrationRequired:Boolean(annex.registrationRequired)},
+    tr07:{status:tr07.status,label:tr07.label,primaryLegalBasis:tr07.primaryLegalBasis,additionalReference:tr07.supplementaryBasis,applicableDate:tr07.applicableDate},
+    gpai:{code:reportData.regulatory.gpai.code,label:reportData.regulatory.gpai.label},cra:{product:{code:reportData.regulatory.cra.code,label:reportData.regulatory.cra.label},role:reportData.regulatory.cra.roleOutcome,roles:structuredClone(reportData.regulatory.cra.roles||[])},
+    technicalRisks:structuredClone(reportData.risks),organizationalFindings:structuredClone(reportData.orgSummary),duties:structuredClone(reportData.applicableDuties),measures:structuredClone(reportData.openMeasures),openReviewItems:structuredClone(reportData.openReviews),overallStatus:structuredClone(reportData.decision),resultSignature:reportData.resultSignature
+  };
   return{
     format:'ki-risikobewertung',schemaVersion:SCHEMA_VERSION,exportedAt:new Date().toISOString(),
     versions:structuredClone(reportData.versions),
+    assessmentSummary:structuredClone(assessmentSummary),
     derivedResults:structuredClone({resultSignature:reportData.resultSignature,decision:reportData.decision,regulatory:reportData.regulatory,reviews:reportData.reviews,duties:reportData.duties,riskLevels:reportData.riskLevels,organizationalOverall:reportData.organizationalOverall}),
     assessment:structuredClone(reportData.snapshotState)
   };
@@ -1105,7 +1152,7 @@ function replaceActiveAssessment(next,message){
  * @returns {void}
  * @description Verändert den Live-Zustand, den lokalen Speicher, den Dokumenttitel und die sichtbare Oberfläche; vorhandene Exportdateien bleiben unberührt.
  */
-function resetAssessment(){[STORAGE_KEY,LEGACY_V15_KEY,LEGACY_V14_KEY,LEGACY_V13_KEY,LEGACY_V12_KEY,LEGACY_V11_KEY,LEGACY_V10_KEY,LEGACY_V9_KEY,LEGACY_V8_KEY,LEGACY_V7_KEY,LEGACY_V6_KEY,LEGACY_V5_KEY,LEGACY_V4_KEY,LEGACY_V3_KEY,LEGACY_V2_KEY,LEGACY_V1_KEY,RECOVERY_BACKUP_KEY].forEach(key=>localStorage.removeItem(key));return replaceActiveAssessment(freshState(),'Neue Bewertung gestartet.');}
+function resetAssessment(){[STORAGE_KEY,LEGACY_V16_KEY,LEGACY_V15_KEY,LEGACY_V14_KEY,LEGACY_V13_KEY,LEGACY_V12_KEY,LEGACY_V11_KEY,LEGACY_V10_KEY,LEGACY_V9_KEY,LEGACY_V8_KEY,LEGACY_V7_KEY,LEGACY_V6_KEY,LEGACY_V5_KEY,LEGACY_V4_KEY,LEGACY_V3_KEY,LEGACY_V2_KEY,LEGACY_V1_KEY,RECOVERY_BACKUP_KEY].forEach(key=>localStorage.removeItem(key));return replaceActiveAssessment(freshState(),'Neue Bewertung gestartet.');}
 
 /* 7. Allgemeine Darstellungs- und Feldhilfen */
 
@@ -1129,7 +1176,7 @@ const labelFor = value => ({
   manufacturer:'Hersteller',representative:'Bevollmächtigter',importer:'Einführer',distributor:'Händler',steward:'Open-Source-Software-Steward',downstream:'Nachgelagerter Anbieter',integrator:'Integrator',unclear:'Nicht eindeutig beurteilbar',
   blocker:'Festgestelltes Hindernis',uncertainty:'Offene Bewertung',mandatory:'Zwingende offene Maßnahme',condition:'Mögliche Auflage',contradiction:'Widerspruch',warning:'Hinweis',information:'Information',
   ASSESSMENT_COMPLETE:'Bewertung abgeschlossen',ASSESSMENT_COMPLETE_WITH_OPEN_MEASURES:'Bewertung abgeschlossen mit offenen Maßnahmen',ASSESSMENT_NOT_CONCLUDABLE:'Bewertung nicht abschließbar',USE_NOT_CONTINUABLE:'Vorgesehene Verwendung aufgrund eines festgestellten Hindernisses nicht fortführbar',
-  product_only:'Auf das Produkt anwendbar; keine eigene Wirtschaftsakteursrolle',
+  product_only:'Auf das Produkt anwendbar; keine eigene Wirtschaftsakteursrolle',user_only:'Keine eigene Wirtschaftsakteursrolle; ausschließlich Erwerberin beziehungsweise Nutzerin',
   ai_system_in_scope:'KI-System im Anwendungsbereich',ai_system_special:'KI-System mit Sonderregelung',scope_not_open:'Anwendungsbereich nicht eröffnet',not_ai_system:'Kein KI-System'
 }[value]||value||'Nicht beantwortet');
 const QUESTION_VALUE_LABELS=Object.freeze({
@@ -1146,7 +1193,7 @@ function questionValueLabel(id,value,context=null){
   return evaluationReferences(context).questionValueLabels[id]?.[value]||labelFor(value);
 }
 const FIELD_DISPLAY_LABELS=Object.freeze({
-  sourceQuestionId:'Herkunft oder auslösende Prüffrage',linkedResult:'Verknüpftes Bewertungsergebnis',internalToolId:'Interne Tool-Kennung',assessmentUpdateReason:'Grund und Umfang der späteren Aktualisierung',guideVersion:'Verwendete Leitfadenfassung',publicAuthorityIntendedUse:'Bestimmung zur Verwendung durch eine Behörde oder öffentliche Stelle',scopeLimitationOwner:'Verantwortliche Stelle für die Klärung des begrenzten Pflichtenumfangs',scopeLimitationDue:'Frist zur Klärung des begrenzten Pflichtenumfangs',documentLocation:'Ablageort',accessRights:'Zugriffsrechte',statutoryRetentionStatus:'Status der gesetzlichen Aufbewahrungsfrist',statutoryRetentionBasis:'Gesetzliche Aufbewahrungsfrist und Rechtsgrundlage',internalRetentionPeriod:'Interne Aufbewahrungsfrist',preservePreviousAssessments:'Erhaltung früherer Bewertungsstände',evidenceInventory:'Verzeichnis entscheidungsrelevanter Nachweise',evidenceInventoryVersion:'Version des Nachweisverzeichnisses',evidenceInventoryDate:'Stand des Nachweisverzeichnisses',evidenceInventoryLocation:'Fundstelle des Nachweisverzeichnisses',legalSources:'Verwendete Rechtsquellen und Fundstellen',actualOperationalUse:'Tatsächlicher betrieblicher Einsatz',productCovered:'Produkt nach Anhang I',productSafetyComponent:'Sicherheitsbauteil eines Produkts nach Anhang I',thirdPartyConformity:'Konformitätsbewertung durch unabhängige Stelle',conformityNonSafetyOnly:'Konformitätsbewertung ohne Sicherheitsbezug',manualBlockerActive:'Zusätzlicher entscheidungsbezogener Prüfbedarf',manualBlockerReason:'Begründung des zusätzlichen Prüfbedarfs',timeBasis:'Begründung der zeitlichen Einordnung',timeEvidence:'Nachweise zu Stichtagen und Übergangsregeln',craTransitionDates:'CRA-Übergangs- und Anwendungszeitpunkte',craFirstMarketDate:'Datum des erstmaligen Inverkehrbringens',craPost2027SubstantialChange:'Wesentliche Änderung ab 11. Dezember 2027',craPost2027ChangeDate:'Datum der wesentlichen Änderung',craTransitionEvidence:'Nachweis zur CRA-Übergangsregel',art25SupplierRelationship:'Lieferketten- oder Vertragsbeziehung zu Zulieferern',art25SupplierEvidence:'Nachweis der Zuliefererbeziehung',intendedUseDate:'Vorgesehener Nutzungsbeginn',assessmentId:'Bewertungs-ID',assessmentVersion:'Bewertungsversion',changeHistory:'Änderungshistorie',documentationOwner:'Dokumentationsverantwortung',reviewer:'Prüfende Stelle',approver:'Entscheidende Stelle',overallReasoning:'Zusammenfassende Begründung',nextReviewDate:'Nächster Reviewtermin',reviewFrequency:'Regelmäßige Reviewfrequenz',reviewEvidence:'Nachweise des Reviews',approvalStatus:'Gesonderte Entscheidung',approvalDate:'Entscheidungsdatum',planCoordinator:'Koordination des Maßnahmenplans',planStatus:'Status des Maßnahmenplans',newTechnicalFeature:'Neue technische Eigenschaft',newTechnicalFeatureReason:'Begründung der technischen Änderung',legalRegimeFulfilment:'Pflichterfüllung und Zusammenwirken der Rechtsregime',legalRegimeFulfilmentEvidence:'Begründung und Nachweis zu den Rechtsregimen',treatmentStrategy:'Behandlungsstrategie',proposedTreatment:'Konkrete Risikobehandlung',treatmentDue:'Termin der Risikobehandlung',expectedResidual:'Erwartetes Restrisiko',treatmentStatus:'Status der Risikobehandlung',effectivenessCriterion:'Wirksamkeitskriterium',effectivenessEvidence:'Wirksamkeitsnachweis',effectivenessDate:'Datum der Wirksamkeitsprüfung',effectivenessReviewer:'Prüfende Stelle der Wirksamkeit',verifiedResidual:'Verifiziertes Restrisiko',acceptanceReason:'Begründung der Risikoakzeptanz',riskOwner:'Risikoverantwortung',acceptanceApproval:'Dokumentierte menschliche Entscheidung',reviewReason:'Grund des Prüfbedarfs',reviewOwner:'Zuständige Stelle des Prüfbedarfs',reviewDue:'Frist des Prüfbedarfs',criticalAcceptanceReason:'Besondere Begründung der Akzeptanz',suitableTreatmentAvailability:'Bestimmbarkeit einer geeigneten Behandlung',treatmentAvailabilityReason:'Begründung zur Behandlungsmöglichkeit',decisionCriticality:'Entscheidungskritikalität',blockingReason:'Begründung der Blockierungswirkung',ruleBlockingReason:'Regelbasierte Begründung der Blockierungswirkung',fulfillabilityReason:'Begründung der Erfüllbarkeit',applicabilityReason:'Begründung des Zeitstatus',applicableDate:'Anwendbar ab',obligatedRole:'Verpflichtete Rolle'
+  sourceQuestionId:'Herkunft oder auslösende Prüffrage',linkedResult:'Verknüpftes Bewertungsergebnis',internalToolId:'Interne Tool-Kennung',assessmentUpdateReason:'Grund und Umfang der späteren Aktualisierung',guideVersion:'Verwendete Leitfadenfassung',publicAuthorityIntendedUse:'Bestimmung zur Verwendung durch eine Behörde oder öffentliche Stelle',scopeLimitationOwner:'Verantwortliche Stelle für die Klärung des begrenzten Pflichtenumfangs',scopeLimitationDue:'Frist zur Klärung des begrenzten Pflichtenumfangs',documentLocation:'Ablageort',accessRights:'Zugriffsrechte',statutoryRetentionStatus:'Status der gesetzlichen Aufbewahrungsfrist',statutoryRetentionBasis:'Gesetzliche Aufbewahrungsfrist und Rechtsgrundlage',internalRetentionPeriod:'Interne Aufbewahrungsfrist',preservePreviousAssessments:'Erhaltung früherer Bewertungsstände',evidenceInventory:'Verzeichnis entscheidungsrelevanter Nachweise',evidenceInventoryVersion:'Version des Nachweisverzeichnisses',evidenceInventoryDate:'Stand des Nachweisverzeichnisses',evidenceInventoryLocation:'Fundstelle des Nachweisverzeichnisses',legalSources:'Verwendete Rechtsquellen und Fundstellen',actualOperationalUse:'Tatsächlicher betrieblicher Einsatz',productCovered:'Produkt nach Anhang I',productSafetyComponent:'Sicherheitsbauteil eines Produkts nach Anhang I',annexISection:'Abschnitt des Anhangs I',significantRisk:'Erheblicher Einfluss auf Gesundheit, Sicherheit oder Grundrechte',thirdPartyConformity:'Konformitätsbewertung durch unabhängige Stelle',conformityNonSafetyOnly:'Konformitätsbewertung ohne Sicherheitsbezug',craSaasOnly:'Ausschließlich browserbasierter SaaS-Dienst',craSeparateSoftwareComponent:'Separat bereitgestellte Softwarekomponente',craUseOnly:'Ausschließliche Erwerber- beziehungsweise Nutzerstellung',manualBlockerActive:'Zusätzlicher entscheidungsbezogener Prüfbedarf',manualBlockerReason:'Begründung des zusätzlichen Prüfbedarfs',timeBasis:'Begründung der zeitlichen Einordnung',timeEvidence:'Nachweise zu Stichtagen und Übergangsregeln',craTransitionDates:'CRA-Übergangs- und Anwendungszeitpunkte',craFirstMarketDate:'Datum des erstmaligen Inverkehrbringens',craPost2027SubstantialChange:'Wesentliche Änderung ab 11. Dezember 2027',craPost2027ChangeDate:'Datum der wesentlichen Änderung',craTransitionEvidence:'Nachweis zur CRA-Übergangsregel',art25SupplierRelationship:'Lieferketten- oder Vertragsbeziehung zu Zulieferern',art25SupplierEvidence:'Nachweis der Zuliefererbeziehung',intendedUseDate:'Vorgesehener Nutzungsbeginn',assessmentId:'Bewertungs-ID',assessmentVersion:'Bewertungsversion',changeHistory:'Änderungshistorie',documentationOwner:'Dokumentationsverantwortung',reviewer:'Prüfende Stelle',approver:'Entscheidende Stelle',overallReasoning:'Zusammenfassende Begründung',nextReviewDate:'Nächster Reviewtermin',reviewFrequency:'Regelmäßige Reviewfrequenz',reviewEvidence:'Nachweise des Reviews',approvalStatus:'Gesonderte Entscheidung',approvalDate:'Entscheidungsdatum',planCoordinator:'Koordination des Maßnahmenplans',planStatus:'Status des Maßnahmenplans',newTechnicalFeature:'Neue technische Eigenschaft',newTechnicalFeatureReason:'Begründung der technischen Änderung',legalRegimeFulfilment:'Pflichterfüllung und Zusammenwirken der Rechtsregime',legalRegimeFulfilmentEvidence:'Begründung und Nachweis zu den Rechtsregimen',treatmentStrategy:'Behandlungsstrategie',proposedTreatment:'Konkrete Risikobehandlung',treatmentDue:'Termin der Risikobehandlung',expectedResidual:'Erwartetes Restrisiko',treatmentStatus:'Status der Risikobehandlung',effectivenessCriterion:'Wirksamkeitskriterium',effectivenessEvidence:'Wirksamkeitsnachweis',effectivenessDate:'Datum der Wirksamkeitsprüfung',effectivenessReviewer:'Prüfende Stelle der Wirksamkeit',verifiedResidual:'Verifiziertes Restrisiko',acceptanceReason:'Begründung der Risikoakzeptanz',riskOwner:'Risikoverantwortung',acceptanceApproval:'Dokumentierte menschliche Entscheidung',reviewReason:'Grund des Prüfbedarfs',reviewOwner:'Zuständige Stelle des Prüfbedarfs',reviewDue:'Frist des Prüfbedarfs',criticalAcceptanceReason:'Besondere Begründung der Akzeptanz',suitableTreatmentAvailability:'Bestimmbarkeit einer geeigneten Behandlung',treatmentAvailabilityReason:'Begründung zur Behandlungsmöglichkeit',decisionCriticality:'Entscheidungskritikalität',blockingReason:'Begründung der Blockierungswirkung',ruleBlockingReason:'Regelbasierte Begründung der Blockierungswirkung',fulfillabilityReason:'Begründung der Erfüllbarkeit',applicabilityReason:'Begründung des Zeitstatus',applicableDate:'Anwendbar ab',obligatedRole:'Verpflichtete Rolle'
 });
 
 /**
@@ -1204,7 +1251,7 @@ const orgStatusLabel = value => ({fulfilled:'Erfüllt',partial:'Teilweise erfül
 const fmtDate = value => {
   if(!value)return'Nicht festgelegt';
   const parsed=new Date(/^\d{4}-\d{2}-\d{2}$/.test(value)?`${value}T12:00:00`:value);
-  return Number.isNaN(parsed.getTime())?String(value):new Intl.DateTimeFormat('de-DE').format(parsed);
+  return Number.isNaN(parsed.getTime())?String(value):new Intl.DateTimeFormat('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'}).format(parsed);
 };
 /* 8. Zeitliche Anwendbarkeit */
 
@@ -1341,11 +1388,12 @@ function gpaiTemporalMeta(context=null){
   return reconcileTemporalMeta(transitionAwareTemporal(base,'GPAI-Modell',context),'gpai','GPAI-Modell',context);
 }
 /** Bewertet CRA-Teilpflichten getrennt nach Meldung, allgemeiner Geltung und Übergang. */
-function craTemporalMeta(dutyNumber,context=null){
+function craTemporalMeta(dutyReference,context=null){
   const state=evaluationState(context),KNOWLEDGE_BASE=evaluationReferences(context).knowledgeBase;
-  const reporting=dutyNumber===35,date=reporting?KNOWLEDGE_BASE.verifiedDates.craReporting:KNOWLEDGE_BASE.verifiedDates.craGeneral;
-  const meta=fixedTemporalMeta(date,reporting?'Meldepflichten des Cyber Resilience Act gelten ab 11. September 2026.':'Die allgemeinen Pflichten des Cyber Resilience Act gelten ab 11. Dezember 2027.',context);
-  if(reporting)return{...meta,applicabilityReason:`${meta.applicabilityReason} Die Meldepflicht gilt nach der Zeittabelle auch für vor dem 11. Dezember 2027 in Verkehr gebrachte Produkte. ${state.form.craReportingProcess||''}`.trim()};
+  const code=String(dutyReference),number=Number((code.match(/DUTY-(\d{2})/)||[])[1]||dutyReference),manufacturerReporting=number===35&&!code.endsWith('-S'),stewardReporting=code.endsWith('-S');
+  const reporting=manufacturerReporting||stewardReporting,date=manufacturerReporting?KNOWLEDGE_BASE.verifiedDates.craManufacturerReporting:stewardReporting?KNOWLEDGE_BASE.verifiedDates.craStewardReporting:KNOWLEDGE_BASE.verifiedDates.craGeneral;
+  const meta=fixedTemporalMeta(date,manufacturerReporting?'Hersteller-Meldepflichten nach Art. 14 CRA gelten ab 11. September 2026.':stewardReporting?'Die Meldepflicht des Open-Source-Software-Stewards nach Art. 24 Abs. 3 CRA gilt ab 11. Dezember 2027.':'Die allgemeinen Pflichten des Cyber Resilience Act gelten ab 11. Dezember 2027.',context);
+  if(reporting)return{...meta,reportingRole:manufacturerReporting?'manufacturer':'steward',applicabilityReason:`${meta.applicabilityReason} ${manufacturerReporting?'Die Hersteller-Meldepflicht gilt nach der Zeittabelle auch für vor dem 11. Dezember 2027 in Verkehr gebrachte Produkte.':'Hersteller- und Steward-Meldepflicht werden mit getrennten Rollen, Rechtsgrundlagen und Statuswerten geführt.'} ${state.form.craReportingProcess||''}`.trim()};
   const firstMarket=state.form.craFirstMarketDate,change=state.form.craSubstantialChange,changeDate=state.form.craSubstantialChangeDate,evidence=state.form.craTransitionEvidence||state.form.craTransitionDates||'';
   if(!isFilled(firstMarket))return{...meta,applicability:'not_assessable',applicabilityReason:`${meta.applicabilityReason} Das Datum des erstmaligen Inverkehrbringens fehlt; die Altproduktregel kann nicht beurteilt werden.`};
   if(firstMarket<KNOWLEDGE_BASE.verifiedDates.craGeneral){
@@ -1371,7 +1419,8 @@ function dutyTemporalMeta(duty,context=null){
   if(number>=2&&number<=14)return highRiskTemporalMeta(context);
   if(number>=22&&number<=26)return transparencyTemporalMeta(context);
   if(number>=27&&number<=31)return gpaiTemporalMeta(context);
-  if(number>=32&&number<=36)return craTemporalMeta(number,context);
+  if(number>=32&&number<=36)return craTemporalMeta(duty.code,context);
+  if(duty.code==='DUTY-35-S')return craTemporalMeta(duty.code,context);
   return{applicability:'not_assessable',applicableDate:'',applicabilityReason:'Für diese Pflicht konnte kein eindeutiger Zeitpfad bestimmt werden.'};
 }
 
@@ -1749,11 +1798,12 @@ function renderStep2(){
 }
 
 function renderCraAssessment(evaluation){
-  const gate=craApplicabilityGate(),opening=questionsFrom(['craDigitalProduct','craRemoteProcessing','craDataConnection','craCommercial','craPrototype','craOpenSource','craExclusion'].map(key=>[key]));
+  const gate=craApplicabilityGate(),opening=questionsFrom(['craDigitalProduct','craRemoteProcessing','craDataConnection','craCommercial','craPrototype','craOpenSource','craExclusion'].map(key=>[key]))+sectionTitle('Bereitstellungsform','Eine reine browserbasierte SaaS-Nutzung ohne separat bereitgestellte Softwarekomponente wird nicht allein wegen der Internetverbindung als Produkt mit digitalen Elementen behandelt.')+fieldGrid(hField('Ausschließlich browserbasierter SaaS-Dienst','craSaasOnly',{required:true,type:'select',values:regulatoryChoiceOptions})+hField('Separat bereitgestellte Softwarekomponente','craSeparateSoftwareComponent',{required:true,type:'select',values:regulatoryChoiceOptions}));
   const conclusion=fieldGrid(conclusionSelect('Manuelle Schlussfolgerung','craConclusion',[['no','Auf das Produkt nicht anwendbar'],['product_only','Auf das Produkt anwendbar; keine eigene Wirtschaftsakteursrolle'],['yes','Auf das Produkt anwendbar; eigene Pflichten festgestellt'],['special','Ausschluss / Spezialregelung'],['review','Nicht eindeutig beurteilbar / weiterer Prüfbedarf']])+hField('Begründung, Rolle und Produktkategorie','craBasis',{required:true,type:'textarea',full:true})+hField('Konformität, Schwachstellen- und Vorfallnachweise','craEvidence',{required:true,type:'textarea',full:true}));
   if(gate.status==='no')return opening+`<div class="evaluation-box valid"><div><span>CRA-08 bis CRA-12</span><strong>Nicht erforderlich</strong><small>${escapeHtml(gate.reason)} Historische Angaben bleiben gespeichert, werden aber nicht als aktuelles Ergebnis verwendet.</small></div></div>`+conclusion+renderEvaluationBox('Plausibilisierte Auswertung',evaluation);
   return opening+questionsFrom(['craSubstantialChange','craManufacturerTakeover','craAiActOverlap'].map(key=>[key]))+sectionTitle(guideLabel('CRA-08'),'Alle tatsächlich einschlägigen Rollen einzeln auswählen; mehrere Rollen können gleichzeitig bestehen. Bestätigte und noch ungeklärte Rollen werden parallel ausgewiesen.')+fieldGrid(
     craRoleFields.map(([field,,label])=>hField(label,field,{required:true,type:'select',values:[['no','Nein'],['yes','Ja'],['review','Weiterer Prüfbedarf']]})).join('')+
+    hField('Keine eigene Wirtschaftsakteursrolle; Organisation ist ausschließlich Erwerberin beziehungsweise Nutzerin','craUseOnly',{required:true,type:'select',full:true,values:regulatoryChoiceOptions})+
     hField(guideLabel('CRA-11'),'craProductClass',{required:true,type:'select',full:true,values:[['other','Sonstiges Produkt'],['class1','Klasse I'],['class2','Klasse II'],['critical','Kritisches Produkt'],['none','Keine – nur wenn die Produktklassifizierung nicht einschlägig ist'],['review','Weiterer Prüfbedarf']],hint:guideHint('CRA-11')})+
     (state.form.craPrototype==='yes'?hField('Prototyp ist ausschließlich für zeitlich und sachlich begrenzte Tests bereitgestellt','craPrototypeLimitedTesting',{required:true,type:'select',values:regulatoryChoiceOptions})+hField('Prototyp- oder Teststatus ist gegenüber Empfängern eindeutig gekennzeichnet','craPrototypeMarked',{required:true,type:'select',values:regulatoryChoiceOptions}):'')+
     hField('Produktart','craProductType',{required:true,type:'select',values:[['software','Software'],['hardware','Hardware'],['remote','Fernverarbeitungslösung'],['mixed','Kombiniertes Produkt'],['unclear','Nicht eindeutig beurteilbar']]})+
@@ -1765,25 +1815,25 @@ function renderCraAssessment(evaluation){
 }
 
 function renderStep4(){
-  const e=allRegulatoryEvaluations(),path=aiActPathStatus(),gpaiPath=gpaiPathStatus(),high=evaluateHighRiskSummary(),annexHit=annexAreas.some(([key])=>state.form[key]==='yes');
+  const e=allRegulatoryEvaluations(),path=aiActPathStatus(),gpaiPath=gpaiPathStatus(),high=evaluateHighRiskSummary(),annexHit=annexAreas.some(([key])=>state.form[key]==='yes'),productPathActive=productHighRiskPathActive();
   const continueAI=path.required&&e.prohibition.code!=='confirmed',stoppedReason=e.prohibition.code==='confirmed'?'Nicht fortgeführt aufgrund festgestellter verbotener KI-Praxis. GPAI, CRA sowie technische und organisatorische Prüfungen bleiben möglich.':path.reason;
-  const annexFollow=annexHit?`${sectionTitle('Filterprüfung nach Art. 6 Abs. 3','Die vier Bedingungen HR-14 bis HR-17 sind alternativ. HR-18 ist nur eine Kontrollfrage; HR-19 schließt den Filter bei Profiling aus.')}${fieldGrid(hField('Konkreter Anhang-III-Verwendungsfall','specificAnnexUse',{required:true,type:'textarea',full:true}))}${questionsFrom(['narrowProcedural','completedResultImprovement','patternDetection','preparatoryTask','materialInfluenceControl','profiling'].map(key=>[key]))}${state.form.annexEssentialServices==='yes'?hQuestion('annexIII5bc',guideLabel('HR-20'),guideHint('HR-20'),regulatoryChoiceOptions):''}`:'';
+  const annexFollow=annexHit?`${sectionTitle('Filterprüfung nach Art. 6 Abs. 3','Die vier Bedingungen HR-14 bis HR-17 sind alternativ. Die Ausnahme setzt zusätzlich voraus, dass kein erheblicher Einfluss, keine materielle Entscheidungsbeeinflussung nach HR-18 und kein Profiling nach HR-19 vorliegen.')}${fieldGrid(hField('Konkreter Anhang-III-Verwendungsfall','specificAnnexUse',{required:true,type:'textarea',full:true})+hField('Birgt das System ein erhebliches Risiko für Gesundheit, Sicherheit oder Grundrechte?','significantRisk',{required:true,type:'select',full:true,values:regulatoryChoiceOptions}))}${questionsFrom(['narrowProcedural','completedResultImprovement','patternDetection','preparatoryTask','materialInfluenceControl','profiling'].map(key=>[key]))}${state.form.annexEssentialServices==='yes'?hQuestion('annexIII5bc',guideLabel('HR-20'),guideHint('HR-20'),regulatoryChoiceOptions):''}`:'';
   const notRequired=reason=>`<div class="evaluation-box valid"><div><span>Pfadstatus</span><strong>Nicht erforderlich</strong><small>${escapeHtml(reason)}</small></div></div>`;
   const art27Block=continueAI&&e.annexHighRisk.code==='yes'&&state.form.role_deployer?sectionTitle('Ableitungsgrundlagen für Art. 27 und Art. 49','Die Tatsachen werden nicht doppelt abgefragt, sondern aus CTX-13, CTX-14, HR-07 und HR-20 übernommen.')+`<div class="report-facts">${reportFact('CTX-13',labelFor(state.form.publicServiceEntity))}${reportFact('CTX-14',labelFor(state.form.unionAuthority))}${reportFact('Anhang III Nr. 2',labelFor(state.form.annexCriticalInfrastructure))}${reportFact('HR-20',labelFor(state.form.annexIII5bc))}</div>`:'';
   return `<div class="panel">${intro('Jeder regulatorische Pfad besitzt eine automatische Auswertung. Manuelle Schlussfolgerungen werden nur akzeptiert, wenn sie mit den Tatsachenangaben vereinbar sind.')} ${requiredNote()}${path.provisional?'<div class="validation-alert"><strong>Vorläufige Einordnung</strong><p>Schritt 2 ist noch unklar. Alle AI-Act-Ergebnisse bleiben vorläufig und erlauben keine abschließende Empfehlung.</p></div>':''}
     ${details('A · Verbotene KI-Praktiken nach Art. 5',path.required?prohibitedQuestions.map(prohibitedQuestionBlock).join('')+fieldGrid(
       conclusionSelect('Manuelle Schlussfolgerung','prohibitionConclusion',[['none','Kein Verbotstatbestand festgestellt'],['exception','Tatbestand mit Ausnahme dokumentiert'],['confirmed','Verbotstatbestand festgestellt'],['review','Nicht abschließend beurteilbar']])+hField('Gesamtbegründung','prohibitionBasis',{required:true,type:'textarea',full:true})+hField('Nachweise und Fundstellen','prohibitionEvidence',{required:true,type:'textarea',full:true})
     )+renderEvaluationBox('Plausibilisierte Auswertung',e.prohibition):notRequired(path.reason),true,e.prohibition.label)}
-    ${details('B · Hochrisiko nach Art. 6 Abs. 1 / Anhang I',continueAI?questionsFrom([['productCovered'],['productSafetyComponent']])+fieldGrid(
+    ${details('B · Hochrisiko nach Art. 6 Abs. 1 / Anhang I',continueAI?questionsFrom([['productCovered'],['productSafetyComponent']])+(productPathActive?fieldGrid(
       hField(guideLabel('HR-03'),'annexISection',{required:true,type:'select',full:true,values:[['A','Anhang I Abschnitt A'],['B','Anhang I Abschnitt B'],['review','Weiterer Prüfbedarf']],hint:guideHint('HR-03')})
-    )+questionsFrom([['thirdPartyConformity'],['conformityNonSafetyOnly']])+fieldGrid(
+    ):`<div class="evaluation-box valid"><div><span>HR-03</span><strong>Nicht erforderlich</strong><small>HR-01 und HR-02 eröffnen keinen Produktpfad. Ein historischer Wert wird nicht ausgewertet.</small></div></div>`)+questionsFrom([['thirdPartyConformity'],['conformityNonSafetyOnly']])+fieldGrid(
       conclusionSelect('Manuelle Schlussfolgerung','productHighRiskConclusion',[['no','Nicht einschlägig'],['yes','Hochrisiko-KI-System'],['review','Weiterer Prüfbedarf']])+hField('Begründung der Prüfung','productHighRiskBasis',{required:true,type:'textarea',full:true})+hField('Produktrechtliche Nachweise','productHighRiskEvidence',{required:true,type:'textarea',full:true})
     )+renderEvaluationBox('Plausibilisierte Auswertung',e.productHighRisk):notRequired(stoppedReason),false,e.productHighRisk.label)}
     ${details('C · Hochrisiko nach Art. 6 Abs. 2 / Anhang III',continueAI?questionsFrom(annexAreas)+annexFollow+fieldGrid(
       conclusionSelect('Manuelle Schlussfolgerung','annexHighRiskConclusion',[['no','Nicht einschlägig'],['yes','Hochrisiko-KI-System'],['exception','Ausnahme nach Art. 6 Abs. 3 dokumentiert'],['review','Weiterer Prüfbedarf']])+hField('Begründung','annexBasis',{required:true,type:'textarea',full:true})+hField('Nachweise, Dokumentation und Registrierung','annexEvidence',{required:true,type:'textarea',full:true})
     )+renderEvaluationBox('Plausibilisierte Auswertung',e.annexHighRisk)+art27Block+(high.code==='high_risk'?temporalFields('highRisk','Zeitliche Anwendbarkeit der Hochrisikopflichten'):''):notRequired(stoppedReason),false,e.annexHighRisk.label)}
     ${details('D · Anbieterpflichten nach Art. 25',continueAI&&high.code==='high_risk'?questionsFrom(['art25OwnBrand','art25SubstantialModification','art25PurposeChange','art25ProductIntegration'].map(key=>[key]))+fieldGrid(hField('Abschließende Art.-25-Einordnung','art25Conclusion',{required:true,type:'select',values:[['provider','Anbieterpflichten einschlägig'],['not_applicable','Nicht einschlägig'],['review','Nicht eindeutig beurteilbar / weiterer Prüfbedarf']]})+hField('Begründung und Nachweis','art25Basis',{required:true,type:'textarea',full:true})+hField('Lieferketten- oder Vertragsbeziehung zu Zulieferern nach Art. 25 Abs. 4','art25SupplierRelationship',{required:true,type:'textarea',full:true})+hField('Nachweis der schriftlichen Vereinbarung oder begründeten Nichtrelevanz','art25SupplierEvidence',{required:true,type:'textarea',full:true}))+renderEvaluationBox('Regelbasiert abgeleitete Auswertung',e.art25)+(e.art25.code==='applicable'?temporalFields('art25','Zeitliche Anwendbarkeit der Art.-25-Pflichten'):''):notRequired(continueAI?'Art. 25 wird erst nach einer festgestellten Hochrisikoeinstufung geprüft.':stoppedReason),false,e.art25.label)}
-    ${details('E · Transparenzpflichten nach Art. 50',continueAI?transparencyQuestions.map(transparencyQuestionBlock).join('')+fieldGrid(
+    ${details('E · Transparenzpflichten nach Art. 50 und Information nach Art. 26 Abs. 11',continueAI?transparencyQuestions.filter(([key])=>key!=='tHighRiskAffectedInfo').map(transparencyQuestionBlock).join('')+sectionTitle('TR-07 · Information betroffener Personen nach Art. 26 Abs. 11','Eigenständige Betreiberpflicht für Anhang-III-Hochrisiko-KI-Systeme, die Entscheidungen über natürliche Personen treffen oder unterstützen; unbeschadet des Art. 50.')+questionsFrom([['tHighRiskAffectedInfo']])+renderEvaluationBox('Regelbasiert abgeleitete Auswertung nach Art. 26 Abs. 11',e.tr07)+fieldGrid(
       conclusionSelect('Manuelle Schlussfolgerung','transparencyConclusion',[['none','Keine Pflicht festgestellt'],['provider','Anbieterpflicht'],['deployer','Betreiberpflicht'],['multiple','Mehrere Pflichten'],['exception','Ausnahme dokumentiert'],['review','Nicht eindeutig beurteilbar / weiterer Prüfbedarf']])+hField('Begründung','transparencyBasis',{required:true,type:'textarea',full:true})+hField('Nachweise und geplante Kennzeichnung','transparencyEvidence',{required:true,type:'textarea',full:true})
     )+renderEvaluationBox('Plausibilisierte Auswertung',e.transparency)+(['provider','deployer','multiple'].includes(e.transparency.code)?temporalFields('transparency','Zeitliche Anwendbarkeit der Transparenzpflichten'):''):notRequired(stoppedReason),false,e.transparency.label)}
     ${details('F · GPAI-Modell und systemisches Risiko',gpaiPath.required?`<p class="path-intro">${escapeHtml(gpaiPath.reason)}</p>`+questionsFrom(gpaiQuestions.filter(([key])=>key!=='gObjectType'))+fieldGrid(
@@ -2021,6 +2071,43 @@ function conclusionCheck(autoCode,manual,allowed,labels,context){
   if(manual&&!allowed.includes(manual))contradictions.push(`${context}: Manuelle Schlussfolgerung „${labels[manual]||manual}“ widerspricht dem automatisch ableitbaren Ergebnis.`);
   return contradictions;
 }
+/** HR-03 ist nur aktiv, wenn HR-01 oder HR-02 den Produktpfad tatsächlich eröffnet. */
+function productHighRiskPathActive(context=null){const f=evaluationState(context).form;return f.productCovered==='yes'||f.productSafetyComponent==='yes';}
+
+const ART_6_3_STATUS=Object.freeze({HIGH_RISK:'HIGH_RISK',NOT_HIGH_RISK_BY_ART_6_3:'NOT_HIGH_RISK_BY_ART_6_3',NEEDS_REVIEW:'NEEDS_REVIEW',NOT_APPLICABLE:'NOT_APPLICABLE'});
+
+/**
+ * Gemeinsame fachliche Entscheidungsquelle für Art. 6 Abs. 2 und 3.
+ * Die Reihenfolge entspricht der gesetzlichen Sperrwirkung: Profiling,
+ * erheblicher Risikoeinfluss und materielle Entscheidungsbeeinflussung
+ * verhindern die Ausnahme. Fehlende entscheidende Angaben werden niemals als
+ * Verneinung behandelt.
+ */
+function evaluateArt63Decision(context=null){
+  const f=evaluationState(context).form,areas=evaluationReferences(context).annexAreas,selected=areas.filter(([key])=>f[key]==='yes'),areaUnknown=areas.filter(([key])=>!isFilled(f[key])||f[key]==='review'||f[key]==='na');
+  const conditions=['narrowProcedural','completedResultImprovement','patternDetection','preparatoryTask'];
+  const labels={
+    HIGH_RISK:'Hochrisiko-KI-System; die Ausnahme nach Art. 6 Abs. 3 greift nicht',
+    NOT_HIGH_RISK_BY_ART_6_3:'Nicht als hochriskant nach Art. 6 Abs. 3; Dokumentation nach Art. 6 Abs. 4 und Registrierung nach Art. 49 Abs. 2 erforderlich',
+    NEEDS_REVIEW:'Weiterer Prüfbedarf zur Ausnahme nach Art. 6 Abs. 3',
+    NOT_APPLICABLE:'Art. 6 Abs. 3 nicht anwendbar – kein Anhang-III-Anwendungsfall'
+  };
+  let status=ART_6_3_STATUS.NEEDS_REVIEW,reason='Entscheidungsrelevante Angaben sind unvollständig oder nicht eindeutig.';
+  if(!selected.length&&!areaUnknown.length){status=ART_6_3_STATUS.NOT_APPLICABLE;reason='Alle Anhang-III-Bereiche sind nachvollziehbar verneint.';}
+  else if(selected.length){
+    if(f.profiling==='yes'){status=ART_6_3_STATUS.HIGH_RISK;reason='HR-19 ist bejaht: Profiling natürlicher Personen schließt die Ausnahme nach Art. 6 Abs. 3 aus.';}
+    else if(f.significantRisk==='yes'){status=ART_6_3_STATUS.HIGH_RISK;reason='Ein erheblicher Einfluss auf Gesundheit, Sicherheit oder Grundrechte ist bejaht; die Ausnahme nach Art. 6 Abs. 3 greift nicht.';}
+    else if(f.materialInfluenceControl==='yes'){status=ART_6_3_STATUS.HIGH_RISK;reason='HR-18 ist bejaht: Die materielle Beeinflussung des Entscheidungsergebnisses verhindert die Ausnahme nach Art. 6 Abs. 3.';}
+    else{
+      const decisive=['profiling','significantRisk','materialInfluenceControl',...conditions],unknown=decisive.filter(key=>!isFilled(f[key])||f[key]==='review'||f[key]==='na');
+      if(unknown.length){status=ART_6_3_STATUS.NEEDS_REVIEW;reason=`Nicht abschließend beantwortet: ${unknown.map(key=>QUESTION_IDS[key]||key).join(', ')}.`;}
+      else if(conditions.some(key=>f[key]==='yes')){status=ART_6_3_STATUS.NOT_HIGH_RISK_BY_ART_6_3;reason='Kein erheblicher oder materieller Einfluss, kein Profiling und mindestens eine Bedingung aus HR-14 bis HR-17 ist erfüllt.';}
+      else{status=ART_6_3_STATUS.HIGH_RISK;reason='Keine der alternativen Bedingungen aus HR-14 bis HR-17 ist erfüllt; das Anhang-III-System bleibt hochriskant.';}
+    }
+  }
+  const legacyCode=status===ART_6_3_STATUS.HIGH_RISK?'yes':status===ART_6_3_STATUS.NOT_HIGH_RISK_BY_ART_6_3?'exception':status===ART_6_3_STATUS.NOT_APPLICABLE?'no':'review';
+  return{status,code:legacyCode,label:labels[status],reason,annexIIISelected:selected.map(([,label])=>label),annexIIIReference:selected.map(([key])=>QUESTION_IDS[key]),profilingOverride:f.profiling==='yes',documentationRequired:status===ART_6_3_STATUS.NOT_HIGH_RISK_BY_ART_6_3,registrationRequired:status===ART_6_3_STATUS.NOT_HIGH_RISK_BY_ART_6_3};
+}
 function isSensitiveArt5(key){return['pNonConsensualIntimate','pCsam'].includes(key);}
 function art5TemporalMeta(key,context=null){
   const state=evaluationState(context),KNOWLEDGE_BASE=evaluationReferences(context).knowledgeBase,isNew=isSensitiveArt5(key),date=isNew?KNOWLEDGE_BASE.verifiedDates.article5New:KNOWLEDGE_BASE.verifiedDates.article5General,assessment=state.form.assessmentDate,intended=state.form.intendedUseDate;
@@ -2100,10 +2187,10 @@ function evaluateProhibitedPractices(context=null){
 function evaluateProductHighRisk(context=null){
   const state=evaluationState(context),path=aiActPathStatus(context);if(!path.required)return evaluationResult('not_required','Nicht erforderlich aufgrund des Ergebnisses aus Schritt 2',{basis:'EU AI Act Art. 6 Abs. 1',reason:path.reason});
   if(evaluateProhibitedPractices(context).code==='confirmed')return evaluationResult('not_continued','Nicht fortgeführt aufgrund festgestellter verbotener KI-Praxis',{basis:'EU AI Act Art. 5 und 6',reason:'Verbotene KI-Praxis festgestellt.'});
-  const f=state.form,keys=['productCovered','productSafetyComponent','annexISection','thirdPartyConformity','conformityNonSafetyOnly'],missing=[],reviewNeeds=[];
+  const f=state.form,pathActive=productHighRiskPathActive(context),keys=['productCovered','productSafetyComponent',...(pathActive?['annexISection']:[]),'thirdPartyConformity','conformityNonSafetyOnly'],missing=[],reviewNeeds=[];
   keys.forEach(key=>{if(!isFilled(f[key]))missing.push(key);if(f[key]==='review'||f[key]==='na')reviewNeeds.push(key);});
   let autoCode='review';
-  if(!missing.length&&!reviewNeeds.length){if((f.productCovered==='yes'||f.productSafetyComponent==='yes')&&f.thirdPartyConformity==='yes'&&f.conformityNonSafetyOnly==='no')autoCode='yes';else if((f.productCovered==='no'&&f.productSafetyComponent==='no')||f.thirdPartyConformity==='no'||f.conformityNonSafetyOnly==='yes')autoCode='no';}
+  if(!missing.length&&!reviewNeeds.length){if(pathActive&&f.thirdPartyConformity==='yes'&&f.conformityNonSafetyOnly==='no')autoCode='yes';else if((f.productCovered==='no'&&f.productSafetyComponent==='no')||f.thirdPartyConformity==='no'||f.conformityNonSafetyOnly==='yes')autoCode='no';}
   const labels={yes:'Hochrisiko nach Art. 6 Abs. 1',no:'Art. 6 Abs. 1 nicht einschlägig',review:'Weiterer Prüfbedarf'};
   const contradictions=conclusionCheck(autoCode,f.productHighRiskConclusion,[autoCode],labels,'Art. 6 Abs. 1');
   return evaluationResult(contradictions.length?'review':autoCode,contradictions.length?labels.review:labels[autoCode],{triggers:autoCode==='yes'?['HR-01 oder HR-02 sowie HR-04 sind erfüllt; HR-05 ist verneint.']:[],missing,contradictions,reviewNeeds,critical:autoCode==='review',basis:'EU AI Act Art. 6 Abs. 1 bis 1c und Anhang I',manual:f.productHighRiskConclusion,manualLabel:labels[f.productHighRiskConclusion]||'Nicht ausgewählt'});
@@ -2117,25 +2204,45 @@ function evaluateProductHighRisk(context=null){
 function evaluateAnnexHighRisk(context=null){
   const state=evaluationState(context),annexAreas=evaluationReferences(context).annexAreas,path=aiActPathStatus(context);if(!path.required)return evaluationResult('not_required','Nicht erforderlich aufgrund des Ergebnisses aus Schritt 2',{basis:'EU AI Act Art. 6 Abs. 2 und 3',reason:path.reason});
   if(evaluateProhibitedPractices(context).code==='confirmed')return evaluationResult('not_continued','Nicht fortgeführt aufgrund festgestellter verbotener KI-Praxis',{basis:'EU AI Act Art. 5 und 6',reason:'Verbotene KI-Praxis festgestellt.'});
-  const f=state.form,areaAnswers=annexAreas.map(([key])=>f[key]),missing=[],reviewNeeds=[],triggers=[];
+  const f=state.form,missing=[],reviewNeeds=[],triggers=[];
   annexAreas.forEach(([key,label])=>{if(!isFilled(f[key]))missing.push(label);if(['review','na'].includes(f[key]))reviewNeeds.push(label);if(f[key]==='yes')triggers.push(label);});
   const hit=triggers.length>0;
-  const filterKeys=['narrowProcedural','completedResultImprovement','patternDetection','preparatoryTask','materialInfluenceControl','profiling'];
+  const filterKeys=['significantRisk','narrowProcedural','completedResultImprovement','patternDetection','preparatoryTask','materialInfluenceControl','profiling'];
   if(hit){const detailKeys=['specificAnnexUse',...filterKeys,'annexBasis','annexEvidence'];if(f.annexEssentialServices==='yes')detailKeys.push('annexIII5bc');detailKeys.forEach(key=>{if(!isFilled(f[key]))missing.push(key);if(f[key]==='review')reviewNeeds.push(key);});}
-  let autoCode='review';
-  if(!missing.length&&!reviewNeeds.length&&!hit&&areaAnswers.every(v=>v==='no'))autoCode='no';
-  if(hit&&!missing.length&&!reviewNeeds.length){
-    const alternativeMet=['narrowProcedural','completedResultImprovement','patternDetection','preparatoryTask'].some(k=>f[k]==='yes');
-    if(f.profiling==='yes'||!alternativeMet)autoCode='yes';
-    else if(alternativeMet&&f.profiling==='no'&&f.materialInfluenceControl==='no')autoCode='exception';
-    else if(alternativeMet&&f.profiling==='no'&&f.materialInfluenceControl==='yes')autoCode='review';
-  }
+  const art63=evaluateArt63Decision(context),autoCode=art63.code;
   const labels={yes:'Hochrisiko nach Art. 6 Abs. 2',no:'Art. 6 Abs. 2 nicht einschlägig',exception:'Ausnahme nach Art. 6 Abs. 3 dokumentiert',review:'Weiterer Prüfbedarf – Art.-6-Abs.-3-Prüfung offen'};
   const contradictions=conclusionCheck(autoCode,f.annexHighRiskConclusion,[autoCode],labels,'Anhang III');
   if(f.profiling==='yes'&&f.annexHighRiskConclusion==='exception')contradictions.push('Profiling natürlicher Personen schließt die Ausnahme nach Art. 6 Abs. 3 aus.');
-  if(f.materialInfluenceControl==='yes'&&['yes','exception'].includes(f.annexHighRiskConclusion))contradictions.push('HR-18 widerspricht der beanspruchten Filterbedingung; eine automatische Hochrisiko- oder Ausnahmeentscheidung ist nicht zulässig.');
   const effective=contradictions.length?'review':autoCode;
-  return evaluationResult(effective,labels[effective],{triggers,missing,contradictions,reviewNeeds:[...reviewNeeds,...(f.materialInfluenceControl==='yes'?['HR-18: weiterer fachlicher oder juristischer Prüfbedarf wegen eindeutigen Widerspruchs.']:[])],critical:effective==='review',basis:'EU AI Act Art. 6 Abs. 2 bis 4 sowie Anhang III',manual:f.annexHighRiskConclusion,manualLabel:labels[f.annexHighRiskConclusion]||'Nicht ausgewählt',filterApplied:effective==='exception'});
+  return evaluationResult(effective,labels[effective],{triggers,missing,contradictions,reviewNeeds,critical:effective==='review',basis:'EU AI Act Art. 6 Abs. 2 bis 4 sowie Anhang III',manual:f.annexHighRiskConclusion,manualLabel:labels[f.annexHighRiskConclusion]||'Nicht ausgewählt',filterApplied:effective==='exception',art63Status:contradictions.length?ART_6_3_STATUS.NEEDS_REVIEW:art63.status,art63Reason:art63.reason,profilingOverride:art63.profilingOverride,annexIIIReference:art63.annexIIIReference,documentationRequired:art63.documentationRequired,registrationRequired:art63.registrationRequired});
+}
+
+/**
+ * Bewertet TR-07 ausschließlich als Betreiberpflicht nach Art. 26 Abs. 11.
+ * Art. 50 bleibt ein unabhängiger Transparenzpfad und wird nur als gesetzlicher
+ * Vorbehalt genannt. Eine wirksame Ausnahme nach Art. 6 Abs. 3 oder ein reiner
+ * Anhang-I-Fall aktiviert TR-07 nicht.
+ */
+function evaluateTR07(context=null){
+  const state=evaluationState(context),f=state.form,path=aiActPathStatus(context),annex=evaluateAnnexHighRisk(context),contradictions=[];
+  const base={basis:'Art. 26 Abs. 11 EU AI Act; unbeschadet des Art. 50',primaryLegalBasis:'Art. 26 Abs. 11 EU AI Act',supplementaryBasis:'unbeschadet des Art. 50',applicableDate:evaluationReferences(context).knowledgeBase.verifiedDates.highRiskAnnexIII,manual:f.tHighRiskAffectedInfo||'',contradictions,missing:[],reviewNeeds:[],critical:false};
+  let status='NOT_APPLICABLE',reason='Die tatbestandlichen Voraussetzungen des Art. 26 Abs. 11 liegen nicht vor.';
+  if(!path.required){reason=`Der EU-AI-Act-Pfad ist nicht eröffnet: ${path.reason}`;}
+  else if(annex.code==='review'){status='NEEDS_REVIEW';reason='Die Hochrisikoeinstufung nach Art. 6 Abs. 2 in Verbindung mit Anhang III ist nicht abschließend bestimmt.';}
+  else if(annex.code!=='yes'){reason=annex.code==='exception'?'Die wirksame Ausnahme nach Art. 6 Abs. 3 verhindert die Anwendung des Art. 26 Abs. 11.':'Es liegt kein Hochrisiko-KI-System nach Art. 6 Abs. 2 in Verbindung mit Anhang III vor.';}
+  else{
+    const deployer=f.role_deployer===true||f.roleDeployerFact==='yes',deployerKnown=deployer||f.roleDeployerFact==='no';
+    const decisionSupport=['support','recommendation','material','automated'].includes(f.decisionInfluence),decisionKnown=decisionSupport||f.decisionInfluence==='information';
+    if(!deployerKnown){status='NEEDS_REVIEW';reason='Die Betreiberrolle der Organisation ist nicht abschließend bestimmt.';}
+    else if(!deployer){reason='Die bewertete Organisation ist nicht Betreiber des Systems.';}
+    else if(!decisionKnown){status='NEEDS_REVIEW';reason='Es ist nicht abschließend geklärt, ob das System Entscheidungen über natürliche Personen trifft oder solche Entscheidungen unterstützt.';}
+    else if(!decisionSupport){reason='Das System trifft oder unterstützt nach den dokumentierten Angaben keine Entscheidung über natürliche Personen.';}
+    else{status='APPLICABLE';reason='Die Organisation ist Betreiber eines Anhang-III-Hochrisiko-KI-Systems, das eine Entscheidung über natürliche Personen unterstützt. Die betroffenen Personen sind über die Verwendung des Systems zu informieren.';}
+  }
+  const expected=status==='APPLICABLE'?'yes':status==='NOT_APPLICABLE'?'no':'review';
+  if(isFilled(f.tHighRiskAffectedInfo)&&f.tHighRiskAffectedInfo!==expected)contradictions.push(`TR-07: Die manuelle Angabe widerspricht der regelbasierten Einordnung nach Art. 26 Abs. 11 (${status}).`);
+  const effective=contradictions.length?'NEEDS_REVIEW':status,labels={APPLICABLE:'Art. 26 Abs. 11 anwendbar',NOT_APPLICABLE:'Art. 26 Abs. 11 nicht anwendbar',NEEDS_REVIEW:'Weiterer Prüfbedarf zu Art. 26 Abs. 11'};
+  return evaluationResult(effective==='APPLICABLE'?'applicable':effective==='NOT_APPLICABLE'?'not_applicable':'review',labels[effective],{...base,status:effective,reason,contradictions,reviewNeeds:effective==='NEEDS_REVIEW'?[reason]:[],manualLabel:labelFor(f.tHighRiskAffectedInfo),actor:'deployer',duty:'DUTY-20',temporal:fixedTemporalMeta(base.applicableDate,'Die Pflicht ist aufgrund der zeitlichen Anwendungsregelung des EU AI Act in der durch die Verordnung (EU) 2026/1744 geänderten Fassung ab dem 2. Dezember 2027 anwendbar.',context)});
 }
 
 /** Bewertet Art. 50 tatbestands-, rollen- und ausnahmenspezifisch. */
@@ -2143,7 +2250,7 @@ function evaluateTransparency(context=null){
   const state=evaluationState(context),references=evaluationReferences(context),transparencyQuestions=references.transparencyQuestions,transparencyActorByKey=references.transparencyActorByKey,roles=references.roles,QUESTION_IDS=references.questionIds,path=aiActPathStatus(context);if(!path.required)return evaluationResult('not_required','Nicht erforderlich aufgrund des Ergebnisses aus Schritt 2',{basis:'EU AI Act Art. 50',reason:path.reason,items:[]});
   if(evaluateProhibitedPractices(context).code==='confirmed')return evaluationResult('not_continued','Nicht fortgeführt aufgrund festgestellter verbotener KI-Praxis',{basis:'EU AI Act Art. 5 und 50',reason:'Der KI-systembezogene Pfad wurde beendet.',items:[]});
   const f=state.form,missing=[],reviewNeeds=[],triggers=[],contradictions=[],items=[];const actors=new Set();
-  transparencyQuestions.forEach(([key,providedLabel])=>{const label=providedLabel||guideLabel(QUESTION_IDS[key],context);
+  transparencyQuestions.forEach(([key,providedLabel])=>{if(key==='tHighRiskAffectedInfo')return;const label=providedLabel||guideLabel(QUESTION_IDS[key],context);
     const answer=f[key];if(!isFilled(answer)){missing.push(label);items.push({key,label,code:'review'});return;}
     if(['review','na'].includes(answer)){reviewNeeds.push(label);items.push({key,label,code:'review'});return;}
     if(answer==='no'){items.push({key,label,code:'not_applicable'});return;}
@@ -2164,10 +2271,16 @@ function evaluateTransparency(context=null){
     if(code==='applicable')actors.add(legalActor);if(code==='review')reviewNeeds.push(`${label}: Ausnahme oder Pflicht ungeklärt.`);
     items.push({key,label,code,actor:legalActor,storedActor:actor,duty:f[`${key}Duty`]||'',exception,expectedResult});
   });
+  const tr07=evaluateTR07(context);items.push({key:'tHighRiskAffectedInfo',label:guideLabel('TR-07',context),code:tr07.code,actor:'deployer',duty:'DUTY-20',basis:tr07.primaryLegalBasis,status:tr07.status,applicableDate:tr07.applicableDate});
   const primaryApplicable=items.filter(item=>['tInteraction','tSynthetic','tEmotionBiometric','tDeepfake','tPublicText'].includes(item.key)&&item.code==='applicable');
   if(primaryApplicable.length&&f.tGeneralRequirements==='no')contradictions.push('TR-06 ist als nicht einschlägig markiert, obwohl mindestens eine Pflicht nach TR-01 bis TR-05 einschlägig ist und DUTY-26 deshalb gesondert zu prüfen ist. Anwendbarkeit und Erfüllungsstatus bleiben getrennt.');
   if(!primaryApplicable.length&&f.tGeneralRequirements==='yes')contradictions.push('TR-06 ist als einschlägig markiert, obwohl keine zugrunde liegende Pflicht nach TR-01 bis TR-05 festgestellt wurde.');
-  const active=items.filter(item=>item.code==='applicable'&&item.key!=='tGeneralRequirements');let autoCode='none';
+  /*
+   * TR-07 wird in der gemeinsamen Ergebnisstruktur nur zur transparenten
+   * Gegenüberstellung mitgeführt. Die Pflicht gehört zu Art. 26 Abs. 11 und
+   * darf deshalb die primäre Art.-50-Schlussfolgerung nicht beeinflussen.
+   */
+  const active=items.filter(item=>item.code==='applicable'&&!['tGeneralRequirements','tHighRiskAffectedInfo'].includes(item.key));let autoCode='none';
   if(missing.length||reviewNeeds.length||contradictions.length)autoCode='review';
   else if(items.some(item=>item.code==='exception')&&!active.length)autoCode='exception';
   else if(active.length>1||actors.has('both')||(actors.has('provider')&&actors.has('deployer')))autoCode='multiple';
@@ -2175,7 +2288,7 @@ function evaluateTransparency(context=null){
   const labels={none:'Keine Transparenzpflicht festgestellt',provider:'Anbieterpflicht',deployer:'Betreiberpflicht',multiple:'Mehrere Pflichten',exception:'Ausnahme dokumentiert',review:'Nicht eindeutig beurteilbar / weiterer Prüfbedarf'};
   contradictions.push(...conclusionCheck(autoCode,f.transparencyConclusion,[autoCode],labels,'Art. 50'));
   const effective=contradictions.length?'review':autoCode;
-  return evaluationResult(effective,labels[effective],{triggers,missing,contradictions,reviewNeeds,critical:false,basis:'EU AI Act Art. 50',manual:f.transparencyConclusion,manualLabel:labels[f.transparencyConclusion]||'Nicht ausgewählt',items,actors:[...actors],provisional:path.provisional});
+  return evaluationResult(effective,labels[effective],{triggers,missing,contradictions,reviewNeeds,critical:false,basis:'EU AI Act Art. 50',manual:f.transparencyConclusion,manualLabel:labels[f.transparencyConclusion]||'Nicht ausgewählt',items,actors:[...actors],provisional:path.provisional,tr07});
 }
 
 /** Bewertet GPAI-Relevanz, Anbieterrolle, Open-Source-Ausnahme und systemisches Risiko getrennt. */
@@ -2217,6 +2330,7 @@ function evaluateGPAI(context=null){
 function craApplicabilityGate(context=null){
   const f=evaluationState(context).form,keys=['craDigitalProduct','craRemoteProcessing','craDataConnection','craCommercial','craPrototype','craOpenSource','craExclusion'],missing=keys.filter(key=>!isFilled(f[key])),review=keys.filter(key=>['review','na'].includes(f[key]));
   if(missing.length||review.length)return{status:'review',missing,review,reason:'Die vorgelagerte CRA-Anwendbarkeitsprüfung ist noch nicht vollständig oder eindeutig.'};
+  if(f.craSaasOnly==='yes'&&f.craSeparateSoftwareComponent==='no')return{status:'no',missing:[],review:[],reason:'Eigenständiger browserbasierter SaaS-Dienst ohne separat bereitgestellte Softwarekomponente; die Internetverbindung allein begründet kein Produkt mit digitalen Elementen.'};
   if(f.craDigitalProduct==='no'||f.craDataConnection==='no'||(f.craCommercial==='no'&&f.craOpenSource!=='yes'))return{status:'no',missing:[],review:[],reason:'Die vorgelagerte CRA-Anwendbarkeitsprüfung ergibt eindeutig „nicht anwendbar“; CRA-08 bis CRA-12 sind nicht erforderlich.'};
   return{status:'continue',missing:[],review:[],reason:'Der CRA-Pfad ist anwendbar oder als Sonderfall weiter zu prüfen.'};
 }
@@ -2254,13 +2368,15 @@ function evaluateCRA(context=null){
     const labels={no:'CRA auf das Produkt nicht anwendbar',review:'Nicht eindeutig beurteilbar / weiterer Prüfbedarf'},autoCode=dependencyGroups.product_applicability.length||dependencyGroups.review.length?'review':'no';
     contradictions.push(...conclusionCheck(autoCode,f.craConclusion,[autoCode],labels,'CRA'));
     const effective=contradictions.length?'review':autoCode;
-    return evaluationResult(effective,labels[effective],{triggers,missing,contradictions,reviewNeeds,critical:effective==='review',basis:'Cyber Resilience Act',manual:f.craConclusion,manualLabel:labels[f.craConclusion]||'Nicht ausgewählt',roles:[],possibleRoles:[],roleCodes:[],category:'Nicht erforderlich',duties:[],productApplicable:false,ownObligations:false,roleOutcome:'not_required',specialCase:'',steward:false,overlap:'',openSource:f.craOpenSource==='yes',pathStatus:effective==='review'?'review':'not_required',pathReason:gate.reason,...dependencyFields});
+    return evaluationResult(effective,labels[effective],{triggers,missing,contradictions,reviewNeeds,critical:effective==='review',basis:'Cyber Resilience Act',manual:f.craConclusion,manualLabel:labels[f.craConclusion]||'Nicht ausgewählt',roles:[],possibleRoles:[],roleCodes:[],category:'Nicht erforderlich',duties:[],productApplicable:false,ownObligations:false,roleOutcome:f.craUseOnly==='yes'?'user_only':'not_required',specialCase:'',steward:false,overlap:'',openSource:f.craOpenSource==='yes',saasOnly:f.craSaasOnly==='yes',separateSoftwareComponent:f.craSeparateSoftwareComponent==='yes',pathStatus:effective==='review'?'review':'not_required',pathReason:gate.reason,...dependencyFields});
   }
   dependencyGroups.organizational_role.forEach(item=>reviewNeeds.push(`${item.id}: Die offene CRA-Rollenfrage verhindert eine abschließende Ableitung eigener Organisationspflichten.`));
   ['craSubstantialChange','craManufacturerTakeover','craProductClass','craAiActOverlap'].forEach(key=>{const label=guideLabel(QUESTION_IDS[key],context);if(!isFilled(f[key]))missing.push(label);if(['review','na'].includes(f[key]))reviewNeeds.push(label);if(f[key]==='yes')triggers.push(label);});
   const roleCodes=craRoleFields.filter(([field])=>f[field]==='yes').map(([,code])=>code),craRoles=craRoleFields.filter(([field])=>f[field]==='yes').map(([, ,label])=>label);
   const possibleRoles=craRoleFields.filter(([field])=>!isFilled(f[field])||f[field]==='review').map(([, ,label])=>label),rolesUnclear=possibleRoles.length>0||f.craRole==='review';
   if(rolesUnclear)reviewNeeds.push('Die CRA-Rollen müssen einzeln bestätigt werden.');
+  if(!roleCodes.length&&f.craUseOnly==='no')contradictions.push('Es ist weder eine CRA-Wirtschaftsakteursrolle noch die ausschließliche Erwerber- beziehungsweise Nutzerstellung dokumentiert.');
+  if(roleCodes.length&&f.craUseOnly==='yes')contradictions.push('Eine eigene CRA-Wirtschaftsakteursrolle widerspricht der Angabe, ausschließlich Erwerberin beziehungsweise Nutzerin zu sein.');
   let category=f.craProductClass||'';
   if(f.craDigitalProduct==='yes'&&f.craDataConnection==='yes'&&f.craCommercial==='yes'){
     ['craProductType','craProductRelation','craProductClass','craConformityProcedure','craVulnerabilityProcess','craReportingProcess','craTransitionDates'].forEach(key=>{if(!isFilled(f[key])||f[key]==='unclear')missing.push(key);});
@@ -2285,7 +2401,7 @@ function evaluateCRA(context=null){
   contradictions.push(...conclusionCheck(autoCode,f.craConclusion,[autoCode],labels,'CRA'));const effective=contradictions.length?'review':autoCode;
   const steward=roleCodes.includes('steward'),ownObligations=effective==='yes'||(steward&&effective==='special'&&f.craExclusion!=='yes'&&f.craPrototype!=='yes');
   const duties=ownObligations?[...(roleCodes.includes('manufacturer')?['Cybersecurity-Anforderungen über den Lebenszyklus','Konformitätsbewertung und technische Dokumentation','Schwachstellenbehandlung','Meldepflichten','Übergangs- und Anwendungszeitpunkte beachten']:[]),...(steward?['Steward-Pflichten nach Art. 24 CRA','Meldung nach Art. 24 Abs. 3 CRA in Verbindung mit Art. 14 CRA']:[]),...(roleCodes.some(code=>['representative','importer','distributor'].includes(code))?['Rollenspezifische Pflichten nach Art. 18 bis 20 CRA']:[])]:[];
-  return evaluationResult(effective,labels[effective],{triggers,missing,contradictions,reviewNeeds,critical:effective==='review',basis:'Cyber Resilience Act',manual:f.craConclusion,manualLabel:labels[f.craConclusion]||'Nicht ausgewählt',roles:craRoles,possibleRoles,roleCodes,category:category||'Nicht bestimmt',duties,productApplicable:['yes','product_only','special'].includes(effective),ownObligations,roleOutcome:rolesUnclear?'review':roleCodes.length>1?'multiple':roleCodes[0]||'none',specialCase,steward,overlap:f.craAiActOverlapNotes||'',openSource:f.craOpenSource==='yes',pathStatus:effective==='review'?'review':'active',pathReason:gate.reason,...dependencyFields});
+  return evaluationResult(effective,labels[effective],{triggers,missing,contradictions,reviewNeeds,critical:effective==='review',basis:'Cyber Resilience Act',manual:f.craConclusion,manualLabel:labels[f.craConclusion]||'Nicht ausgewählt',roles:craRoles,possibleRoles,roleCodes,category:category||'Nicht bestimmt',duties,productApplicable:['yes','product_only','special'].includes(effective),ownObligations,roleOutcome:rolesUnclear?'review':roleCodes.length>1?'multiple':roleCodes[0]||(f.craUseOnly==='yes'?'user_only':'none'),specialCase,steward,overlap:f.craAiActOverlapNotes||'',openSource:f.craOpenSource==='yes',saasOnly:f.craSaasOnly==='yes',separateSoftwareComponent:f.craSeparateSoftwareComponent==='yes',pathStatus:effective==='review'?'review':'active',pathReason:gate.reason,...dependencyFields});
 }
 
 /** Fasst die beiden Hochrisikopfade zusammen, ohne deren Einzelbegründungen zu verlieren. */
@@ -2297,7 +2413,7 @@ function evaluateHighRiskSummary(context=null){const product=evaluateProductHigh
  * @description Datenquelle sind Hochrisiko- und Rollenangaben des Live-Zustands. Die Funktion ist nebenwirkungsfrei und prüft nur Art. 25, nicht die übrigen Akteursrollen.
  */
 function evaluateArt25(context=null){const state=evaluationState(context),high=evaluateHighRiskSummary(context),f=state.form;if(high.code!=='high_risk')return evaluationResult('not_applicable','Nicht anwendbar – keine festgestellte Hochrisikoeinstufung',{basis:'EU AI Act Art. 25',reason:high.label});const facts=['art25OwnBrand','art25SubstantialModification','art25PurposeChange','art25ProductIntegration'];if(facts.some(key=>!isFilled(f[key])||f[key]==='review'))return evaluationResult('review','Nicht eindeutig beurteilbar / weiterer Prüfbedarf',{basis:'EU AI Act Art. 25',critical:true,missing:facts.filter(key=>!isFilled(f[key]))});const automatic=facts.some(key=>f[key]==='yes')?'applicable':'not_applicable',manual=f.art25Conclusion==='provider'?'applicable':f.art25Conclusion;if(!isFilled(f.art25Conclusion)||!isFilled(f.art25Basis))return evaluationResult('review','Nicht eindeutig beurteilbar / weiterer Prüfbedarf',{basis:'EU AI Act Art. 25',missing:['art25Conclusion','art25Basis'].filter(key=>!isFilled(f[key])),critical:true});const contradictions=manual!==automatic?[`Art. 25: Manuelle Schlussfolgerung widerspricht den Tatsachen aus ROLE-12 bis ROLE-15.`]:[];const code=contradictions.length?'review':automatic;return evaluationResult(code,code==='applicable'?'Anbieterpflichten nach Art. 25 einschlägig':code==='not_applicable'?'Art. 25 nach dokumentierter Prüfung nicht einschlägig':'Nicht eindeutig beurteilbar / weiterer Prüfbedarf',{basis:'EU AI Act Art. 25',critical:code==='review',contradictions});}
-function allRegulatoryEvaluations(context=null){return{prohibition:evaluateProhibitedPractices(context),productHighRisk:evaluateProductHighRisk(context),annexHighRisk:evaluateAnnexHighRisk(context),art25:evaluateArt25(context),transparency:evaluateTransparency(context),gpai:evaluateGPAI(context),cra:evaluateCRA(context)};}
+function allRegulatoryEvaluations(context=null){return{prohibition:evaluateProhibitedPractices(context),productHighRisk:evaluateProductHighRisk(context),annexHighRisk:evaluateAnnexHighRisk(context),art25:evaluateArt25(context),transparency:evaluateTransparency(context),tr07:evaluateTR07(context),gpai:evaluateGPAI(context),cra:evaluateCRA(context)};}
 function regulatoryResults(context=null){const e=allRegulatoryEvaluations(context);return Object.fromEntries(Object.entries(e).map(([key,value])=>[key,value.label]));}
 function effectiveAnnexConclusion(context=null){return evaluateAnnexHighRisk(context).code;}
 function regulatoryContradictions(context=null){return Object.values(allRegulatoryEvaluations(context)).flatMap(result=>result.contradictions);}
@@ -2340,7 +2456,9 @@ function requiredHighRiskDuties(context=null){
     const registrationEligible=e.annexHighRisk.code==='yes'&&annexNonNr2Selected;
     const registrationStatus=registrationEligible?(f.unionAuthority==='yes'?'yes':f.unionAuthority==='no'?'no':'review'):e.annexHighRisk.code==='review'?'review':'no';
     add('DUTY-20','Betreiber',registrationStatus==='yes'?'CTX-14 – Registrierung nach Art. 49 Abs. 3 erforderlich':registrationStatus==='review'?'CTX-14 – Voraussetzung der Registrierung nach Art. 49 Abs. 3 ungeklärt':'ROLE-03 – Betreiberpflichten; keine positive Registrierungsaussage');
-    Object.assign(duties.find(item=>item.code==='DUTY-20'),{registrationRequired:registrationStatus==='yes',registrationStatus,subRequirements:[{label:'Allgemeine Betreiberpflichten nach Art. 26',status:'applicable',temporalPath:'Hochrisiko – Kapitel III Abschnitte 1 bis 3'},{label:'Registrierung nach Art. 49 Abs. 3',status:registrationStatus,temporalPath:'Kapitel III Abschnitt 5',condition:`Anhang III außer Nr. 2 und CTX-14: ${labelFor(f.unionAuthority)}`}]});
+    const tr07=e.tr07,subRequirements=[{label:'Allgemeine Betreiberpflichten nach Art. 26',status:'applicable',temporalPath:'Hochrisiko – Kapitel III Abschnitte 1 bis 3'},{label:'Registrierung nach Art. 49 Abs. 3',status:registrationStatus,temporalPath:'Kapitel III Abschnitt 5',condition:`Anhang III außer Nr. 2 und CTX-14: ${labelFor(f.unionAuthority)}`}];
+    if(['applicable','review'].includes(tr07.code))subRequirements.push({id:'TR-07',label:'Information betroffener natürlicher Personen über die Verwendung des Hochrisiko-KI-Systems',basis:'Art. 26 Abs. 11 EU AI Act; unbeschadet des Art. 50',status:tr07.code,applicableDate:tr07.applicableDate,temporalPath:'Anhang III – Kapitel III Abschnitte 1 bis 3',condition:tr07.reason});
+    Object.assign(duties.find(item=>item.code==='DUTY-20'),{registrationRequired:registrationStatus==='yes',registrationStatus,tr07Status:tr07.status,tr07ApplicableDate:tr07.applicableDate,subRequirements});
   }
   if(e.annexHighRisk.code==='yes'&&selected.has('deployer')&&!annexNr2Only){
     const hr20Relevant=f.annexEssentialServices==='yes';
@@ -2357,7 +2475,10 @@ function requiredHighRiskDuties(context=null){
     if(e.cra.roleCodes.includes('manufacturer'))for(let number=32;number<=35;number++)add(`DUTY-${number}`,'Hersteller','CRA-01 bis CRA-12');
     if(e.cra.roleCodes.some(code=>['representative','importer','distributor'].includes(code)))add('DUTY-36',e.cra.roles.filter(label=>label!=='Hersteller'&&label!=='Open-Source-Software-Steward').join(', '),'CRA-08');
   }
-  if(e.cra.steward&&e.cra.ownObligations)add('DUTY-35','Open-Source-Software-Steward nach Art. 24 Abs. 3','CRA-06 / CRA-08');
+  if(e.cra.steward&&e.cra.ownObligations){
+    const source=highRiskDutyCatalog.find(([code])=>code==='DUTY-35');
+    duties.push({code:'DUTY-35-S',guideId:'DUTY-35',label:'Open-Source-Software-Steward: Meldung aktiv ausgenutzter Schwachstellen und schwerwiegender Sicherheitsvorfälle',basis:'Art. 24 Abs. 3 CRA in Verbindung mit Art. 14 CRA',role:'Open-Source-Software-Steward',condition:'CRA-06 / CRA-08',origin:'CRA-06 / CRA-08',reportingRole:'steward',sourceLabel:source?.[1]||''});
+  }
   duties.forEach(duty=>{
     const number=Number(duty.code.slice(-2));
     const annexIBAffected=aiPath.scope?.annexIBLimitation&&number>=2&&number<=21;
@@ -2742,7 +2863,7 @@ function deriveRegisters(){syncDerivedRegisters();}
 /* 15. Plausibilisierung und Gesamtstatus */
 
 function step4Requirements(context=null){
-  const state=evaluationState(context),references=evaluationReferences(context),craRoleFields=references.craRoleFields,prohibitedQuestions=references.prohibitedQuestions,annexAreas=references.annexAreas,transparencyQuestions=references.transparencyQuestions,gpaiQuestions=references.gpaiQuestions,path=aiActPathStatus(context),gpaiPath=gpaiPathStatus(context),craGate=craApplicabilityGate(context),craOpeningKeys=['craDigitalProduct','craRemoteProcessing','craDataConnection','craCommercial','craPrototype','craOpenSource','craExclusion'],craContinuationKeys=['craSubstantialChange','craManufacturerTakeover','craProductClass','craAiActOverlap'],craRoleKeys=craRoleFields.map(([field])=>field),timeKeys=['timeAssessmentBasis','timeDutyStatuses','timeTransition','timeLawChanged'],required=[...craOpeningKeys,...timeKeys,'publicAuthorityIntendedUse','timeBasis','timeEvidence','intendedUseDate','firstMarketDate','firstOperationDate','substantialChangeStatus','craConclusion','craBasis','craEvidence',...dynamicReasonsFor([...craOpeningKeys,...timeKeys],context)];
+  const state=evaluationState(context),references=evaluationReferences(context),craRoleFields=references.craRoleFields,prohibitedQuestions=references.prohibitedQuestions,annexAreas=references.annexAreas,transparencyQuestions=references.transparencyQuestions,gpaiQuestions=references.gpaiQuestions,path=aiActPathStatus(context),gpaiPath=gpaiPathStatus(context),craGate=craApplicabilityGate(context),craOpeningKeys=['craDigitalProduct','craRemoteProcessing','craDataConnection','craCommercial','craPrototype','craOpenSource','craExclusion','craSaasOnly','craSeparateSoftwareComponent'],craContinuationKeys=['craSubstantialChange','craManufacturerTakeover','craProductClass','craAiActOverlap'],craRoleKeys=[...craRoleFields.map(([field])=>field),'craUseOnly'],timeKeys=['timeAssessmentBasis','timeDutyStatuses','timeTransition','timeLawChanged'],required=[...craOpeningKeys,...timeKeys,'publicAuthorityIntendedUse','timeBasis','timeEvidence','intendedUseDate','firstMarketDate','firstOperationDate','substantialChangeStatus','craConclusion','craBasis','craEvidence',...dynamicReasonsFor([...craOpeningKeys,...timeKeys],context)];
   if(craGate.status!=='no')required.push(...craContinuationKeys,...craRoleKeys,...dynamicReasonsFor([...craContinuationKeys,...craRoleKeys],context));
   if(state.form.substantialChangeStatus==='yes')required.push('substantialChangeDate');
   if(craGate.status!=='no'&&state.form.craDigitalProduct==='yes'&&state.form.craDataConnection==='yes'&&state.form.craCommercial==='yes')required.push('craProductType','craProductRelation','craProductClass','craConformityProcedure','craVulnerabilityProcess','craReportingProcess','craTransitionDates','craFirstMarketDate','craTransitionEvidence');
@@ -2750,12 +2871,12 @@ function step4Requirements(context=null){
   if(craGate.status!=='no'&&state.form.craPrototype==='yes')required.push('craPrototypeLimitedTesting','craPrototypeMarked');
   if(craGate.status!=='no'&&state.form.craExclusion==='yes')required.push('craExclusionBasis','craExclusionRequirements','craExclusionEvidence');
   if(path.required){
-    const aiKeys=[...prohibitedQuestions,...annexAreas,...transparencyQuestions].map(([key])=>key),highRiskKeys=['productCovered','productSafetyComponent','annexISection','thirdPartyConformity','conformityNonSafetyOnly'];
+    const aiKeys=[...prohibitedQuestions,...annexAreas,...transparencyQuestions].map(([key])=>key),highRiskKeys=['productCovered','productSafetyComponent',...(productHighRiskPathActive(context)?['annexISection']:[]),'thirdPartyConformity','conformityNonSafetyOnly'];
     required.push(...aiKeys,...highRiskKeys,'prohibitionConclusion','prohibitionBasis','prohibitionEvidence','productHighRiskConclusion','productHighRiskBasis','productHighRiskEvidence','annexHighRiskConclusion','annexBasis','annexEvidence','transparencyConclusion','transparencyBasis','transparencyEvidence',...dynamicReasonsFor([...aiKeys,...highRiskKeys],context));
     prohibitedQuestions.forEach(([key])=>{if(['yes','review','na','exception_review'].includes(state.form[key]))required.push(...prohibitedFollowFields(key));if(!isSensitiveArt5(key)&&state.form[`${key}Exception`]==='confirmed')required.push(`${key}ExceptionBasis`,`${key}ExceptionRequirements`,`${key}ExceptionScope`);});
-    transparencyQuestions.forEach(([key])=>{if(state.form[key]==='yes'){required.push(`${key}Use`,`${key}Actor`,`${key}Duty`,`${key}Exception`,`${key}Reason`,`${key}Evidence`,`${key}Result`);if(state.form[`${key}Exception`]==='yes')required.push(`${key}ExceptionBasis`,`${key}ExceptionRequirements`,`${key}ExceptionScope`);}});
+    transparencyQuestions.filter(([key])=>key!=='tHighRiskAffectedInfo').forEach(([key])=>{if(state.form[key]==='yes'){required.push(`${key}Use`,`${key}Actor`,`${key}Duty`,`${key}Exception`,`${key}Reason`,`${key}Evidence`,`${key}Result`);if(state.form[`${key}Exception`]==='yes')required.push(`${key}ExceptionBasis`,`${key}ExceptionRequirements`,`${key}ExceptionScope`);}});
     if(evaluateHighRiskSummary(context).code==='high_risk')required.push('art25OwnBrand','art25SubstantialModification','art25PurposeChange','art25ProductIntegration','art25Conclusion','art25Basis','art25SupplierRelationship','art25SupplierEvidence',...temporalRequirements('highRisk',context));
-    if(annexAreas.some(([key])=>state.form[key]==='yes'))required.push('specificAnnexUse','narrowProcedural','completedResultImprovement','patternDetection','preparatoryTask','materialInfluenceControl','profiling',...(state.form.annexEssentialServices==='yes'?['annexIII5bc']:[]),...dynamicReasonsFor(['narrowProcedural','completedResultImprovement','patternDetection','preparatoryTask','materialInfluenceControl','profiling','annexIII5bc'],context));
+    if(annexAreas.some(([key])=>state.form[key]==='yes'))required.push('specificAnnexUse','significantRisk','narrowProcedural','completedResultImprovement','patternDetection','preparatoryTask','materialInfluenceControl','profiling',...(state.form.annexEssentialServices==='yes'?['annexIII5bc']:[]),...dynamicReasonsFor(['significantRisk','narrowProcedural','completedResultImprovement','patternDetection','preparatoryTask','materialInfluenceControl','profiling','annexIII5bc'],context));
   }
   if(gpaiPath.required){const gpaiKeys=gpaiQuestions.map(([key])=>key);required.push(...gpaiKeys,'gpaiConclusion','gpaiOrganizationRole','gpaiBasis','gpaiEvidence',...dynamicReasonsFor(gpaiKeys,context));}
   const evaluations=allRegulatoryEvaluations(context);
@@ -2860,7 +2981,7 @@ function getStepValidation(index,{skipApproval=false,decision=null,context=null}
   if(index===1){const scope=evaluateScope(context),ai=evaluateAISystemDefinition(context);[...scope.reviewNeeds,...scope.missing].forEach(text=>items.push(validationItem(String(text),source,'review',true)));[...ai.reviewNeeds,...ai.missing].forEach(text=>items.push(validationItem(String(text),source,'review',true)));}
   if(index===2){const path=aiActPathStatus(context);step3Questions.filter(([key])=>path.required||!roleQuestionKeys.includes(key)).forEach(([key,label])=>{if(state.form[key]==='review')items.push(validationItem(label,source,'review',['ownBrand','substantialModification','purposeChange','individualImpact','humanCorrection'].includes(key),state.form.owner,state.form.roleReviewDate));});if(path.required&&!roleLabels(context).length)items.push(validationItem('Keine Akteursrolle bestimmt.',source,'review',true,state.form.owner,state.form.roleReviewDate));}
   if(index===3)Object.entries(allRegulatoryEvaluations(context)).forEach(([key,result])=>{
-    const pathLabel={prohibition:'Art. 5',productHighRisk:'Art. 6 Abs. 1 / Anhang I',annexHighRisk:'Art. 6 Abs. 2 / Anhang III',art25:'Art. 25',transparency:'Art. 50',gpai:'GPAI',cra:'Cyber Resilience Act'}[key]||'Regulatorischer Prüfpfad';
+    const pathLabel={prohibition:'Art. 5',productHighRisk:'Art. 6 Abs. 1 / Anhang I',annexHighRisk:'Art. 6 Abs. 2 / Anhang III',art25:'Art. 25',transparency:'Art. 50',tr07:'Art. 26 Abs. 11 / TR-07',gpai:'GPAI',cra:'Cyber Resilience Act'}[key]||'Regulatorischer Prüfpfad';
     result.reviewNeeds.forEach(text=>items.push(validationItem(String(text),`${source} / ${pathLabel}`,'review',result.critical)));
     result.missing.forEach(text=>items.push(validationItem(String(text),`${source} / ${pathLabel}`,'missing',result.critical)));
     result.contradictions.forEach(text=>items.push(validationItem(String(text),`${source} / ${pathLabel}`,'contradiction',true)));
@@ -3129,10 +3250,13 @@ function deterministicReportSignature(value){
 /**
  * Entfernt ausschließlich flüchtige Oberflächenwerte aus der Signaturgrundlage.
  * @param {object} snapshotState Vollständiger privater und synchronisierter Berichtszustand.
- * @returns {object} Neuer Verweisrahmen mit allen fachlichen Zustandswerten außer aktuellem Schritt und Sichtbarkeit des Berichts.
- * @description Die Funktion ist nebenwirkungsfrei. Datenquelle ist ausschließlich der übergebene Snapshotzustand; fachliche und sichtbare Werte bleiben erhalten.
+ * @returns {object} Neuer Verweisrahmen mit allen fachlichen Zustandswerten außer flüchtigen Oberflächen- und Importprotokolldaten.
+ * @description Die Funktion ist nebenwirkungsfrei. Administrativer Migrationsverlauf, Recovery-Metadaten und unverarbeitete Legacy-Sicherungen verändern die Ergebnissignatur nicht; fachlich wirksame migrierte Felder bleiben vollständig enthalten.
  */
-function reportRelevantState(snapshotState){const{step,reportVisible,...relevant}=snapshotState;return relevant;}
+function reportRelevantState(snapshotState){
+  const{step,reportVisible,migration,storageRecovery,...relevant}=snapshotState;
+  return Object.fromEntries(Object.entries(relevant).filter(([key])=>!key.startsWith('legacy')));
+}
 
 /**
  * Erfasst alle sichtbaren Referenz-, Struktur- und Beschriftungsdaten für einen
@@ -3209,10 +3333,10 @@ function buildCompactReportFromSnapshot(reportData){
     ['SCOPE-08','Anhang-I-B-Sonderregel',f.scopeAnnexIB],['SCOPE-15','Persönliche, nicht berufliche Tätigkeit',f.personalUse],['SCOPE-16/17','Open-Source-Sonderregel',f.openSource],['SCOPE-18','Gleichwertiges oder strengeres Harmonisierungsrecht',f.scopeAnnexIAEquivalent]
   ].filter(([, ,value])=>value==='yes').map(([id,label])=>[id,label,'Einschlägig; der konkrete Pflichtenumfang wird im jeweiligen Prüfpfad berücksichtigt.']);
   const regulatoryRows=[
-    ['KI-System-Definition',d.definition,'DEF-01 bis DEF-15'],['Anwendungsbereich',d.scope,'SCOPE-01 bis SCOPE-18'],['Art.-25-Rollenübernahme',d.art25,'ROLE-12 bis ROLE-15'],['Verbotene KI-Praktiken',reg.prohibition,'ART5-01 bis ART5-10'],['Hochrisiko nach Art. 6 Abs. 1',reg.productHighRisk,'HR-01 bis HR-05'],['Hochrisiko nach Art. 6 Abs. 2',reg.annexHighRisk,'HR-06 bis HR-20'],['Transparenzpflichten',reg.transparency,'TR-01 bis TR-07'],['GPAI-Relevanz',reg.gpai,'GPAI-01 bis GPAI-11'],['Cyber Resilience Act',reg.cra,'CRA-01 bis CRA-12']
+    ['KI-System-Definition',d.definition,'DEF-01 bis DEF-15'],['Anwendungsbereich',d.scope,'SCOPE-01 bis SCOPE-18'],['Art.-25-Rollenübernahme',d.art25,'ROLE-12 bis ROLE-15'],['Verbotene KI-Praktiken',reg.prohibition,'ART5-01 bis ART5-10'],['Hochrisiko nach Art. 6 Abs. 1',reg.productHighRisk,'HR-01 bis HR-05'],['Hochrisiko nach Art. 6 Abs. 2',reg.annexHighRisk,'HR-06 bis HR-20'],['Transparenzpflichten nach Art. 50',reg.transparency,'TR-01 bis TR-06'],['Information betroffener Personen nach Art. 26 Abs. 11',reg.tr07,'TR-07'],['GPAI-Relevanz',reg.gpai,'GPAI-01 bis GPAI-11'],['Cyber Resilience Act',reg.cra,'CRA-01 bis CRA-12']
   ].map(([path,result,ids])=>[path,result.label,compactEvaluationReason(result,sanitizeVisibleText),ids,compactOpenPoints(result,sanitizeVisibleText)]);
   const riskRows=d.risks.map((risk,index)=>{const level=d.riskLevels[index],scenario=[risk.description,risk.event,(level==='high'||level==='unknown')?`Wesentliche Begründung: ${risk.consequence||risk.uncertainty||risk.treatmentAvailabilityReason||'Weitere Prüfung erforderlich.'}`:''].filter(isFilled).join(' – ');return[risk.riskId,scenario,risk.probability||'–',risk.impact||'–',riskScore(risk)??'–',labelFor(level),labelFor(risk.treatmentNeeded),risk.treatmentStatus==='verified'?labelFor(risk.verifiedResidual):labelFor(risk.expectedResidual),labelFor(risk.treatmentStatus)];});
-  const dutyRows=d.applicableDuties.map(item=>[item.dutyCode||item.id,item.basis||'',item.obligatedRole||'',item.requirement||'',labelFor(item.applicability),labelFor(item.status),item.fulfillabilityReason||item.requirement||'',item.owner||'',item.due?fmtDate(item.due):'Nicht festgelegt']);
+  const dutyRows=d.applicableDuties.map(item=>[item.dutyCode||item.id,item.basis||'',item.obligatedRole||'',item.requirement||'',`${labelFor(item.applicability)}${item.applicableDate?` · anwendbar ab ${fmtDate(item.applicableDate)}`:''}`,labelFor(item.status),item.fulfillabilityReason||item.requirement||'',item.owner||'',item.due?fmtDate(item.due):'Nicht festgelegt']);
   const inactiveDutyCount=d.duties.filter(item=>['no','not_required'].includes(item.value)).length;
   const temporalCounts=['current','future','not_assessable'].map(code=>`${d.applicableDuties.filter(item=>item.applicability===code).length} ${labelFor(code).toLowerCase()}`).join(' · ');
   const decisionReasons=d.decision.reasons.map(reason=>`${reason.source}: ${reason.text}`);
@@ -3252,6 +3376,7 @@ function buildEvidenceReportFromSnapshot(reportData){
   if(!reportData?.snapshotState)throw new Error('Für den Nachweisbericht fehlt ein gültiger Berichtsdatenstand.');
   const reportReference=requireReportReference(reportData),reportKnowledgeBase=reportReference.knowledgeBase,reportLabels=reportData.labels,reportText=createReportTextHelpers(reportReference),sanitizeVisibleText=reportText.sanitize,reportFact=reportText.fact,reportList=reportText.list,reportTable=reportText.table,reportState=reportData.snapshotState,completion=reportData.completion,decision=reportData.decision,validations=reportData.validations,reportPage=(...args)=>reportPageWithData(reportData,...args),riskContradictions=(risk,index)=>reportData.riskContradictions[index]||[],regulatoryResults=()=>reportData.regulatoryLabels,evaluateHighRiskSummary=()=>reportData.highRisk,stepSubstantiveResult=index=>reportData.stepResults[index],organizationalOverall=()=>reportData.organizationalOverall,evaluateReview10=()=>reportData.review10,approvalConsistency=()=>reportData.approvalConsistency,reviewOperationalResult=id=>reportData.reviews.find(item=>item.id===id),reviewOperationalResults=()=>reportData.reviews;
   let base=buildReportBase(reportData);const reg=reportData.regulatory;
+  base=base.replace('<h3>Transparenzpflichten nach Art. 50</h3>',`<h3>Transparenzpflichten nach Art. 50 sowie TR-07 nach Art. 26 Abs. 11</h3><p><strong>TR-07:</strong> ${escapeHtml(reg.tr07.label)} · Primäre Rechtsgrundlage: ${escapeHtml(reg.tr07.primaryLegalBasis)} · ${escapeHtml(reg.tr07.supplementaryBasis)} · anwendbar ab ${reg.tr07.applicableDate?fmtDate(reg.tr07.applicableDate):'nicht bestimmt'}.</p>`);
   const regulatoryPathLabels=reportLabels.regulatoryPaths;
   const groups=reportPage(13,15,'Entscheidungs- und Plausibilitätsanhang',`<h2 class="report-page-title">Vollständige Entscheidungsgründe</h2>${renderDecisionGroups(decision)}<div class="report-section"><h3>Getrennte Statusebenen</h3><div class="report-facts">${reportStatusFacts(completion,reportFact)}</div>${reportList(completion.reasons,'Keine entscheidungskritischen offenen Punkte.')}</div><div class="report-section"><h3>Strukturierte Plausibilitätsinformationen</h3>${reportTable(['Quelle','Typ','kritisch','Text','Zuständig','Frist','Status'],validations.flatMap(v=>v.items).map(item=>[item.source,labelFor(item.type),item.critical?'Ja':'Nein',item.text,item.owner,item.due?fmtDate(item.due):'',labelFor(item.status)]))}</div><div class="report-section"><h3>Manuelle und regelbasiert abgeleitete regulatorische Ergebnisse</h3>${reportTable(['Pfad','Regelbasiert plausibilisiert','Manuell','Abweichungen'],Object.entries(reg).map(([key,value])=>[regulatoryPathLabels[key]||'Regulatorischer Prüfpfad',value.label,value.manualLabel,value.contradictions.join('; ')]))}</div>`,'report-appendix');
   const riskAppendix=reportPage(14,15,'Risiko-, Register- und Entscheidungsanhang',`<h2 class="report-page-title">Akzeptanz, Restrisiko und Quellreferenzen</h2><p class="report-lead">Das Wirksamkeitskriterium ist ein dokumentiertes Sollkriterium. Der Nachweisverweis wird ausgegeben, aber nicht automatisch inhaltlich geprüft.</p>${reportTable(['Risiko','Akzeptanz','Risk Owner','Restrisikoprüfung','Behandlung bestimmbar','Geplante Behandlung','Eingetragener Wirksamkeitsnachweisverweis','Widersprüche'],reportState.risks.map((r,i)=>[r.riskId,labelFor(r.acceptance),r.riskOwner||r.owner,r.treatmentStatus==='verified'?labelFor(r.verifiedResidual):r.treatmentStatus==='implemented'?'Umgesetzt, aber noch nicht verifiziert':labelFor(r.expectedResidual),labelFor(r.suitableTreatmentAvailability),r.proposedTreatment||'Nicht dokumentiert',r.treatmentStatus==='verified'?(r.effectivenessEvidence||'Nicht dokumentiert'):'Noch kein verifizierter Wirksamkeitsnachweis',riskContradictions(r,i).join('; ')]))}<div class="report-section"><h3>Getrennte Ergebnisprofile</h3>${reportTable(['Ebene','Ergebnis'],[['Regulatorische Einordnung',regulatoryResults().prohibition+' · '+evaluateHighRiskSummary().label],['Technische Risikobewertung',stepSubstantiveResult(4)],['Organisatorische Bewertung',organizationalOverall()],['REVIEW-10',`${labelFor(evaluateReview10().value)} · ${evaluateReview10().reason}`]])}</div><div class="report-section"><h3>Gesonderte menschliche beziehungsweise organisatorische Entscheidung</h3><p>Gespeichert: <strong>${escapeHtml(labelFor(reportState.form.approvalStatus))}</strong> · Regelbasierter Bewertungsstatus: <strong>${escapeHtml(decision.label)}</strong></p><p>Die gesonderte Entscheidung verändert den regelbasierten Status nicht.</p>${reportList(approvalConsistency(decision).warnings,'Keine Abweichung zum regelbasierten Status dokumentiert.')}</div>`,'report-appendix');
@@ -3328,6 +3453,7 @@ function exampleState(){
   Object.assign(f,{purposeAlignment:'matches',humanReview:'yes',humanCorrection:'yes',foreseeableMisuse:'no',sensitiveSituation:'no',publicServiceEntity:'no',unionAuthority:'no',roleProviderFact:'yes',roleGpaiProviderFact:'no',roleDeployerFact:'yes',roleRepresentativeFact:'no',roleImporterFact:'no',roleDistributorFact:'no',roleProductManufacturerFact:'no',productIntegration:'no'});
   prohibitedQuestions.forEach(([key])=>f[key]='not_met');annexAreas.forEach(([key])=>f[key]='no');transparencyQuestions.forEach(([key])=>{if(!isFilled(f[key]))f[key]='no';});
   Object.assign(f,{productCovered:'no',productSafetyComponent:'no',annexISection:'A',thirdPartyConformity:'no',conformityNonSafetyOnly:'no',gModel:'no',gIndicativeFlops:'no',gResearchOnly:'no',gObjectType:'system',gSelfProvision:'no',gModification:'no',gNonEuProvider:'no',gOpenSource:'no',gSystemicRisk:'no',gCommissionDesignation:'no',gAnnexXIII:'no',gpaiOrganizationRole:'none',craDigitalProduct:'yes',craRemoteProcessing:'yes',craDataConnection:'yes',craCommercial:'yes',craPrototype:'no',craOpenSource:'no',craExclusion:'no',craRole:'none',craRoleManufacturer:'no',craRoleRepresentative:'no',craRoleImporter:'no',craRoleDistributor:'no',craRoleSteward:'no',craSubstantialChange:'no',craManufacturerTakeover:'no',craProductClass:'other',craAiActOverlap:'no',timeAssessmentBasis:'yes',timeDutyStatuses:'yes',timeTransition:'no',timeLawChanged:'no',publicAuthorityIntendedUse:'no',timeBasis:'Bewertungsstichtag und Rechtsstand sind dokumentiert.',timeEvidence:'Rechtskataster und Bewertungsakte.',intendedUseDate:'2026-09-16',firstMarketDate:'2026-09-01',firstOperationDate:'2026-09-16',substantialChangeStatus:'no',craFirstMarketDate:'2026-09-01',craTransitionEvidence:'Herstellerunterlagen und Produktakte belegen das erstmalige Inverkehrbringen.',scopeLimitationOwner:'Rechts- und Compliance-Funktion',scopeLimitationDue:'2026-10-15'});
+  Object.assign(f,{annexISection:'',significantRisk:'no',craSaasOnly:'no',craSeparateSoftwareComponent:'yes',craUseOnly:'yes'});
   Object.assign(f,{riskSystemBoundary:f.systemBoundary,riskDataSources:f.dataSources,riskModelsComponents:f.techComponents,riskInterfacesEnvironment:f.interfaces,riskHumanOversight:'Menschliche Bestätigung und Übersteuerung sind möglich.',riskExistingControls:'Rollenbasierter Zugriff, Stichprobentests und Monitoring.'});
   riskDomainKeys.forEach((key,index)=>f[key]=[11,12,16,17,19,20].includes(index+10)?'yes':'no');riskEvaluationKeys.forEach(key=>f[key]='no');
   const markFictitious=value=>isFilled(value)&&!String(value).startsWith('Fiktiver Nachweisverweis – ')?`Fiktiver Nachweisverweis – ${value}`:value;
@@ -3352,11 +3478,63 @@ function exampleState(){
   sample.evaluated=Array(8).fill(true);return sample;
 }
 
+/**
+ * Liefert den eigenständigen, vollständig fiktiven Recruiting-Demonstrationsfall.
+ * Der Dokumentenklassifikationsfall bleibt separat als Widerspruchstest erhalten.
+ */
+function recruitingExampleState(){
+  const sample=exampleState(),f=sample.form;
+  Object.assign(f,{
+    internalToolId:'TOOL-REC-001',toolName:'KI-gestütztes Bewerberranking',provider:'Fiktive Recruiting SaaS GmbH',version:'Szenario 1.0',assessmentDate:'2026-10-05',assessmentUpdate:'2026-10-05',department:'Personalgewinnung',owner:'Leitung Recruiting',
+    purpose:'Fiktive Demonstrationsannahme: Bewerbungsunterlagen analysieren und Eignungsscores sowie Rangfolgen für die Vorauswahl und Einladung erzeugen.',tasks:'Analyse von Lebensläufen und Bewerbungsunterlagen; Erzeugung von Scores und Rangfolgen.',systemBoundary:'Eigenständiger browserbasierter SaaS-Dienst ohne separat bereitgestellte Softwarekomponente; unveränderte Nutzung durch das einsetzende Unternehmen.',inputs:'Fiktive Bewerbungsunterlagen, berufsbezogene Qualifikationen und Stellenanforderungen; keine sensiblen Merkmale als Auswahlkriterium.',dataSources:'Fiktive Bewerbungsunterlagen und freigegebene Stellenanforderungen.',outputsDescription:'Eignungsscores und Rangfolgen für Vorauswahl oder Einladung.',techComponents:'Spezialisierter lernbasierter Bewerbungsranker; kein GPAI-Modell.',interfaces:'Browseroberfläche; keine separat bereitgestellte Softwarekomponente.',integration:'Recruiter prüfen die Ergebnisse und können sie zurückweisen oder übersteuern; die Rangfolge beeinflusst die Auswahl dennoch materiell.',users:'Recruiter eines privaten Unternehmens mit Sitz in Deutschland.',infoSources:'Fiktiver Nachweisverweis – Szenariobeschreibung, Anbieterunterlagen und Prozesskonzept.',shortDescription:'Fiktiver Recruiting-Fall zur Demonstration der regulatorischen Einordnung eines lernbasierten Rankings.',infoStatus:'complete',providerContact:'Fiktiver Anbieterkontakt',otherEvidence:'Fiktiver Nachweisverweis – Test- und Abnahmeunterlagen.',
+    intendedUse:'Vorauswahl und Einladung von Bewerberinnen und Bewerbern anhand einer fachlich geprüften Rangfolge.',actualUse:'Geplante betriebliche Nutzung ab 15.12.2027.',useLocation:'Deutschland und Europäische Union',businessArea:'Personalgewinnung',process:'Bewerbungseingang, Vorauswahl und Intervieweinladung',usersContext:'Geschulte Recruiter',affected:'Bewerberinnen und Bewerber in der EU.',decisionInfluence:'material',humanReview:'yes',humanCorrection:'yes',foreseeableMisuse:'no',sensitiveSituation:'yes',publicServiceEntity:'no',unionAuthority:'no',spatialTemporal:'Privates Unternehmen in Deutschland; geplante EU-Nutzung ab 15.12.2027.',rightsImpact:'Fehlerhafte Rankings können Zugangschancen zur Beschäftigung und Gleichbehandlung beeinträchtigen.',
+    role_provider:false,role_deployer:true,role_importer:false,role_distributor:false,role_productManufacturer:false,role_authorisedRepresentative:false,role_downstreamProvider:false,role_gpaiProvider:false,
+    roleProviderFact:'no',roleGpaiProviderFact:'no',roleDeployerFact:'yes',roleRepresentativeFact:'no',roleImporterFact:'no',roleDistributorFact:'no',roleProductManufacturerFact:'no',ownBrand:'no',substantialModification:'no',purposeChange:'no',productIntegration:'no',roleBasis:'Die Organisation nutzt den unveränderten SaaS-Dienst in eigener Verantwortung und ist Betreiber.',roleEvidence:'Fiktiver Nachweisverweis – Vertrag, Einsatzkonzept und Rollenabgrenzung.',roleReviewDate:'2027-12-01',
+    prohibitionConclusion:'none',prohibitionBasis:'Keine Emotionserkennung, biometrische Kategorisierung, Gesichtserkennung, Social-Scoring-Funktion oder Verwendung sensibler Merkmale als Auswahlkriterium.',prohibitionEvidence:'Fiktiver Nachweisverweis – Funktionsbeschreibung und Negativtests.',
+    productCovered:'no',productSafetyComponent:'no',annexISection:'',thirdPartyConformity:'no',conformityNonSafetyOnly:'no',productHighRiskConclusion:'no',productHighRiskBasis:'Kein Produktpfad nach Art. 6 Abs. 1; HR-03 ist nicht erforderlich.',productHighRiskEvidence:'Fiktiver Nachweisverweis – Produkt- und Bereitstellungsbeschreibung.',
+    annexEmployment:'yes',specificAnnexUse:'Anhang III Nr. 4 Buchst. a: Recruiting-Ranking für Vorauswahl und Einladung.',significantRisk:'yes',narrowProcedural:'no',completedResultImprovement:'no',patternDetection:'no',preparatoryTask:'no',materialInfluenceControl:'yes',profiling:'yes',annexHighRiskConclusion:'yes',annexBasis:'Das Ranking beeinflusst die Auswahl materiell und bewertet berufliche Aspekte natürlicher Personen; Profiling schließt die Ausnahme nach Art. 6 Abs. 3 aus.',annexEvidence:'Fiktiver Nachweisverweis – Prozessbeschreibung, Bewertungslogik und Human-Oversight-Konzept.',annexIII5bc:'no',
+    art25OwnBrand:'no',art25SubstantialModification:'no',art25PurposeChange:'no',art25ProductIntegration:'no',art25Conclusion:'not_applicable',art25Basis:'Keine der Tatsachen nach Art. 25 ist erfüllt.',art25SupplierRelationship:'Unveränderte SaaS-Nutzung; keine Übernahme der Anbieterrolle.',art25SupplierEvidence:'Fiktiver Nachweisverweis – Vertrag und technische Abgrenzung.',
+    tHighRiskAffectedInfo:'yes',transparencyConclusion:'none',transparencyBasis:'Keine eigenständige Art.-50-Pflicht im Basisszenario; TR-07 wird getrennt nach Art. 26 Abs. 11 ausgewertet.',transparencyEvidence:'Fiktiver Nachweisverweis – Informationskonzept für Bewerbende.',
+    gModel:'no',gIndicativeFlops:'no',gResearchOnly:'no',gObjectType:'system',gSelfProvision:'no',gModification:'no',gNonEuProvider:'no',gOpenSource:'no',gSystemicRisk:'no',gCommissionDesignation:'no',gAnnexXIII:'no',gpaiOrganizationRole:'none',gpaiConclusion:'none',gpaiBasis:'Kein GPAI-Modell Bestandteil des fiktiven Szenarios.',gpaiEvidence:'Fiktiver Nachweisverweis – Anbieterangaben.',
+    craDigitalProduct:'no',craRemoteProcessing:'yes',craDataConnection:'yes',craCommercial:'yes',craPrototype:'no',craOpenSource:'no',craExclusion:'no',craSaasOnly:'yes',craSeparateSoftwareComponent:'no',craUseOnly:'yes',craRoleManufacturer:'no',craRoleRepresentative:'no',craRoleImporter:'no',craRoleDistributor:'no',craRoleSteward:'no',craSubstantialChange:'no',craManufacturerTakeover:'no',craProductClass:'none',craAiActOverlap:'no',craConclusion:'no',craBasis:'Eigenständiger browserbasierter SaaS-Dienst ohne separat bereitgestellte Softwarekomponente; die Organisation ist ausschließlich Nutzerin.',craEvidence:'Fiktiver Nachweisverweis – SaaS-Vertrag und Architekturabgrenzung.',
+    timeAssessmentBasis:'yes',timeDutyStatuses:'yes',timeTransition:'no',timeLawChanged:'no',publicAuthorityIntendedUse:'no',intendedUseDate:'2027-12-15',firstMarketDate:'2027-12-15',firstOperationDate:'2027-12-15',substantialChangeStatus:'no',timeBasis:'Bewertungsstichtag 05.10.2026; geplanter Einsatz ab 15.12.2027. Anhang-III-Hochrisikopflichten gelten ab 02.12.2027.',timeEvidence:'Fiktiver Nachweisverweis – Einführungsplan und Rechtskataster.',highRiskTemporalStatus:'future',highRiskTemporalReason:'Anhang-III-Hochrisikopflichten einschließlich Art. 26 Abs. 11 gelten ab 02.12.2027.',highRiskApplicableDate:'2027-12-02',
+    assessmentId:'KIR-REC-2026-001',assessmentVersion:'1.0',changeHistory:'1.0 – fiktiver Recruiting-Demonstrationsfall.',documentationOwner:'Compliance-Koordination',reviewer:'Fiktive interne Prüfstelle',approver:'Fiktive Bereichsleitung',overallReasoning:'Die Bewertung ist fachlich abgeschlossen; Umsetzungs- und Wirksamkeitsmaßnahmen bleiben bis zum geplanten Einsatz offen.',conditions:'Offene Maßnahmen vor geplanter Nutzung nachverfolgen.',blockers:'Keine festgestellten Hindernisse.',openRequirements:'Künftig anwendbare Betreiberpflichten vorbereiten.',openMeasures:'Risikobehandlung und Wirksamkeitsprüfung fortführen.',openReviews:'Keine entscheidungsblockierenden Prüfpunkte.',approvalStatus:'conditional',approvalDate:'2026-10-05',nextReviewDate:'2027-12-01',reviewFrequency:'Halbjährlich und anlassbezogen',reviewEvidence:'Fiktiver Nachweisverweis – Reviewprotokoll und Maßnahmenstatus.',documentLocation:'Fiktive Bewertungsakte / KIR-REC-2026-001',evidenceInventoryLocation:'Fiktive Bewertungsakte / KIR-REC-2026-001 / Nachweise',evidenceInventoryDate:'2026-10-05',
+    planCoordinator:'Compliance-Koordination',planStatus:'complete',implementationNotes:'Maßnahmen werden bis zum geplanten Einsatz verfolgt.',planEvidence:'Fiktiver Nachweisverweis – Maßnahmenplan.',crossReferences:'R-REC-01 bis R-REC-03 ↔ zugehörige RM-Einträge.',newTechnicalFeature:'no',newTechnicalFeatureReason:'Alle Funktionen des fiktiven Szenarios sind erfasst.',legalRegimeFulfilment:'clarified',legalRegimeFulfilmentEvidence:'EU AI Act und CRA sind für den fiktiven Fall getrennt eingeordnet.'
+  });
+  annexAreas.forEach(([key])=>{if(key!=='annexEmployment')f[key]='no';});
+  prohibitedQuestions.forEach(([key])=>f[key]='not_met');
+  transparencyQuestions.forEach(([key])=>{if(key!=='tHighRiskAffectedInfo')f[key]='no';});
+  definitionQuestionKeys.forEach(key=>f[key]=['adaptivity','deterministicOnly','basicDataProcessing','establishedMath','simpleHeuristics'].includes(key)?'no':'yes');f.objectType='system';
+  scopeQuestionKeys.forEach(key=>f[key]='no');Object.assign(f,{scopeDeployerEU:'yes',scopeAffectedEU:'yes',realWorldTesting:'no',actualOperationalUse:'yes',scopeBasis:'Unternehmen, Bewerbende und Ergebnisverwendung befinden sich in der EU.',scopeEvidence:'Fiktiver Nachweisverweis – Sitz- und Einsatzkonzept.',definitionBasis:'Der lernbasierte Ranker leitet aus Bewerbungsdaten Scores und Rangfolgen ab.',definitionEvidenceSource:'Fiktiver Nachweisverweis – technische Produktbeschreibung.'});
+  sample.risks=[
+    {riskId:'R-REC-01',source:'Fiktive Demonstrationsannahme; keine empirische Messung',description:'Nicht repräsentative Daten können zu systematischer Benachteiligung führen.',event:'Trainings- oder Vergleichsdaten bilden relevante Bewerbergruppen nicht angemessen ab.',consequence:'Systematisch verzerrte Scores und Rangfolgen.',affectedAreas:'Bewerbende, Gleichbehandlung und Personalgewinnung.',category:'Fairness und Grundrechte',existingControls:'Menschliche Prüfung, Übersteuerung und Stichprobenkontrolle.',controlEvidence:'Fiktiver Nachweisverweis – Kontrollkonzept.',probability:'2',impact:'3',controlEffectiveness:'partial',uncertainty:'medium',acceptance:'conditional',treatmentNeeded:'yes',decisionCriticality:'no',suitableTreatmentAvailability:'available',treatmentAvailabilityReason:'Repräsentativitäts- und Fairnesstests sind bestimmbar.',treatmentStrategy:'reduce',proposedTreatment:'Repräsentativität und gruppenbezogene Fehlerraten vor Einsatz sowie regelmäßig prüfen.',priority:'high',owner:'Data-Governance-Verantwortung',treatmentDue:'2027-11-30',expectedResidual:'medium',treatmentStatus:'inProgress',effectivenessCriterion:'Dokumentierte Prüfung ohne nicht begründbare systematische Benachteiligung.',linkedRequirement:'Art. 26 und interne Gleichbehandlungsvorgaben',monitoringIndicator:'Abweichungen der Auswahlquoten und Fehlerraten'},
+    {riskId:'R-REC-02',source:'Fiktive Demonstrationsannahme; keine empirische Messung',description:'Extraktions- oder Modellfehler können qualifizierte Bewerber zu niedrig einstufen.',event:'Qualifikationen werden fehlerhaft extrahiert oder gewichtet.',consequence:'Unzutreffend niedrige Rangposition und möglicher Ausschluss aus der Vorauswahl.',affectedAreas:'Bewerbende und Recruitingprozess.',category:'Zuverlässigkeit',existingControls:'Menschliche Aktenprüfung und Übersteuerungsmöglichkeit.',controlEvidence:'Fiktiver Nachweisverweis – Testfallkatalog.',probability:'2',impact:'2',controlEffectiveness:'partial',uncertainty:'medium',acceptance:'conditional',treatmentNeeded:'yes',decisionCriticality:'no',treatmentStrategy:'reduce',proposedTreatment:'Extraktionsqualität mit fachlichen Testfällen prüfen und niedrige Konfidenzwerte manuell bearbeiten.',priority:'medium',owner:'Recruiting-Qualitätsmanagement',treatmentDue:'2027-11-30',expectedResidual:'low',treatmentStatus:'planned',effectivenessCriterion:'Alle kritischen Qualifikationsfelder erreichen die dokumentierte Mindesttrefferquote.',linkedRequirement:'Qualitätskontrolle',monitoringIndicator:'Fehlerquote kritischer Extraktionsfelder'},
+    {riskId:'R-REC-03',source:'Fiktive Demonstrationsannahme; keine empirische Messung',description:'Unbefugter Zugriff kann zur Offenlegung von Bewerbungsdaten führen.',event:'Unbefugte Person erlangt Zugriff auf Bewerbungsprofile oder Ranglisten.',consequence:'Vertraulichkeitsverletzung und Beeinträchtigung betroffener Personen.',affectedAreas:'Bewerbende, Datenschutz und Informationssicherheit.',category:'Informationssicherheit',existingControls:'Rollenbasierter Zugriff und Protokollierung.',controlEvidence:'Fiktiver Nachweisverweis – Berechtigungskonzept.',probability:'1',impact:'3',controlEffectiveness:'effective',uncertainty:'low',acceptance:'conditional',treatmentNeeded:'yes',decisionCriticality:'no',treatmentStrategy:'reduce',proposedTreatment:'Berechtigungsprüfungen, Protokollauswertung und Rezertifizierung der Zugriffe.',priority:'medium',owner:'Informationssicherheit',treatmentDue:'2027-11-30',expectedResidual:'low',treatmentStatus:'planned',effectivenessCriterion:'Keine unberechtigten Zugriffe in Test und periodischer Rezertifizierung.',linkedRequirement:'Sicherheitskonzept',monitoringIndicator:'Unberechtigte Zugriffsversuche'}
+  ];
+  sample.risks.forEach(risk=>Object.assign(risk,{
+    riskOwner:risk.owner,
+    acceptanceReason:'Die Behandlung ist festgelegt; die vorläufige Akzeptanz gilt nur unter Nachverfolgung der offenen Maßnahme.',
+    acceptanceApproval:'Fiktiver Nachweisverweis – dokumentierte vorläufige Risikoakzeptanz.',
+    suitableTreatmentAvailability:risk.suitableTreatmentAvailability||'available',
+    treatmentAvailabilityReason:risk.treatmentAvailabilityReason||'Die beschriebene technische oder organisatorische Behandlung ist bestimmbar und umsetzbar.'
+  }));
+  orgAreas.forEach(([id])=>{const area=sample.org[id];area.status='fulfilled';area.finding='Fiktive organisatorische Ausgangslage ist dokumentiert.';area.rationale='Rollen, Aufsicht, Eskalation und Review sind für den Demonstrationsfall festgelegt.';area.evidence='Fiktiver Nachweisverweis – Organisations- und Kontrollkonzept.';area.evidenceLocation='Fiktive Bewertungsakte';area.gap='Keine entscheidungsrelevante Informationslücke.';area.impact='Offene Umsetzungsmaßnahmen werden getrennt nachverfolgt.';area.measure='Kontrollen bis zum Einsatz vervollständigen und danach überwachen.';area.owner='Fiktive Bereichsverantwortung';area.transfer='no';area.decisionCritical='no';area.deadline='2027-11-30';Object.values(area.criteria).forEach(criterion=>{criterion.answer='fulfilled';criterion.reason='';});});
+  sample.registers={regulatory:[],risk:[],organizational:[],expert:[],legal:[]};
+  sample.triggers.forEach(trigger=>Object.assign(trigger,{required:'yes',steps:triggerDefs.find(([id])=>id===trigger.id)?.[3]||'1–8 je nach Auswirkung',owner:'Compliance-Koordination',due:'2027-12-01'}));
+  sample.guideAnswers={};Object.entries(QUESTION_IDS).forEach(([key,id])=>{if(isFilled(f[key]))sample.guideAnswers[id]={value:f[key],sourceField:key};});applyCraRoleDerivation(sample);
+  sample.evaluated=Array(8).fill(true);sample.migration={fromVersion:SCHEMA_VERSION,at:'',issues:[],reviewRequired:false,needsReassessment:false};
+  synchronizeDerivedRegistersInto(sample,liveEvaluationReferences());
+  sample.registers.regulatory.forEach(item=>Object.assign(item,{fulfillability:'fulfillable',fulfillabilityReason:'Die Umsetzung ist für den fiktiven Demonstrationsfall planbar und wird getrennt vom Rechtsstatus verfolgt.',beforeRelease:item.beforeRelease||'no',decisionCritical:item.decisionCritical||'no',blocking:'no',owner:item.dutyCode==='DUTY-01'?'Personalentwicklung':'Compliance und Recruiting',due:item.dutyCode==='DUTY-01'?'2026-10-05':'2027-12-01',status:item.dutyCode==='DUTY-01'?'fulfilled':'open',evidence:'Fiktiver Nachweisverweis – Pflichten- und Umsetzungsplan.',priority:'high'}));
+  sample.registers.risk.forEach((item,index)=>Object.assign(item,{sourceQuestionId:item.sourceQuestionId||'RISK-24 bis RISK-31',linkedResult:item.linkedResult||sample.risks[index]?.description||'Risikobewertung',blocking:'no',strategy:item.strategy||'reduce',priority:item.priority||'medium',beforeRelease:item.beforeRelease||'no',owner:item.owner||sample.risks[index]?.owner||'Fachverantwortung',due:item.due||sample.risks[index]?.treatmentDue||'2027-11-30',status:item.status||sample.risks[index]?.treatmentStatus||'planned',effectivenessCriterion:item.effectivenessCriterion||sample.risks[index]?.effectivenessCriterion||'Wirksamkeitskriterium dokumentiert.',effectivenessReview:item.effectivenessReview||'2027-12-01',reviewer:item.reviewer||'Fiktive Prüfstelle',evidence:item.evidence||'Fiktiver Nachweisverweis – Wirksamkeitsprüfung geplant.',residual:item.residual||sample.risks[index]?.expectedResidual||'unknown'}));
+  return normalizeState(sample);
+}
+
 function withTemporaryState(testState,fn){const previous=state;state=testState;try{return fn();}finally{state=previous;}}
 function fillRegulatoryNo(testState){
   const f=testState.form;definitionQuestionKeys.forEach(key=>f[key]=['adaptivity','deterministicOnly','basicDataProcessing','establishedMath','simpleHeuristics'].includes(key)?'no':'yes');f.objectType='system';scopeQuestionKeys.forEach(key=>f[key]='no');f.scopeDeployerEU='yes';
   prohibitedQuestions.forEach(([key])=>f[key]='not_met');annexAreas.forEach(([key])=>f[key]='no');transparencyQuestions.forEach(([key])=>f[key]='no');
   Object.assign(f,{realWorldTesting:'no',actualOperationalUse:'yes',scopeBasis:'Begründet',scopeEvidence:'Nachweis',definitionBasis:'Begründet',definitionEvidenceSource:'Nachweis',role_deployer:true,roleDeployerFact:'yes',ownBrand:'no',substantialModification:'no',purposeChange:'no',productIntegration:'no',humanCorrection:'yes',prohibitionConclusion:'none',prohibitionBasis:'Begründet',prohibitionEvidence:'Nachweis',productCovered:'no',productSafetyComponent:'no',annexISection:'A',thirdPartyConformity:'no',conformityNonSafetyOnly:'no',productHighRiskConclusion:'no',productHighRiskBasis:'Begründet',productHighRiskEvidence:'Nachweis',annexHighRiskConclusion:'no',annexBasis:'Begründet',annexEvidence:'Nachweis',transparencyConclusion:'none',transparencyBasis:'Begründet',transparencyEvidence:'Nachweis',gModel:'no',gIndicativeFlops:'no',gResearchOnly:'no',gObjectType:'system',gSelfProvision:'no',gModification:'no',gNonEuProvider:'no',gOpenSource:'no',gSystemicRisk:'no',gCommissionDesignation:'no',gAnnexXIII:'no',gpaiOrganizationRole:'none',gpaiBasis:'Keine GPAI-Relevanz.',gpaiEvidence:'Nachweis',gpaiConclusion:'none',craDigitalProduct:'no',craRemoteProcessing:'no',craDataConnection:'no',craCommercial:'no',craPrototype:'no',craOpenSource:'no',craExclusion:'no',craRole:'none',craRoleManufacturer:'no',craRoleRepresentative:'no',craRoleImporter:'no',craRoleDistributor:'no',craRoleSteward:'no',craSubstantialChange:'no',craManufacturerTakeover:'no',craProductClass:'none',craAiActOverlap:'no',craBasis:'Nicht anwendbar.',craEvidence:'Nachweis',craConclusion:'no',timeAssessmentBasis:'yes',timeDutyStatuses:'yes',timeTransition:'no',timeLawChanged:'no',publicAuthorityIntendedUse:'no',timeBasis:'Begründet',timeEvidence:'Nachweis',legalRegimeFulfilment:'clarified',legalRegimeFulfilmentEvidence:'Pflichterfüllung und Zusammenwirken der einschlägigen Rechtsregime sind dokumentiert.'});
+  Object.assign(f,{annexISection:'',significantRisk:'no',decisionInfluence:'information',craSaasOnly:'no',craSeparateSoftwareComponent:'no',craUseOnly:'yes'});
   orgAreas.forEach(([id])=>{testState.org[id]={status:'fulfilled',criteria:Object.fromEntries((orgCriteria[id]||[]).map(([key])=>[key,{answer:'fulfilled',reason:''}]))};});
   testState.registers.regulatory=[{id:'REG-DUTY-01',sourceQuestionId:'ROLE-01 / ROLE-03',dutyCode:'DUTY-01',basis:highRiskDutyCatalog.find(item=>item[0]==='DUTY-01')?.[2]||'Art. 4',requirement:guideLabel('DUTY-01'),linkedResult:'Betreiberrolle',obligatedRole:'Betreiber',applicability:'current',applicabilityReason:'Regulatorisch relevant.',assessmentDate:'2026-09-30',fulfillability:'fulfillable',fulfillabilityReason:'Erfüllung ist belegt.',beforeRelease:'no',decisionCritical:'no',blocking:'no',owner:'Organisation',due:'2026-09-30',status:'fulfilled',evidence:'Nachweis',priority:'medium'}];return testState;
 }
@@ -3428,6 +3606,8 @@ window.__riskAppTest={
   evaluateProhibitedPractices,
   evaluateProductHighRisk,
   evaluateAnnexHighRisk,
+  evaluateArt63Decision,
+  evaluateTR07,
   evaluateTransparency,
   evaluateGPAI,
   evaluateCRA,
@@ -3456,6 +3636,7 @@ window.__riskAppTest={
   migrateV13ToV14,
   migrateV14ToV15,
   migrateV15ToV16,
+  migrateV16ToV17,
   migrateToCurrent,
   deriveCraRoleSummary,
   applyCraRoleDerivation,
@@ -3479,6 +3660,7 @@ window.__riskAppTest={
   guideReferenceStatus,
   questionValueLabel,
   exampleState,
+  recruitingExampleState,
   setStateForTest:(next)=>replaceActiveAssessment(next,'Teststand geladen.'),
   setRawStateForTest:(next)=>{state=normalizeState(next);state.reportVisible=false;activeReportType='compact';activeReportData=null;document.title=APPLICATION_TITLE;},
   getActiveReportInfo:()=>({type:activeReportType,visible:state.reportVisible,hasSnapshot:Boolean(activeReportData),title:document.title,toolName:activeReportData?.form?.toolName||'',internalToolId:activeReportData?.form?.internalToolId||''}),
@@ -3526,7 +3708,8 @@ window.__riskAppTest={
   resetAssessment,
   setField:(key,value)=>{state.form[key]=value;saveState();renderNavigation();renderStep();},
   setStepEvaluated:(index,value=true)=>{state.evaluated[index]=value;saveState();renderNavigation();renderStep();},
-  loadExample:()=>replaceActiveAssessment(exampleState(),'Musterfall geladen.'),
+  loadExample:()=>replaceActiveAssessment(recruitingExampleState(),'Recruiting-Musterfall geladen.'),
+  loadDocumentClassificationExample:()=>replaceActiveAssessment(exampleState(),'Dokumentenklassifikations-Prüfstand geladen.'),
   reset:resetAssessment
 };
 
@@ -3562,7 +3745,7 @@ function bindStepEvents(){
 document.querySelector('#previousButton').addEventListener('click',()=>{if(state.step>0)navigateTo(state.step-1);});
 document.querySelector('#nextButton').addEventListener('click',()=>{if(state.step<7)navigateTo(state.step+1);else finishAndReport();});
 document.querySelector('#resetButton').addEventListener('click',()=>{if(!confirm('Alle Eingaben, Risiken, Register, Bewertungen und Statusangaben löschen?'))return;resetAssessment();});
-document.querySelector('#exampleButton').addEventListener('click',()=>{if(!confirm('Den aktuellen Stand durch einen vollständig ausgefüllten Musterfall ersetzen?'))return;replaceActiveAssessment(exampleState(),'Musterfall geladen.');});
+document.querySelector('#exampleButton').addEventListener('click',()=>{if(!confirm('Den aktuellen Stand durch den vollständig fiktiven Recruiting-Musterfall ersetzen?'))return;replaceActiveAssessment(recruitingExampleState(),'Recruiting-Musterfall geladen.');});
 document.querySelector('#exportButton')?.addEventListener('click',downloadAssessment);
 document.querySelector('#importButton')?.addEventListener('click',()=>document.querySelector('#importFile')?.click());
 document.querySelector('#recoveryExportButton')?.addEventListener('click',downloadRecoveryBackup);

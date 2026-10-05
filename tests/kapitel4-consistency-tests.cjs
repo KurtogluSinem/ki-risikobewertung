@@ -73,7 +73,7 @@ test('Abweichende Bewertungs- und Aktualisierungsdaten verlangen eine Begründun
   const missingBefore=api.getStepValidation(0).missing.some(item=>/Grund und Umfang/.test(item));
   s.form.assessmentUpdateReason='Kapitel-4-Konsistenzprüfung ohne Änderung der Ausgangsangaben.';set(s);
   const missingAfter=api.getStepValidation(0).missing.some(item=>/Grund und Umfang/.test(item)),reports=reportPair();
-  return missingBefore&&!missingAfter&&[reports.compact,reports.evidence].every(value=>value.includes('16.9.2026')&&value.includes('4.10.2026')&&value.includes('Kapitel-4-Konsistenzprüfung'));
+  return missingBefore&&!missingAfter&&[reports.compact,reports.evidence].every(value=>value.includes('16.09.2026')&&value.includes('04.10.2026')&&value.includes('Kapitel-4-Konsistenzprüfung'));
 });
 
 test('Aktuelles, erwartetes und verifiziertes Risiko bleiben getrennt; Zielkriterium ist kein Wirksamkeitsnachweis',()=>{
@@ -92,7 +92,7 @@ test('Export enthält Eingaben, Versionen und abgeleitete Ergebnisse; Import erh
   const s=state();Object.assign(s.form,{assessmentUpdate:'2026-10-04',assessmentUpdateReason:'Dokumentierte Konsistenzprüfung.',guideVersion:'Version 2.0 – vorläufige Fassung'});set(s);
   const exported=api.assessmentExportObject(),manualBefore={craConclusion:exported.assessment.form.craConclusion,tGeneralRequirements:exported.assessment.form.tGeneralRequirements,duty26:exported.assessment.registers.regulatory.find(item=>item.id==='REG-DUTY-26')?.status};
   const imported=api.importAssessmentJson(JSON.stringify(exported));
-  return exported.schemaVersion===16&&exported.versions.dataModelVersion==='16'&&Boolean(exported.derivedResults.resultSignature)&&exported.assessment.form.assessmentUpdateReason==='Dokumentierte Konsistenzprüfung.'&&imported.form.guideVersion==='Version 2.0 – vorläufige Fassung'&&imported.form.craConclusion===manualBefore.craConclusion&&imported.form.tGeneralRequirements===manualBefore.tGeneralRequirements&&imported.registers.regulatory.find(item=>item.id==='REG-DUTY-26')?.status===manualBefore.duty26;
+  return exported.schemaVersion===17&&exported.versions.dataModelVersion==='17'&&Boolean(exported.derivedResults.resultSignature)&&exported.assessment.form.assessmentUpdateReason==='Dokumentierte Konsistenzprüfung.'&&imported.form.guideVersion==='Version 2.0 – vorläufige Fassung'&&imported.form.craConclusion===manualBefore.craConclusion&&imported.form.tGeneralRequirements===manualBefore.tGeneralRequirements&&imported.registers.regulatory.find(item=>item.id==='REG-DUTY-26')?.status===manualBefore.duty26;
 });
 
 test('Der Musterfall kennzeichnet alle Nachweisangaben ausdrücklich als fiktive Verweise',()=>{

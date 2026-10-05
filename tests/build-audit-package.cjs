@@ -10,18 +10,18 @@ const {execFileSync}=require('node:child_process');
 const root=path.join(__dirname,'..');
 const outputDir=path.join(root,'output','konsistenzpruefung');
 const staging=path.join(outputDir,'pruefpaket-staging');
-const zipPath=path.join(outputDir,'KI-Risikobewertung-Pruefpaket-Prototyp-1.11.zip');
-const externalManifestPath=path.join(outputDir,'Dateiliste-SHA256-Prototyp-1.11.txt');
+const zipPath=path.join(outputDir,'KI-Risikobewertung-Pruefpaket-Prototyp-1.12.zip');
+const externalManifestPath=path.join(outputDir,'Dateiliste-SHA256-Prototyp-1.12.txt');
 
 const projectFiles=['index.html','styles.css','app.js','guide-reference.js','README.md','.gitignore','.nojekyll'];
 const testFiles=fs.readdirSync(path.join(root,'tests')).filter(name=>name.endsWith('.cjs')).map(name=>path.join('tests',name));
-const fixtureFiles=['tests/fixtures/ki-risikobewertung-schema13-original.json','tests/fixtures/ki-risikobewertung-schema14-original.json','tests/fixtures/ki-risikobewertung-schema15-original.json'];
+const fixtureFiles=['tests/fixtures/ki-risikobewertung-schema13-original.json','tests/fixtures/ki-risikobewertung-schema14-original.json','tests/fixtures/ki-risikobewertung-schema15-original.json','tests/fixtures/recruiting-golden.cjs'];
 const artifactFiles=[
-  'output/kapitel4/ki-risikobewertung-TOOL-DOK-001-Kapitel4-Pruefstand.json',
-  'output/kapitel4/KI-Risikobewertung-Kurzbericht-TOOL-DOK-001-Kapitel4-Pruefstand.pdf',
-  'output/kapitel4/KI-Risikobewertung-Nachweisbericht-TOOL-DOK-001-Kapitel4-Pruefstand.pdf',
-  'output/konsistenzpruefung/Pruefprotokoll_Prototyp_1_11.md',
-  'output/konsistenzpruefung/Pruefergebnisse_Prototyp_1_11.json'
+  'output/recruiting/ki-risikobewertung-TOOL-REC-001.json',
+  'output/recruiting/KI-Risikobewertung-Kompaktbericht-TOOL-REC-001.html',
+  'output/recruiting/KI-Risikobewertung-Nachweisbericht-TOOL-REC-001.html',
+  'output/pdf/KI-Risikobewertung-Kompaktbericht-TOOL-REC-001.pdf',
+  'output/pdf/KI-Risikobewertung-Nachweisbericht-TOOL-REC-001.pdf'
 ];
 const whitelist=[...projectFiles,...testFiles,...fixtureFiles,...artifactFiles];
 
@@ -38,9 +38,9 @@ const hashes=whitelist.map(relative=>{
   return`${crypto.createHash('sha256').update(data).digest('hex')}  ${relative}`;
 });
 const manifest=[
-  '# KI-Risikobewertung – Prüfpaket Prototyp 1.11',
-  '# Datenmodell: 16',
-  '# Regelwerk: 2.10',
+  '# KI-Risikobewertung – Prüfpaket Prototyp 1.12',
+  '# Datenmodell: 17',
+  '# Regelwerk: 2.11',
   '# Leitfaden: Version 2.0 – vorläufige Fassung',
   ...hashes
 ].join('\n')+'\n';

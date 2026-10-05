@@ -32,7 +32,7 @@ const qaDir=path.join(root,'tmp','ui-qa');
 
   await test('Sichtbare Versionsangaben entsprechen dem aktiven Daten- und Regelmodell',async()=>{
     const text=await page.locator('.method-basis').textContent();
-    if(!text.includes('Prototyp 1.11 · Datenmodell 16')||!text.includes('Regelwerk 2.10'))throw new Error('Die sichtbaren Versionsangaben sind veraltet.');
+    if(!text.includes('Prototyp 1.12 · Datenmodell 17')||!text.includes('Regelwerk 2.11'))throw new Error('Die sichtbaren Versionsangaben sind veraltet.');
   });
 
   await test('Bloßes Öffnen verändert keinen Status',async()=>{
@@ -46,16 +46,15 @@ const qaDir=path.join(root,'tmp','ui-qa');
     if(!(await page.locator('#stepNavigation [data-step="1"]').getAttribute('class')).includes('status-neutral'))throw new Error('Der geöffnete Schritt wurde voreilig bewertet.');
   });
 
-  await test('Musterfall setzt die gesetzliche Art.-50-Rolle fest',async()=>{
+  await test('Musterfall lädt den fiktiven Recruiting-Fall mit korrekter Hochrisiko- und TR-07-Einordnung',async()=>{
     page.once('dialog',dialog=>dialog.accept());
     await page.locator('#exampleButton').click();
     await page.locator('#stepNavigation [data-step="3"]').click();
-    await page.locator('summary').filter({hasText:'E · Transparenzpflichten'}).click();
-    const actor=page.locator('[data-field="tInteractionActor"]');
-    await actor.evaluate(element=>{element.closest('details').open=true;});
-    if(await actor.inputValue()!=='provider')throw new Error('Direkte Interaktion ist nicht dem Anbieter zugeordnet.');
-    if(await actor.locator('option').count()!==1)throw new Error('Die Oberfläche erlaubt mehr als die gesetzlich zulässige Rolle.');
-    if(!await page.getByText('Gesetzlich verpflichteter Akteur',{exact:true}).isVisible())throw new Error('Die feste Rollenlogik ist nicht sichtbar erläutert.');
+    const result=await page.evaluate(()=>{const api=window.__riskAppTest,s=api.getState();return{id:s.form.internalToolId,hr18:s.form.materialInfluenceControl,hr19:s.form.profiling,hr03:s.form.annexISection,annex:api.evaluateAnnexHighRisk(),tr07:api.evaluateTR07(),decision:api.overallDecision(false,true)};});
+    if(result.id!=='TOOL-REC-001'||result.hr18!=='yes'||result.hr19!=='yes'||result.hr03!=='')throw new Error('Die verbindlichen Recruiting-Eingaben wurden nicht vollständig geladen.');
+    if(result.annex.code!=='yes'||result.annex.art63Status!=='HIGH_RISK'||result.tr07.status!=='APPLICABLE'||result.decision.code!=='ASSESSMENT_COMPLETE_WITH_OPEN_MEASURES')throw new Error('Recruiting-Hochrisiko-, TR-07- oder Gesamtstatus ist fachlich abweichend.');
+    const text=await page.locator('#stepContent').textContent();
+    if(!text.includes('Art. 26 Abs. 11')||!text.includes('02.12.2027'))throw new Error('Rechtsgrundlage oder Anwendungsdatum von TR-07 fehlt in der Oberfläche.');
   });
 
   await test('Stabile Prüffragen-IDs sind sichtbar',async()=>{
@@ -186,7 +185,7 @@ const qaDir=path.join(root,'tmp','ui-qa');
     await page.locator('#showEvidenceReportButton').click();
     if(await page.locator('.report-page').count()<14||!await page.locator('.evidence-report').count())throw new Error('Der vollständige Nachweisbericht enthält nicht alle erforderlichen Berichtsabschnitte.');
     const text=await page.locator('.report-area').textContent();
-    if(!text.includes('Bewertung nicht abschließbar'))throw new Error('Der für den bewusst widersprüchlichen Prüfstand abgeleitete Bewertungsstatus fehlt.');
+    if(!text.includes('Bewertung abgeschlossen mit offenen Maßnahmen'))throw new Error('Der für den Recruiting-Musterfall abgeleitete Bewertungsstatus fehlt.');
     const forbidden=[['RELEASE','ABLE'].join(''),['Freigabe','fähig'].join(''),['Freigabe','empfehlung'].join(''),['Bericht mit',' Auflagen'].join('')];
     if(forbidden.some(term=>text.includes(term)))throw new Error('Eine alte automatische Freigabebezeichnung ist sichtbar.');
     if(!text.includes('Prototypversion')||!text.includes('Datenmodellversion')||!text.includes('Vollständige Quellenprüfung')||!text.includes('Letzte Aktualitätsprüfung'))throw new Error('Versions- oder Quellenmetadaten fehlen.');

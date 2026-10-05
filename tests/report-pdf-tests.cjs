@@ -64,10 +64,11 @@ print(json.dumps(result))`;
   return{pages,size,audit};
 }
 
+let activeBrowser;
 (async()=>{
   fs.mkdirSync(outputDir,{recursive:true});fs.mkdirSync(tempRoot,{recursive:true});
   /* Jede Variante wird im Browser aufgebaut, als PDF gedruckt und anschließend textlich sowie geometrisch geprüft. */
-  const browser=await chromium.launch({headless:true,...(fs.existsSync(chrome)?{executablePath:chrome}:{})}),summaries=[];
+  const browser=activeBrowser=await chromium.launch({headless:true,...(fs.existsSync(chrome)?{executablePath:chrome}:{})}),summaries=[];
   for(const target of outputs){
     const page=await browser.newPage({viewport:{width:1440,height:1000}});await page.goto(pathToFileURL(path.join(root,'index.html')).href,{waitUntil:'networkidle'});
     await page.evaluate(target=>{const api=window.__riskAppTest,s=api.exampleState();s.step=7;s.reportVisible=true;s.evaluated=Array(8).fill(true);s.form.internalToolId=target.id;
@@ -86,9 +87,9 @@ print(json.dumps(result))`;
     await page.pdf({path:pdfPath,format:'A4',printBackground:true,displayHeaderFooter:true,headerTemplate:`<div style="width:100%;margin:0 10mm;padding-bottom:2px;font:9pt Arial;color:#005b89;border-bottom:1px solid #cfd7dc"><strong>${typeLabel}</strong> · KI-Risikobewertung</div>`,footerTemplate:`<div style="width:100%;margin:0 10mm;padding-top:2px;font:9pt Arial;color:#5f666a;border-top:1px solid #cfd7dc;display:flex;justify-content:space-between"><span>${target.id}</span><strong><span class="pageNumber"></span> / <span class="totalPages"></span></strong></div>`,margin:{top:'17mm',right:'10mm',bottom:'17mm',left:'10mm'}});
     await page.close();const result=inspectPdf(pdfPath,path.join(tempRoot,`${target.type}-${target.mode}`),target.type,target.mode==='stress');summaries.push({...target,file:path.resolve(pdfPath),...result});
   }
-  await browser.close();
+  await browser.close();activeBrowser=null;
   const compact=summaries.filter(item=>item.type==='compact'),sample=compact.find(item=>item.mode==='sample'),stress=compact.find(item=>item.mode==='stress');
   if(sample.pages<15||sample.pages>25)throw new Error(`Kompakter Musterbericht hat ${sample.pages} statt ungefähr 15–25 Seiten.`);if(stress.pages>35)throw new Error(`Kompakter Belastungsbericht hat ${stress.pages} statt höchstens 35 Seiten.`);
   summaries.forEach(item=>{console.log(`✓ ${item.name}: ${item.pages} A4-Seiten, kleinste Schrift ${item.audit.minimum_font_size.toFixed(2)} pt, keine leeren/unterfüllten/abgeschnittenen Seiten`);console.log(item.file);});
   console.log(`\n8/8 PDF-Varianten technisch und visuell gerendert; kompakter Musterbericht ${sample.pages} Seiten, Belastungsbericht ${stress.pages} Seiten.`);
-})().catch(error=>{console.error(`✗ PDF-Berichtstest fehlgeschlagen: ${error.message}`);process.exitCode=1;});
+})().catch(async error=>{if(activeBrowser)await activeBrowser.close().catch(()=>{});console.error(`✗ PDF-Berichtstest fehlgeschlagen: ${error.message}`);process.exitCode=1;});

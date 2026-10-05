@@ -26,7 +26,7 @@ vm.runInContext(fs.readFileSync(path.join(root,'app.js'),'utf8'),context,{filena
 const api=windowObject.__riskAppTest,sample=api.exampleState();
 api.setRawStateForTest(sample);
 const exported=api.assessmentExportObject();
-if(exported.schemaVersion!==16||exported.versions.prototypeVersion!=='1.11'||exported.versions.ruleSetVersion!=='2.10'||exported.assessment.form.internalToolId!=='TOOL-DOK-001'||exported.derivedResults.decision.code!=='ASSESSMENT_NOT_CONCLUDABLE')throw new Error('Der Kapitel-4-Prüfstand besitzt nicht den erwarteten Versionierungs- oder Bewertungsstatus.');
+if(exported.schemaVersion!==17||exported.versions.prototypeVersion!=='1.12'||exported.versions.ruleSetVersion!=='2.11'||exported.assessment.form.internalToolId!=='TOOL-DOK-001'||exported.derivedResults.decision.code!=='ASSESSMENT_NOT_CONCLUDABLE')throw new Error('Der Kapitel-4-Prüfstand besitzt nicht den erwarteten Versionierungs- oder Bewertungsstatus.');
 
 fs.mkdirSync(output,{recursive:true});
 const files={

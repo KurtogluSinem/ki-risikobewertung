@@ -521,7 +521,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--blue-light); box
   .report-appendix .decision-groups { gap: 2mm; }
   .report-appendix .decision-group { padding: 2mm; }
   .report-appendix .decision-group strong, .report-appendix .decision-group li, .report-appendix .decision-group p { font-size: 9pt; line-height: 1.35; }
-  .review-trigger-section { break-before: auto; page-break-before: auto; }
+  .review-trigger-section { break-before: page; page-break-before: always; }
   .review-trigger-section > p { margin-bottom: 2.5mm; }
   .review-trigger-facts { margin-bottom: 3mm; }
   .report-cover, .report-decision, .report-facts, .matrix-card { break-inside: avoid; page-break-inside: avoid; }
